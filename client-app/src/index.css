@@ -1,0 +1,72 @@
+:root {
+  /* --- Dark Industrial Theme --- */
+
+  /* Primary: Construction Yellow */
+  --color-primary: 45, 100%, 51%;
+  /* #FCCB11 */
+  --color-primary-dark: 45, 100%, 40%;
+
+  /* Secondary: Asphalt */
+  --color-secondary: 210, 15%, 30%;
+
+  /* Backgrounds: Dark Slate/Matte */
+  --bg-main: 220, 13%, 10%;
+  /* Very Dark Blue-Grey */
+  --bg-surface: 220, 13%, 18%;
+  /* Lighter Slate */
+
+  /* Accents */
+  --color-success: 150, 60%, 45%;
+  --color-warning: 30, 100%, 50%;
+  --color-danger: 350, 75%, 50%;
+
+  /* Text */
+  --text-main: 0, 0%, 95%;
+  /* Almost White */
+  --text-muted: 220, 10%, 65%;
+  /* Muted Grey */
+
+  /* --- Glass/Card Tokens (Dark) --- */
+  --glass-bg: hsla(220, 13%, 18%, 0.7);
+  --glass-border: hsla(0, 0%, 100%, 0.08);
+  --glass-highlight: hsla(45, 100%, 51%, 0.08);
+  /* Yellow Tint */
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --backdrop-blur: 12px;
+
+  /* --- Spacing & Radius --- */
+  --radius-lg: 16px;
+  --radius-md: 8px;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: hsl(var(--bg-main));
+  /* Industrial Mesh / Dark Gradient */
+  background-image:
+    radial-gradient(circle at 15% 50%, hsla(220, 13%, 15%, 1), transparent 25%),
+    radial-gradient(circle at 85% 30%, hsla(220, 13%, 15%, 1), transparent 25%);
+  color: hsl(var(--text-main));
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Custom Scrollbar - Dark */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--bg-main));
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--color-secondary));
+  border-radius: 4px;
+  border: 1px solid hsl(var(--bg-main));
+}

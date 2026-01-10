@@ -1,0 +1,41 @@
+# .NET
+bin/
+obj/
+*.dll
+*.exe
+*.pdb
+
+# IDE
+.idea/
+.vs/
+*.suo
+*.user
+
+# Logs
+*.log
+
+# Build outputs
+build*.txt
+build*.log
+msbuild.log
+output.txt
+full_build.log
+
+# Test Results
+**/TestResults/
+
+# Node
+client-app/node_modules/
+client-app/dist/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temp files
+~$*
+*.tmp
+
+# Database backups
+*.sql
+!clean_database.sql
