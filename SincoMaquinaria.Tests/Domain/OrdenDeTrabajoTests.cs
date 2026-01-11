@@ -19,7 +19,7 @@ public class OrdenDeTrabajoTests
         orden.Apply(evento);
 
         // Assert
-        Assert.Equal("Borrador", orden.Estado);
+        Assert.Equal(EstadoOrdenDeTrabajo.Borrador, orden.Estado);
         Assert.Equal("OT-001", orden.Numero);
         Assert.Equal("EQ-123", orden.EquipoId);
         Assert.Equal("Preventivo", orden.Tipo);
@@ -43,7 +43,7 @@ public class OrdenDeTrabajoTests
         var detalle = orden.Detalles[0];
         Assert.Equal(detalleId, detalle.Id);
         Assert.Equal("Cambio de aceite", detalle.Descripcion);
-        Assert.Equal("Pendiente", detalle.Estado);
+        Assert.Equal(EstadoDetalleOrden.Pendiente, detalle.Estado);
         Assert.Equal(0, detalle.Avance);
     }
 
@@ -65,8 +65,8 @@ public class OrdenDeTrabajoTests
         // Assert
         var detalle = orden.Detalles[0];
         Assert.Equal(100, detalle.Avance);
-        Assert.Equal("Finalizado", detalle.Estado);
-        Assert.Equal("EjecucionCompleta", orden.Estado);
+        Assert.Equal(EstadoDetalleOrden.Finalizado, detalle.Estado);
+        Assert.Equal(EstadoOrdenDeTrabajo.EjecucionCompleta, orden.Estado);
     }
 
     [Fact]
@@ -82,7 +82,7 @@ public class OrdenDeTrabajoTests
         orden.Apply(evento);
 
         // Assert
-        Assert.Equal("Programada", orden.Estado);
+        Assert.Equal(EstadoOrdenDeTrabajo.Programada, orden.Estado);
         Assert.Equal(fecha, orden.FechaProgramada);
     }
 

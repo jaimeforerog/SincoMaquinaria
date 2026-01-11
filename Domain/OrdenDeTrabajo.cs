@@ -13,11 +13,11 @@ public class OrdenDeTrabajo
 {
     // Identificador único (Requerido por Marten)
     public Guid Id { get; set; }
-    
+
     // Propiedades de Estado (Proyección en Memoria)
     public string Numero { get; set; } = string.Empty;
     public string EquipoId { get; set; } = string.Empty;
-    public string Estado { get; set; } = "Inexistente";
+    public EstadoOrdenDeTrabajo Estado { get; set; } = EstadoOrdenDeTrabajo.Inexistente;
     public string Tipo { get; set; } = string.Empty;   // Nueva propiedad
     public string Origen { get; set; } = string.Empty; // Nueva propiedad
     public DateTime FechaOrden { get; set; } // Fecha de la OT (Seleccionable)
@@ -38,7 +38,7 @@ public class OrdenDeTrabajo
         Id = @event.OrdenId;
         Numero = @event.NumeroOrden;
         EquipoId = @event.EquipoId;
-        Estado = "Borrador";
+        Estado = EstadoOrdenDeTrabajo.Borrador;
         // Mapeo de nuevas propiedades
         Tipo = @event.TipoMantenimiento;
         Origen = @event.Origen;
@@ -49,7 +49,7 @@ public class OrdenDeTrabajo
     public void Apply(OrdenProgramada @event)
     {
         FechaProgramada = @event.FechaProgramada;
-        Estado = "Programada";
+        Estado = EstadoOrdenDeTrabajo.Programada;
     }
 
     public void Apply(ActividadAgregada @event)
@@ -59,7 +59,7 @@ public class OrdenDeTrabajo
             Id = @event.ItemDetalleId,
             Descripcion = @event.Descripcion,
             Avance = 0,
-            Estado = "Pendiente",
+            Estado = EstadoDetalleOrden.Pendiente,
             Frecuencia = @event.Frecuencia, // Mapping new property
             TipoFallaId = @event.TipoFallaId,
             CausaFallaId = @event.CausaFallaId
@@ -73,22 +73,22 @@ public class OrdenDeTrabajo
 
         item.Avance = @event.PorcentajeAvance;
         item.Observaciones = @event.Observacion;
-        item.Estado = @event.NuevoEstado;
+        item.Estado = @event.NuevoEstado.ToEnum<EstadoDetalleOrden>();
 
         // Lógica de negocio derivada
-        if (Detalles.All(d => d.Estado == "Finalizado"))
+        if (Detalles.All(d => d.Estado == EstadoDetalleOrden.Finalizado))
         {
-            Estado = "EjecucionCompleta";
+            Estado = EstadoOrdenDeTrabajo.EjecucionCompleta;
         }
         else
         {
-            Estado = "EnEjecucion";
+            Estado = EstadoOrdenDeTrabajo.EnEjecucion;
         }
     }
 
     public void Apply(OrdenFinalizada @event)
     {
-        Estado = @event.EstadoFinal;
+        Estado = @event.EstadoFinal.ToEnum<EstadoOrdenDeTrabajo>();
     }
 }
 
@@ -97,7 +97,7 @@ public class DetalleOrden
     public Guid Id { get; set; }
     public string Descripcion { get; set; } = string.Empty;
     public decimal Avance { get; set; }
-    public string Estado { get; set; } = "Pendiente";
+    public EstadoDetalleOrden Estado { get; set; } = EstadoDetalleOrden.Pendiente;
     public string Observaciones { get; set; } = string.Empty;
     public int Frecuencia { get; set; } // New property
     public string? TipoFallaId { get; set; } // Failure type for corrective orders

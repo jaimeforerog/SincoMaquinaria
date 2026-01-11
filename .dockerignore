@@ -1,0 +1,72 @@
+# IDE
+.idea/
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.sln.iml
+
+# Build Outputs
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+
+# Test Results
+**/TestResults/
+[Tt]est[Rr]esult*/
+*.trx
+*.coverage
+
+# Logs
+*.log
+logs/
+
+# Node
+**/node_modules/
+**/dist/
+client-app/node_modules/
+client-app/dist/
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose*.yml
+.env
+
+# Documentation
+*.md
+!README.md
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temp files
+*.tmp
+*.swp
+*~
+~$*
+
+# Database
+*.sql
+*.db
+*.sqlite
+
+# Misc
+*.bak
+*.cache
+postgres_data/

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using SincoMaquinaria.Domain;
 using SincoMaquinaria.Domain.Events;
 using SincoMaquinaria.DTOs.Requests;
+using SincoMaquinaria.Infrastructure;
 
 namespace SincoMaquinaria.Endpoints;
 
@@ -10,40 +11,50 @@ public static class ConfiguracionEndpoints
 {
     public static WebApplication MapConfiguracionEndpoints(this WebApplication app)
     {
+        var group = app.MapGroup("/configuracion")
+            .RequireAuthorization();
+
         // Tipos de Medidor
-        app.MapPost("/configuracion/medidores", CrearTipoMedidor)
+        group.MapPost("/medidores", CrearTipoMedidor)
+            .WithTags("Configuración - Medidores")
+            .AddEndpointFilter<ValidationFilter<CrearTipoMedidorRequest>>();
+        group.MapGet("/medidores", ListarTiposMedidor)
             .WithTags("Configuración - Medidores");
-        app.MapGet("/configuracion/medidores", ListarTiposMedidor)
-            .WithTags("Configuración - Medidores");
-        app.MapPut("/configuracion/medidores/{codigo}", ActualizarTipoMedidor)
-            .WithTags("Configuración - Medidores");
-        app.MapPut("/configuracion/medidores/{codigo}/estado", CambiarEstadoMedidor)
+        group.MapPut("/medidores/{codigo}", ActualizarTipoMedidor)
+            .WithTags("Configuración - Medidores")
+            .AddEndpointFilter<ValidationFilter<ActualizarTipoMedidorRequest>>();
+        group.MapPut("/medidores/{codigo}/estado", CambiarEstadoMedidor)
             .WithTags("Configuración - Medidores");
 
         // Grupos de Mantenimiento
-        app.MapPost("/configuracion/grupos", CrearGrupo)
+        group.MapPost("/grupos", CrearGrupo)
+            .WithTags("Configuración - Grupos")
+            .AddEndpointFilter<ValidationFilter<CrearGrupoRequest>>();
+        group.MapGet("/grupos", ListarGrupos)
             .WithTags("Configuración - Grupos");
-        app.MapGet("/configuracion/grupos", ListarGrupos)
-            .WithTags("Configuración - Grupos");
-        app.MapPut("/configuracion/grupos/{codigo}", ActualizarGrupo)
-            .WithTags("Configuración - Grupos");
-        app.MapPut("/configuracion/grupos/{codigo}/estado", CambiarEstadoGrupo)
+        group.MapPut("/grupos/{codigo}", ActualizarGrupo)
+            .WithTags("Configuración - Grupos")
+            .AddEndpointFilter<ValidationFilter<ActualizarGrupoRequest>>();
+        group.MapPut("/grupos/{codigo}/estado", CambiarEstadoGrupo)
             .WithTags("Configuración - Grupos");
 
         // Tipos de Falla
-        app.MapPost("/configuracion/fallas", CrearTipoFalla)
-            .WithTags("Configuración - Fallas");
-        app.MapGet("/configuracion/fallas", ListarTiposFalla)
+        group.MapPost("/fallas", CrearTipoFalla)
+            .WithTags("Configuración - Fallas")
+            .AddEndpointFilter<ValidationFilter<CrearTipoFallaRequest>>();
+        group.MapGet("/fallas", ListarTiposFalla)
             .WithTags("Configuración - Fallas");
 
         // Causas de Falla
-        app.MapPost("/configuracion/causas-falla", CrearCausaFalla)
+        group.MapPost("/causas-falla", CrearCausaFalla)
+            .WithTags("Configuración - Causas Falla")
+            .AddEndpointFilter<ValidationFilter<CrearCausaFallaRequest>>();
+        group.MapGet("/causas-falla", ListarCausasFalla)
             .WithTags("Configuración - Causas Falla");
-        app.MapGet("/configuracion/causas-falla", ListarCausasFalla)
-            .WithTags("Configuración - Causas Falla");
-        app.MapPut("/configuracion/causas-falla/{codigo}", ActualizarCausaFalla)
-            .WithTags("Configuración - Causas Falla");
-        app.MapPut("/configuracion/causas-falla/{codigo}/estado", CambiarEstadoCausaFalla)
+        group.MapPut("/causas-falla/{codigo}", ActualizarCausaFalla)
+            .WithTags("Configuración - Causas Falla")
+            .AddEndpointFilter<ValidationFilter<ActualizarCausaFallaRequest>>();
+        group.MapPut("/causas-falla/{codigo}/estado", CambiarEstadoCausaFalla)
             .WithTags("Configuración - Causas Falla");
 
         return app;

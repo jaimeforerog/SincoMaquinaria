@@ -5,18 +5,18 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using System;
-using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace SincoMaquinaria.Tests.Integration;
 
-public class EquiposEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
+public class EquiposEndpointsTests : IClassFixture<CustomWebApplicationFactory>
 {
     private readonly HttpClient _client;
 
-    public EquiposEndpointsTests(WebApplicationFactory<Program> factory)
+    public EquiposEndpointsTests(CustomWebApplicationFactory factory)
     {
         _client = factory.CreateClient();
     }
+
 
     [Fact]
     public async Task GetEquipos_DebeRetornarLista()

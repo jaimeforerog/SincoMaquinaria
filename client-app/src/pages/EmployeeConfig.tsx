@@ -7,6 +7,7 @@ import {
     Switch, FormControlLabel, IconButton
 } from '@mui/material';
 import { Add, Edit } from '@mui/icons-material';
+import { useAuthFetch } from '../hooks/useAuthFetch';
 
 export interface Empleado {
     id: string;
@@ -17,6 +18,7 @@ export interface Empleado {
 }
 
 const EmployeeConfig = () => {
+    const authFetch = useAuthFetch();
     const [empleados, setEmpleados] = useState<Empleado[]>([]);
     const [loading, setLoading] = useState(true);
     const [openDialog, setOpenDialog] = useState(false);
@@ -35,7 +37,7 @@ const EmployeeConfig = () => {
     const fetchEmpleados = async () => {
         setLoading(true);
         try {
-            const res = await fetch('/empleados');
+            const res = await authFetch('/empleados');
             if (res.ok) {
                 const data = await res.json();
                 setEmpleados(data);
@@ -76,7 +78,7 @@ const EmployeeConfig = () => {
             const method = editingId ? 'PUT' : 'POST';
             const url = editingId ? `/empleados/${editingId}` : '/empleados';
 
-            const res = await fetch(url, {
+            const res = await authFetch(url, {
                 method: method,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

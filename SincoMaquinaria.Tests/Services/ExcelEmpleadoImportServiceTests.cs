@@ -65,7 +65,7 @@ public class ExcelEmpleadoImportServiceTests : IntegrationContext
         empleado.Should().NotBeNull($"Expected to find 12345678 but found: {string.Join(", ", allEmpleados.Select(e => e.Identificacion))}");
         
         empleado.Nombre.Should().Be("Juan Perez");
-        empleado.Cargo.Should().Be("Operario");
+        empleado.Cargo.Should().Be(CargoEmpleado.Operario);
     }
 
     [Fact]

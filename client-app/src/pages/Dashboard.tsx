@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { LocalShipping, Warning, CheckCircle, Add, Agriculture, Engineering, Build } from '@mui/icons-material';
+import { LocalShipping, Warning, CheckCircle, Add, Engineering, Build } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 
 import { OrdenDeTrabajo } from '../types';
+import { useAuthFetch } from '../hooks/useAuthFetch';
 import {
     Box, Grid, Card, CardContent, Typography, Button,
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Chip, CircularProgress
 } from '@mui/material';
 
 const Dashboard = () => {
+    const authFetch = useAuthFetch();
     const [ordenes, setOrdenes] = useState<OrdenDeTrabajo[]>([]);
     const [equiposList, setEquiposList] = useState<any[]>([]); // Store full list
     const [equiposCount, setEquiposCount] = useState(0);
@@ -34,13 +36,13 @@ const Dashboard = () => {
             setLoading(true);
             try {
                 // Fetch Ordenes
-                const resOrdenes = await fetch('/ordenes').catch(() => null);
+                const resOrdenes = await authFetch('/ordenes').catch(() => null);
                 if (resOrdenes && resOrdenes.ok) {
                     setOrdenes(await resOrdenes.json());
                 }
 
                 // Fetch Equipos
-                const resEquipos = await fetch('/equipos').catch(() => null);
+                const resEquipos = await authFetch('/equipos').catch(() => null);
                 if (resEquipos && resEquipos.ok) {
                     const data = await resEquipos.json();
                     setEquiposList(data);
@@ -48,7 +50,7 @@ const Dashboard = () => {
                 }
 
                 // Fetch Rutinas
-                const resRutinas = await fetch('/rutinas').catch(() => null);
+                const resRutinas = await authFetch('/rutinas').catch(() => null);
                 if (resRutinas && resRutinas.ok) {
                     const data = await resRutinas.json();
                     setRutinasCount(data.length);
@@ -62,7 +64,7 @@ const Dashboard = () => {
         };
 
         fetchData();
-    }, []);
+    }, [authFetch]);
 
     const activeOrders = ordenes.length;
     const pendingOrders = ordenes.filter(o => o.estado === 'Borrador' || o.estado === 'Programada').length;
@@ -94,7 +96,7 @@ const Dashboard = () => {
             {/* KPIs */}
             <Grid container spacing={3} sx={{ mb: 4 }}>
                 <Grid item xs={12} sm={6} md={3}>
-                    <Box component={Link} to="/equipos" sx={{ textDecoration: 'none' }}>
+                    <Box component={Link} to="/gestion-equipos" sx={{ textDecoration: 'none' }}>
                         <KpiCard
                             title="Equipos"
                             value={equiposCount}

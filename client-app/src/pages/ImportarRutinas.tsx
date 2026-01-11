@@ -4,7 +4,10 @@ import {
   Box, Typography, Container, Paper, Button, Alert, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Tabs, Tab
 } from '@mui/material';
 
+import { useAuthFetch } from '../hooks/useAuthFetch';
+
 export default function ImportarRutinas() {
+  const authFetch = useAuthFetch();
   const [activeTab, setActiveTab] = useState(0);
   const [file, setFile] = useState<File | null>(null);
   const [message, setMessage] = useState('');
@@ -43,7 +46,7 @@ export default function ImportarRutinas() {
     else endpoint = '/empleados/importar';
 
     try {
-      const response = await fetch(endpoint, {
+      const response = await authFetch(endpoint, {
         method: 'POST',
         body: formData,
       });
@@ -72,7 +75,7 @@ export default function ImportarRutinas() {
     setIsUploading(true);
     setOpenDialog(false);
     try {
-      const response = await fetch('/admin/reset-db', { method: 'POST' });
+      const response = await authFetch('/admin/reset-db', { method: 'POST' });
       if (response.ok) {
         setMessage("Base de datos borrada correctamente.");
       } else {

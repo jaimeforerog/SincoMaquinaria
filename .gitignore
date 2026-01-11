@@ -1,15 +1,67 @@
-# .NET
-bin/
-obj/
+# .NET Build Outputs
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# .NET Core
+project.lock.json
+project.fragment.lock.json
+artifacts/
 *.dll
 *.exe
 *.pdb
 
-# IDE
+# NuGet Packages
+*.nupkg
+*.snupkg
+**/packages/*
+!**/packages/build/
+*.nuget.props
+*.nuget.targets
+
+# Publish outputs
+publish/
+PublishProfiles/
+*.pubxml
+*.publishproj
+
+# IDE - Rider
 .idea/
+*.sln.iml
+
+# IDE - Visual Studio
 .vs/
 *.suo
 *.user
+*.userosscache
+*.sln.docstates
+*.userprefs
+
+# Test Results
+**/TestResults/
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+*.trx
+*.coverage
+*.coveragexml
+
+# Code Coverage
+coverage*.json
+coverage*.xml
+coverage*.info
+*.lcov
+coverage-report/
+TestResults/
 
 # Logs
 *.log
@@ -18,11 +70,8 @@ obj/
 build*.txt
 build*.log
 msbuild.log
-output.txt
+*output.txt
 full_build.log
-
-# Test Results
-**/TestResults/
 
 # Node
 client-app/node_modules/
@@ -35,7 +84,43 @@ Thumbs.db
 # Temp files
 ~$*
 *.tmp
+*.swp
+*~
 
 # Database backups
 *.sql
 !clean_database.sql
+
+# User-specific files
+*.rsuser
+*.suo
+
+# MonoDevelop
+*.pidb
+*.scc
+
+# Azure Functions
+local.settings.json
+__blobstorage__
+__queuestorage__
+__azurite_db*__.json
+
+# Docker
+.env
+.env.local
+.env.*.local
+docker-compose.override.yml
+postgres_data/
+
+# Secrets and sensitive configuration files
+appsettings.*.local.json
+appsettings.Production.json
+secrets.json
+*.pfx
+*.key
+*.crt
+*.pem
+
+# User secrets
+secrets/
+*.secret

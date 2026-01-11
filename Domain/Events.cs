@@ -1,4 +1,5 @@
 using System;
+using SincoMaquinaria.Domain;
 
 namespace SincoMaquinaria.Domain.Events;
 
@@ -50,3 +51,8 @@ public record EstadoCausaFallaCambiado(string Codigo, bool Activo);
 public record EmpleadoCreado(Guid Id, string Nombre, string Identificacion, string Cargo, string Especialidad, decimal ValorHora, string Estado);
 public record EmpleadoActualizado(Guid Id, string Nombre, string Identificacion, string Cargo, string Especialidad, decimal ValorHora, string Estado);
 
+// --- Usuarios (Autenticación) ---
+
+public record UsuarioCreado(Guid Id, string Email, string PasswordHash, string Nombre, RolUsuario Rol, DateTime FechaCreacion);
+public record UsuarioActualizado(Guid Id, string Nombre, string? PasswordHash);
+public record UsuarioDesactivado(Guid Id);

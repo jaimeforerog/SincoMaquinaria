@@ -3,7 +3,10 @@ using Microsoft.AspNetCore.Mvc;
 using SincoMaquinaria.Domain;
 using SincoMaquinaria.Domain.Events;
 using SincoMaquinaria.DTOs.Requests;
+using SincoMaquinaria.DTOs.Common;
+using SincoMaquinaria.Infrastructure;
 using SincoMaquinaria.Services;
+using SincoMaquinaria.Extensions;
 
 namespace SincoMaquinaria.Endpoints;
 
@@ -12,16 +15,19 @@ public static class EmpleadosEndpoints
     public static WebApplication MapEmpleadosEndpoints(this WebApplication app, int maxFileUploadSizeMB)
     {
         var group = app.MapGroup("/empleados")
-            .WithTags("Empleados");
+            .WithTags("Empleados")
+            .RequireAuthorization();
 
         group.MapPost("/importar", async (
             ExcelEmpleadoImportService importService,
             IFormFile? file) => await ImportarEmpleados(importService, file, maxFileUploadSizeMB))
             .DisableAntiforgery();
 
-        group.MapPost("/", CrearEmpleado);
+        group.MapPost("/", CrearEmpleado)
+            .AddEndpointFilter<ValidationFilter<CrearEmpleadoRequest>>();
         group.MapGet("/", ListarEmpleados);
-        group.MapPut("/{id:guid}", ActualizarEmpleado);
+        group.MapPut("/{id:guid}", ActualizarEmpleado)
+            .AddEndpointFilter<ValidationFilter<ActualizarEmpleadoRequest>>();
 
         return app;
     }
@@ -69,10 +75,37 @@ public static class EmpleadosEndpoints
         return Results.Ok();
     }
 
-    private static async Task<IResult> ListarEmpleados(IQuerySession session)
+    private static async Task<IResult> ListarEmpleados(
+        IQuerySession session,
+        [AsParameters] PaginationRequest pagination)
     {
-        var empleados = await session.Query<Empleado>().ToListAsync();
-        return Results.Ok(empleados);
+        // Obtener resultados paginados
+        var pagedResult = await session.Query<Empleado>()
+            .ApplyOrdering(pagination)
+            .ToPagedResponseAsync(pagination);
+
+        // Proyectar los datos
+        var proyectados = pagedResult.Data.Select(e => new
+        {
+            e.Id,
+            e.Nombre,
+            e.Identificacion,
+            Cargo = e.Cargo.ToString(),
+            e.Especialidad,
+            e.ValorHora,
+            Estado = e.Estado.ToString()
+        }).ToList();
+
+        // Crear nueva respuesta paginada con datos proyectados
+        var resultado = new PagedResponse<object>
+        {
+            Data = proyectados,
+            Page = pagedResult.Page,
+            PageSize = pagedResult.PageSize,
+            TotalCount = pagedResult.TotalCount
+        };
+
+        return Results.Ok(resultado);
     }
 
     private static async Task<IResult> ActualizarEmpleado(

@@ -6,9 +6,11 @@ import {
 } from '@mui/material';
 import { Edit, Save, Cancel, Add } from '@mui/icons-material';
 import { TipoMedidor, GrupoMantenimiento, TipoFalla, CausaFalla } from '../types';
+import { useAuthFetch } from '../hooks/useAuthFetch';
 import EmployeeConfig from './EmployeeConfig';
 
 const MedidoresPanel = () => {
+    const authFetch = useAuthFetch();
     const [tipos, setTipos] = useState<TipoMedidor[]>([]);
     const [nuevoTipo, setNuevoTipo] = useState({ nombre: '', unidad: '' });
     const [error, setError] = useState('');
@@ -19,7 +21,7 @@ const MedidoresPanel = () => {
 
     const fetchTipos = async () => {
         try {
-            const res = await fetch('http://localhost:5000/configuracion/medidores');
+            const res = await authFetch('/configuracion/medidores');
             if (res.ok) setTipos(await res.json());
         } catch (err: any) { setError(err.message); }
     };
@@ -28,7 +30,7 @@ const MedidoresPanel = () => {
         e.preventDefault();
         if (!nuevoTipo.nombre || !nuevoTipo.unidad) return setError('Campos obligatorios');
         try {
-            const res = await fetch('http://localhost:5000/configuracion/medidores', {
+            const res = await authFetch('/configuracion/medidores', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(nuevoTipo)
@@ -52,7 +54,7 @@ const MedidoresPanel = () => {
 
     const saveEdit = async (codigo: string) => {
         try {
-            const res = await fetch(`http://localhost:5000/configuracion/medidores/${codigo}`, {
+            const res = await authFetch(`/configuracion/medidores/${codigo}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(editForm)
@@ -65,7 +67,7 @@ const MedidoresPanel = () => {
     };
 
     const toggleEstado = async (codigo: string, estadoActual: boolean) => {
-        await fetch(`http://localhost:5000/configuracion/medidores/${codigo}/estado`, {
+        await authFetch(`/configuracion/medidores/${codigo}/estado`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ activo: !estadoActual })
@@ -153,6 +155,7 @@ const MedidoresPanel = () => {
 };
 
 const GruposPanel = () => {
+    const authFetch = useAuthFetch();
     const [grupos, setGrupos] = useState<GrupoMantenimiento[]>([]);
     const [nuevo, setNuevo] = useState({ nombre: '', descripcion: '' });
     const [error, setError] = useState('');
@@ -162,14 +165,14 @@ const GruposPanel = () => {
     useEffect(() => { fetchGrupos(); }, []);
 
     const fetchGrupos = async () => {
-        const res = await fetch('http://localhost:5000/configuracion/grupos');
+        const res = await authFetch('/configuracion/grupos');
         if (res.ok) setGrupos(await res.json());
     };
 
     const handleCrear = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!nuevo.nombre) return setError('Nombre obligatorio');
-        const res = await fetch('http://localhost:5000/configuracion/grupos', {
+        const res = await authFetch('/configuracion/grupos', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(nuevo)
@@ -194,7 +197,7 @@ const GruposPanel = () => {
 
     const saveEdit = async (codigo: string) => {
         try {
-            const res = await fetch(`http://localhost:5000/configuracion/grupos/${codigo}`, {
+            const res = await authFetch(`/configuracion/grupos/${codigo}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(editForm)
@@ -207,7 +210,7 @@ const GruposPanel = () => {
     };
 
     const toggleEstado = async (codigo: string, estadoActual: boolean) => {
-        await fetch(`http://localhost:5000/configuracion/grupos/${codigo}/estado`, {
+        await authFetch(`/configuracion/grupos/${codigo}/estado`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ activo: !estadoActual })
@@ -293,6 +296,7 @@ const GruposPanel = () => {
 };
 
 const FallasPanel = () => {
+    const authFetch = useAuthFetch();
     const [fallas, setFallas] = useState<TipoFalla[]>([]);
     const [nuevo, setNuevo] = useState({ descripcion: '', prioridad: 'Media' });
     const [error, setError] = useState('');
@@ -301,7 +305,7 @@ const FallasPanel = () => {
 
     const fetchFallas = async () => {
         try {
-            const res = await fetch('http://localhost:5000/configuracion/fallas');
+            const res = await authFetch('/configuracion/fallas');
             if (res.ok) setFallas(await res.json());
         } catch (e) { setError('Error al cargar fallas'); }
     };
@@ -310,7 +314,7 @@ const FallasPanel = () => {
         e.preventDefault();
         if (!nuevo.descripcion) return setError('Descripción obligatoria');
         try {
-            const res = await fetch('http://localhost:5000/configuracion/fallas', {
+            const res = await authFetch('/configuracion/fallas', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(nuevo)
@@ -398,6 +402,7 @@ const FallasPanel = () => {
 };
 
 const CausasFallaPanel = () => {
+    const authFetch = useAuthFetch();
     const [causas, setCausas] = useState<CausaFalla[]>([]);
     const [nuevo, setNuevo] = useState({ descripcion: '' });
     const [error, setError] = useState('');
@@ -408,7 +413,7 @@ const CausasFallaPanel = () => {
 
     const fetchCausas = async () => {
         try {
-            const res = await fetch('http://localhost:5000/configuracion/causas-falla');
+            const res = await authFetch('/configuracion/causas-falla');
             if (res.ok) setCausas(await res.json());
         } catch (e) { setError('Error al cargar causas de falla'); }
     };
@@ -417,7 +422,7 @@ const CausasFallaPanel = () => {
         e.preventDefault();
         if (!nuevo.descripcion) return setError('Descripción obligatoria');
         try {
-            const res = await fetch('http://localhost:5000/configuracion/causas-falla', {
+            const res = await authFetch('/configuracion/causas-falla', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(nuevo)
@@ -443,7 +448,7 @@ const CausasFallaPanel = () => {
 
     const saveEdit = async (codigo: string) => {
         try {
-            const res = await fetch(`http://localhost:5000/configuracion/causas-falla/${codigo}`, {
+            const res = await authFetch(`/configuracion/causas-falla/${codigo}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(editForm)
@@ -456,7 +461,7 @@ const CausasFallaPanel = () => {
     };
 
     const toggleEstado = async (codigo: string, estadoActual: boolean) => {
-        await fetch(`http://localhost:5000/configuracion/causas-falla/${codigo}/estado`, {
+        await authFetch(`/configuracion/causas-falla/${codigo}/estado`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ activo: !estadoActual })

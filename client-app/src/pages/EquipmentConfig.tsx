@@ -5,6 +5,7 @@ import {
     DialogContent, DialogActions, TextField, Grid, Chip, CircularProgress
 } from '@mui/material';
 import { Edit } from '@mui/icons-material';
+import { useAuthFetch } from '../hooks/useAuthFetch';
 
 interface Equipo {
     id: string; // Keep id for API calls
@@ -22,6 +23,7 @@ interface Equipo {
 }
 
 const EquipmentConfig = () => {
+    const authFetch = useAuthFetch();
     const [equipos, setEquipos] = useState<Equipo[]>([]);
     const [loading, setLoading] = useState(true);
     const [openEdit, setOpenEdit] = useState(false);
@@ -31,12 +33,12 @@ const EquipmentConfig = () => {
 
     useEffect(() => {
         fetchEquipos();
-    }, []);
+    }, [authFetch]); // Added authFetch dependency
 
     const fetchEquipos = async () => {
         setLoading(true);
         try {
-            const res = await fetch('/equipos');
+            const res = await authFetch('/equipos');
             if (res.ok) {
                 const data = await res.json();
                 setEquipos(data);
@@ -64,9 +66,8 @@ const EquipmentConfig = () => {
         try {
             // Note: Sending 'Marca' and 'Modelo' as empty or existing values if needed by backend, 
             // but for now ignoring them in the UI as requested.
-            const res = await fetch(`/equipos/${currentEquipo.id}`, {
+            const res = await authFetch(`/equipos/${currentEquipo.id}`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     Placa: currentEquipo.placa, // Add placa to the body
                     Descripcion: currentEquipo.descripcion,

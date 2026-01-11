@@ -2,8 +2,13 @@ import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import EquipmentConfig from './EquipmentConfig';
 
-// Mock fetch
-global.fetch = vi.fn();
+// Mock authFetch
+const mockAuthFetch = vi.fn();
+
+// Mock the hook module
+vi.mock('../hooks/useAuthFetch', () => ({
+    useAuthFetch: () => mockAuthFetch
+}));
 
 const mockEquipos = [
     {
@@ -33,7 +38,7 @@ const mockEquipos = [
 describe('EquipmentConfig Component', () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        (global.fetch as any).mockResolvedValue({
+        mockAuthFetch.mockResolvedValue({
             ok: true,
             json: async () => mockEquipos
         });
@@ -52,7 +57,7 @@ describe('EquipmentConfig Component', () => {
             render(<EquipmentConfig />);
         });
 
-        expect(global.fetch).toHaveBeenCalledWith('/equipos');
+        expect(mockAuthFetch).toHaveBeenCalledWith('/equipos');
     });
 
     it('renders table headers', async () => {

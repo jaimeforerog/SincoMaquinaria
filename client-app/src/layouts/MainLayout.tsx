@@ -1,17 +1,26 @@
-import { Box, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Typography, Divider } from '@mui/material';
-import { Dashboard, History, CloudUpload, ErrorOutline, Settings, Construction } from '@mui/icons-material';
-import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { Box, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Typography, Divider, Button, Avatar } from '@mui/material';
+import { Dashboard, History, CloudUpload, ErrorOutline, Settings, Construction, Logout, People } from '@mui/icons-material';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 const drawerWidth = 240;
 
 const MainLayout = () => {
     const location = useLocation();
+    const navigate = useNavigate();
+    const { user, logout } = useAuth();
+
+    const handleLogout = () => {
+        logout();
+        navigate('/login');
+    };
 
     const menuItems = [
         { text: 'Dashboard', icon: <Dashboard />, path: '/' },
         { text: 'Orden de Trabajo', icon: <History />, path: '/historial' },
         { text: 'Importar', icon: <CloudUpload />, path: '/importar-rutinas' },
         { text: 'Equipos', icon: <Construction />, path: '/gestion-equipos' },
+        { text: 'Usuarios', icon: <People />, path: '/gestion-usuarios', adminOnly: true },
         { text: 'Configuración', icon: <Settings />, path: '/configuracion' },
         { text: 'Logs de Error', icon: <ErrorOutline />, path: '/logs' },
     ];
@@ -40,12 +49,13 @@ const MainLayout = () => {
                 </div>
                 <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.08)' }} />
                 <List>
-                    {menuItems.map((item) => (
+                    {menuItems
+                        .filter(item => !item.adminOnly || user?.rol === 'Admin')
+                        .map((item) => (
                         <ListItem key={item.text} disablePadding>
                             <ListItemButton
                                 component={NavLink}
                                 to={item.path}
-                                selected={location.pathname === item.path}
                                 sx={{
                                     '&.active': {
                                         bgcolor: 'rgba(79, 195, 247, 0.16)', // Primary with opacity 
@@ -70,8 +80,48 @@ const MainLayout = () => {
                         </ListItem>
                     ))}
                 </List>
-                <Box sx={{ mt: 'auto', p: 2, textAlign: 'center' }}>
-                    <Typography variant="caption" sx={{ color: 'text.disabled' }}>
+                <Box sx={{ mt: 'auto', p: 2 }}>
+                    <Divider sx={{ mb: 2, borderColor: 'rgba(255, 255, 255, 0.08)' }} />
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, px: 1 }}>
+                        <Avatar
+                            sx={{
+                                bgcolor: 'primary.main',
+                                width: 32,
+                                height: 32,
+                                fontSize: '0.875rem',
+                                mr: 1.5
+                            }}
+                        >
+                            {user?.nombre?.charAt(0)?.toUpperCase() || 'U'}
+                        </Avatar>
+                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                            <Typography variant="body2" noWrap sx={{ fontWeight: 500 }}>
+                                {user?.nombre || 'Usuario'}
+                            </Typography>
+                            <Typography variant="caption" noWrap sx={{ color: 'text.secondary' }}>
+                                {user?.rol || 'User'}
+                            </Typography>
+                        </Box>
+                    </Box>
+                    <Button
+                        fullWidth
+                        variant="outlined"
+                        size="small"
+                        startIcon={<Logout />}
+                        onClick={handleLogout}
+                        sx={{
+                            borderColor: 'rgba(255, 255, 255, 0.23)',
+                            color: 'text.secondary',
+                            '&:hover': {
+                                borderColor: 'error.main',
+                                bgcolor: 'rgba(211, 47, 47, 0.08)',
+                                color: 'error.main'
+                            }
+                        }}
+                    >
+                        Cerrar Sesión
+                    </Button>
+                    <Typography variant="caption" sx={{ color: 'text.disabled', display: 'block', mt: 1.5, textAlign: 'center' }}>
                         Estado: 🟢 Online
                     </Typography>
                 </Box>

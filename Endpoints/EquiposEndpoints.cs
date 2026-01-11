@@ -3,7 +3,10 @@ using Microsoft.AspNetCore.Mvc;
 using SincoMaquinaria.Domain;
 using SincoMaquinaria.Domain.Events;
 using SincoMaquinaria.DTOs.Requests;
+using SincoMaquinaria.DTOs.Common;
+using SincoMaquinaria.Infrastructure;
 using SincoMaquinaria.Services;
+using SincoMaquinaria.Extensions;
 
 namespace SincoMaquinaria.Endpoints;
 
@@ -12,7 +15,8 @@ public static class EquiposEndpoints
     public static WebApplication MapEquiposEndpoints(this WebApplication app, int maxFileUploadSizeMB)
     {
         var group = app.MapGroup("/equipos")
-            .WithTags("Equipos");
+            .WithTags("Equipos")
+            .RequireAuthorization();
 
         group.MapPost("/importar", async (
             ExcelEquipoImportService importService,
@@ -21,7 +25,8 @@ public static class EquiposEndpoints
 
         group.MapGet("/", ListarEquipos);
         group.MapGet("/{id:guid}", ObtenerEquipo);
-        group.MapPut("/{id:guid}", ActualizarEquipo);
+        group.MapPut("/{id:guid}", ActualizarEquipo)
+            .AddEndpointFilter<ValidationFilter<ActualizarEquipoRequest>>();
 
         return app;
     }
@@ -57,10 +62,15 @@ public static class EquiposEndpoints
         }
     }
 
-    private static async Task<IResult> ListarEquipos(IQuerySession session)
+    private static async Task<IResult> ListarEquipos(
+        IQuerySession session,
+        [AsParameters] PaginationRequest pagination)
     {
-        var equipos = await session.Query<Equipo>().ToListAsync();
-        return Results.Ok(equipos);
+        var query = session.Query<Equipo>()
+            .ApplyOrdering(pagination);
+
+        var result = await query.ToPagedResponseAsync(pagination);
+        return Results.Ok(result);
     }
 
     private static async Task<IResult> ObtenerEquipo(IQuerySession session, Guid id)

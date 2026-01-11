@@ -134,4 +134,15 @@ describe('Dashboard Component', () => {
             expect(screen.getByText('Nueva Orden')).toBeInTheDocument();
         });
     });
+
+    it('links to equipment management', async () => {
+        await act(async () => {
+            renderWithRouter(<Dashboard />);
+        });
+
+        await waitFor(() => {
+            const link = screen.getByText('Equipos').closest('a');
+            expect(link).toHaveAttribute('href', '/gestion-equipos');
+        });
+    });
 });

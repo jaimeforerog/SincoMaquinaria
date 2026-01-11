@@ -319,7 +319,6 @@ public class ExcelEquipoImportService
         }
 
         await _session.SaveChangesAsync();
-        await _session.SaveChangesAsync();
         return count;
     }
 

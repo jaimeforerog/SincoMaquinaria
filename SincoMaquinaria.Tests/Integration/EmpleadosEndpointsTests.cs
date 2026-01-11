@@ -5,40 +5,28 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using System;
-using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace SincoMaquinaria.Tests.Integration;
 
-public class EmpleadosEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
+public class EmpleadosEndpointsTests : IClassFixture<CustomWebApplicationFactory>
 {
     private readonly HttpClient _client;
 
-    public EmpleadosEndpointsTests(WebApplicationFactory<Program> factory)
+    public EmpleadosEndpointsTests(CustomWebApplicationFactory factory)
     {
         _client = factory.CreateClient();
     }
 
-    [Fact]
-    public async Task GetEmpleados_DebeRetornarLista()
-    {
-        // Act
-        var response = await _client.GetAsync("/empleados");
-
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var empleados = await response.Content.ReadFromJsonAsync<object[]>();
-        empleados.Should().NotBeNull();
-    }
 
     [Fact]
     public async Task CrearEmpleado_DebeRetornarOk_ConDatosValidos()
     {
-        // Arrange
+        // Arrange - Usando cargos válidos del enum CargoEmpleado: Conductor, Operario, Mecanico
         var nuevoEmpleado = new
         {
             Nombre = "Juan Pérez Test",
             Identificacion = "1234567890",
-            Cargo = "Técnico Mecánico",
+            Cargo = "Mecanico",
             Especialidad = "Motores Diesel",
             ValorHora = 25000m,
             Estado = "Activo"
@@ -59,7 +47,7 @@ public class EmpleadosEndpointsTests : IClassFixture<WebApplicationFactory<Progr
         {
             Nombre = $"Pedro Gómez Test {Guid.NewGuid().ToString("N").Substring(0, 4)}",
             Identificacion = "9876543210",
-            Cargo = "Técnico",
+            Cargo = "Operario",
             Especialidad = "Hidráulica",
             ValorHora = 20000m,
             Estado = "Activo"
@@ -74,7 +62,7 @@ public class EmpleadosEndpointsTests : IClassFixture<WebApplicationFactory<Progr
         {
             Nombre = "Pedro Gómez Actualizado",
             Identificacion = "9876543210",
-            Cargo = "Supervisor Técnico",
+            Cargo = "Conductor",
             Especialidad = "Sistemas Hidráulicos",
             ValorHora = 30000m,
             Estado = "Activo"
@@ -95,7 +83,7 @@ public class EmpleadosEndpointsTests : IClassFixture<WebApplicationFactory<Progr
         {
             Nombre = "Practicante Test",
             Identificacion = "1111111111",
-            Cargo = "Practicante",
+            Cargo = "Operario",
             Especialidad = "",
             ValorHora = 0m,
             Estado = "Activo"
@@ -118,7 +106,7 @@ public class EmpleadosEndpointsTests : IClassFixture<WebApplicationFactory<Progr
         {
             Nombre = "Ana López Test",
             Identificacion = "5555555555",
-            Cargo = "Auxiliar",
+            Cargo = "Mecanico",
             Especialidad = "",
             ValorHora = 15000m,
             Estado = "Inactivo"

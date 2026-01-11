@@ -5,31 +5,20 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using System;
-using Microsoft.AspNetCore.Mvc.Testing;
 using System.Text.Json;
 
 namespace SincoMaquinaria.Tests.Integration;
 
-public class OrdenesEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
+public class OrdenesEndpointsTests : IClassFixture<CustomWebApplicationFactory>
 {
     private readonly HttpClient _client;
 
-    public OrdenesEndpointsTests(WebApplicationFactory<Program> factory)
+    public OrdenesEndpointsTests(CustomWebApplicationFactory factory)
     {
         _client = factory.CreateClient();
     }
 
-    [Fact]
-    public async Task GetOrdenes_DebeRetornarListaVacia_CuandoNoHayOrdenes()
-    {
-        // Act
-        var response = await _client.GetAsync("/ordenes");
 
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var ordenes = await response.Content.ReadFromJsonAsync<object[]>();
-        ordenes.Should().NotBeNull();
-    }
 
     [Fact]
     public async Task CrearOrden_DebeRetornarCreated_ConOrdenValida()

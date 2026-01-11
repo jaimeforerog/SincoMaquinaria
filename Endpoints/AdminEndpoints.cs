@@ -10,16 +10,18 @@ public static class AdminEndpoints
     {
         var enableAdminEndpoints = configuration.GetValue<bool>("Security:EnableAdminEndpoints", false);
 
+        // Admin group requiere rol de Admin
+        var adminGroup = app.MapGroup("/admin")
+            .WithTags("Admin")
+            .RequireAuthorization("Admin");
+
         if (enableAdminEndpoints)
         {
-            app.MapGet("/admin/logs", ListarLogs)
-                .WithTags("Admin");
-
-            app.MapPost("/admin/reset-db", ResetDatabase)
-                .WithTags("Admin");
+            adminGroup.MapGet("/logs", ListarLogs);
+            adminGroup.MapPost("/reset-db", ResetDatabase);
         }
 
-        // Debug endpoint (siempre disponible en desarrollo)
+        // Debug endpoint (remueve si no es desarrollo, o mantén sin autorización para debugging)
         app.MapGet("/debug/excel-headers", InspeccionarExcel)
             .WithTags("Debug");
 

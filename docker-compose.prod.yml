@@ -1,0 +1,28 @@
+services:
+  # Backend + Frontend (Production)
+  backend:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:5000
+      # PostgreSQL en servidor externo (configurar mediante variables de entorno)
+      - ConnectionStrings__DefaultConnection=host=${POSTGRES_HOST};database=${POSTGRES_DB:-SincoMaquinaria};password=${POSTGRES_PASSWORD};username=${POSTGRES_USER:-postgres}
+      - Security__MaxFileUploadSizeMB=${MAX_FILE_UPLOAD_SIZE_MB:-50}
+    # Don't mount logs volume in production - use stdout/stderr
+    volumes: []
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+      replicas: 1
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

@@ -18,7 +18,7 @@ public class EmpleadoTests
             empleadoId,
             "Juan Pérez",
             "1234567890",
-            "Técnico Mecánico",
+            "Mecanico",
             "Motores Diesel",
             25000m,
             "Activo"
@@ -31,10 +31,10 @@ public class EmpleadoTests
         empleado.Id.Should().Be(empleadoId);
         empleado.Nombre.Should().Be("Juan Pérez");
         empleado.Identificacion.Should().Be("1234567890");
-        empleado.Cargo.Should().Be("Técnico Mecánico");
+        empleado.Cargo.Should().Be(CargoEmpleado.Mecanico);
         empleado.Especialidad.Should().Be("Motores Diesel");
         empleado.ValorHora.Should().Be(25000m);
-        empleado.Estado.Should().Be("Activo");
+        empleado.Estado.Should().Be(EstadoEmpleado.Activo);
     }
 
     [Fact]
@@ -46,7 +46,7 @@ public class EmpleadoTests
 
         // Setup initial state
         empleado.Apply(new EmpleadoCreado(
-            empleadoId, "Juan Pérez", "1234567890", "Técnico",
+            empleadoId, "Juan Pérez", "1234567890", "Mecanico",
             "Motores", 25000m, "Activo"
         ));
 
@@ -55,7 +55,7 @@ public class EmpleadoTests
             empleadoId,
             "Juan Carlos Pérez",
             "1234567890",
-            "Supervisor Técnico",
+            "Operario",
             "Sistemas Hidráulicos",
             35000m,
             "Activo"
@@ -66,10 +66,10 @@ public class EmpleadoTests
         empleado.Id.Should().Be(empleadoId);
         empleado.Nombre.Should().Be("Juan Carlos Pérez");
         empleado.Identificacion.Should().Be("1234567890");
-        empleado.Cargo.Should().Be("Supervisor Técnico");
+        empleado.Cargo.Should().Be(CargoEmpleado.Operario);
         empleado.Especialidad.Should().Be("Sistemas Hidráulicos");
         empleado.ValorHora.Should().Be(35000m);
-        empleado.Estado.Should().Be("Activo");
+        empleado.Estado.Should().Be(EstadoEmpleado.Activo);
     }
 
     [Fact]
@@ -82,7 +82,7 @@ public class EmpleadoTests
             empleadoId,
             "Ana López",
             "9876543210",
-            "Auxiliar",
+            "Operario",
             "", // Sin especialidad
             15000m,
             "Activo"
@@ -106,7 +106,7 @@ public class EmpleadoTests
         var empleadoId = Guid.NewGuid();
 
         empleado.Apply(new EmpleadoCreado(
-            empleadoId, "Pedro Gómez", "5555555555", "Técnico",
+            empleadoId, "Pedro Gómez", "5555555555", "Conductor",
             "", 20000m, "Activo"
         ));
 
@@ -115,7 +115,7 @@ public class EmpleadoTests
             empleadoId,
             "Pedro Gómez",
             "5555555555",
-            "Técnico",
+            "Conductor",
             "",
             20000m,
             "Inactivo"
@@ -123,7 +123,7 @@ public class EmpleadoTests
         empleado.Apply(eventoActualizado);
 
         // Assert
-        empleado.Estado.Should().Be("Inactivo");
+        empleado.Estado.Should().Be(EstadoEmpleado.Inactivo);
     }
 
     [Fact]
@@ -133,7 +133,7 @@ public class EmpleadoTests
         var empleado = new Empleado();
 
         // Assert
-        empleado.Estado.Should().Be("Activo");
+        empleado.Estado.Should().Be(EstadoEmpleado.Activo);
         empleado.Nombre.Should().BeEmpty();
         empleado.ValorHora.Should().Be(0m);
     }
@@ -148,7 +148,7 @@ public class EmpleadoTests
             empleadoId,
             "Practicante Sin Pago",
             "1111111111",
-            "Practicante",
+            "Operario",
             "",
             0m,
             "Activo"
@@ -159,6 +159,6 @@ public class EmpleadoTests
 
         // Assert
         empleado.ValorHora.Should().Be(0m);
-        empleado.Cargo.Should().Be("Practicante");
+        empleado.Cargo.Should().Be(CargoEmpleado.Operario);
     }
 }

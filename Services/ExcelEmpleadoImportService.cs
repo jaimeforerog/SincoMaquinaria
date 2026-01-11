@@ -21,11 +21,8 @@ public class ExcelEmpleadoImportService
 
     public async Task<int> ImportarEmpleados(Stream fileStream)
     {
-        // Allowed positions
-        var cargosValidos = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-        {
-            "Conductor", "Operario", "Mecanico"
-        };
+        // Allowed positions - Get from enum
+        var cargosValidos = EnumExtensions.GetEnumValues<CargoEmpleado>();
         
         using var reader = ExcelReaderFactory.CreateReader(fileStream);
         var result = reader.AsDataSet(new ExcelDataSetConfiguration()
@@ -119,9 +116,15 @@ public class ExcelEmpleadoImportService
             {
                  validationErrors.Add($"Fila {rowNum}: El cargo es obligatorio.");
             }
-            else if (!cargosValidos.Contains(cargo))
+            else if (!cargo.IsValidEnum<CargoEmpleado>())
             {
-                 validationErrors.Add($"Fila {rowNum}: El cargo '{cargo}' no es válido. Valores permitidos: Conductor, Operario, Mecanico.");
+                 var valoresPermitidos = string.Join(", ", cargosValidos);
+                 validationErrors.Add($"Fila {rowNum}: El cargo '{cargo}' no es válido. Valores permitidos: {valoresPermitidos}.");
+            }
+            else
+            {
+                // Normalize: "1" -> "Operario", "operario" -> "Operario"
+                cargo = cargo.ToEnum<CargoEmpleado>().ToString();
             }
 
             if (validationErrors.Any()) continue;
@@ -134,12 +137,6 @@ public class ExcelEmpleadoImportService
             count++;
         }
 
-        if (validationErrors.Any())
-        {
-            throw new Exception("Errores de validación:\n" + string.Join("\n", validationErrors.Take(10)));
-        }
-
-        await _session.SaveChangesAsync();
         if (validationErrors.Any())
         {
             throw new Exception("Errores de validación:\n" + string.Join("\n", validationErrors.Take(10)));

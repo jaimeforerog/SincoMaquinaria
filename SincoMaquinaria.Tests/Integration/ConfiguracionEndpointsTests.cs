@@ -5,18 +5,18 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace SincoMaquinaria.Tests.Integration;
 
-public class ConfiguracionEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
+public class ConfiguracionEndpointsTests : IClassFixture<CustomWebApplicationFactory>
 {
     private readonly HttpClient _client;
 
-    public ConfiguracionEndpointsTests(WebApplicationFactory<Program> factory)
+    public ConfiguracionEndpointsTests(CustomWebApplicationFactory factory)
     {
         _client = factory.CreateClient();
     }
+
 
     [Fact]
     public async Task CrearTipoMedidor_DebeRetornarOk_ConDatosValidos()
