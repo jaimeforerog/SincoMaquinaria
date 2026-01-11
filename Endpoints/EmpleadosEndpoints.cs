@@ -29,8 +29,54 @@ public static class EmpleadosEndpoints
         group.MapPut("/{id:guid}", ActualizarEmpleado)
             .AddEndpointFilter<ValidationFilter<ActualizarEmpleadoRequest>>();
 
+
+        // Plantilla Excel para importación
+        group.MapGet("/plantilla", DescargarPlantilla)
+            .AllowAnonymous();
+
         return app;
     }
+
+    private static IResult DescargarPlantilla()
+    {
+        // Configurar licencia EPPlus (Non-Commercial)
+        OfficeOpenXml.ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
+
+        using var package = new OfficeOpenXml.ExcelPackage();
+        var worksheet = package.Workbook.Worksheets.Add("Empleados");
+
+        // Encabezados
+        var headers = new[]
+        {
+            "Nombres", 
+            "Apellidos", 
+            "No. Identificación", 
+            "Cargo", 
+            "Especialidad", 
+            "Valor $ (Hr)"
+        };
+
+        // Escribir encabezados en la fila 1
+        for (int i = 0; i < headers.Length; i++)
+        {
+            worksheet.Cells[1, i + 1].Value = headers[i];
+            worksheet.Cells[1, i + 1].Style.Font.Bold = true;
+            worksheet.Cells[1, i + 1].Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+            worksheet.Cells[1, i + 1].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.FromArgb(68, 114, 196));
+            worksheet.Cells[1, i + 1].Style.Font.Color.SetColor(System.Drawing.Color.White);
+        }
+
+        // Ajustar ancho de columnas automáticamente
+        worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
+
+        // Generar el archivo
+        var bytes = package.GetAsByteArray();
+        var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+        var fileName = $"plantillaEmpleados_{timestamp}.xlsx";
+
+        return Results.File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+    }
+
 
     private static async Task<IResult> ImportarEmpleados(
         ExcelEmpleadoImportService importService,

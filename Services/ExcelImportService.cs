@@ -164,8 +164,16 @@ public class ExcelImportService
                validationErrors.Add($"Fila {rowNum}: El campo 'Actividad' es obligatorio.");
             }
              
+            // --- Helper Local ---
+            string CleanNumericInput(string input)
+            {
+                if (string.IsNullOrEmpty(input)) return input;
+                // Correct common OCR/Typo errors: 'O' or 'o' -> '0'
+                return input.Replace("O", "0").Replace("o", "0");
+            }
+
             // Validar Frecuencia
-            var frecuenciaStr = GetVal(row, "Frecuencia") ?? "0";
+            var frecuenciaStr = CleanNumericInput(GetVal(row, "Frecuencia") ?? "0");
             int frecuencia = 0;
             if (!int.TryParse(frecuenciaStr, out frecuencia))
             {
@@ -174,7 +182,7 @@ public class ExcelImportService
             }
             if (frecuencia <= 0)
             {
-                validationErrors.Add($"Fila {rowNum}: La 'Frecuencia' debe ser mayor a 0 (Valor: {frecuenciaStr}).");
+                validationErrors.Add($"Fila {rowNum}: La 'Frecuencia' debe ser mayor a 0 (Valor original: {GetVal(row, "Frecuencia") ?? "0"}).");
             }
 
             // Validar Frecuencia UM 1
@@ -228,7 +236,7 @@ public class ExcelImportService
 
             
             // Alerta Faltando
-            var alertaStr = GetVal(row, "Alerta Faltando", "Alerta", "AlertaFaltando") ?? "0";
+            var alertaStr = CleanNumericInput(GetVal(row, "Alerta Faltando", "Alerta", "AlertaFaltando") ?? "0");
             if (!int.TryParse(alertaStr, out int alertaFaltando))
             {
                if (double.TryParse(alertaStr, out double dAlert))
@@ -237,7 +245,7 @@ public class ExcelImportService
             }
 
             // --- Frecuencia II ---
-            var frecuenciaIIStr = GetVal(row, "Frecuencia II", "Frecuencia 2", "Frecuencia2") ?? "0";
+            var frecuenciaIIStr = CleanNumericInput(GetVal(row, "Frecuencia II", "Frecuencia 2", "Frecuencia2") ?? "0");
             int frecuencia2 = 0;
             if (int.TryParse(frecuenciaIIStr, out int freq2)) frecuencia2 = freq2;
             else if (double.TryParse(frecuenciaIIStr, out double dFreq2)) frecuencia2 = (int)Math.Round(dFreq2);
@@ -252,21 +260,23 @@ public class ExcelImportService
                  }
              }
 
-            var alertaIIStr = GetVal(row, "Alerta Faltando II", "Alerta II", "Alerta 2") ?? "0";
+            var alertaIIStr = CleanNumericInput(GetVal(row, "Alerta Faltando II", "Alerta II", "Alerta 2") ?? "0");
              int alertaFaltando2 = 0;
              if (int.TryParse(alertaIIStr, out int alert2)) alertaFaltando2 = alert2;
              else if (double.TryParse(alertaIIStr, out double dAlert2)) alertaFaltando2 = (int)Math.Round(dAlert2);
 
 
             // Insumo
-            var insumo = GetVal(row, "Insumo") ?? (table.Columns.Count > 11 ? row[11]?.ToString()?.Trim() : null);
+            var insumoRaw = GetVal(row, "Insumo") ?? (table.Columns.Count > 11 ? row[11]?.ToString()?.Trim() : null);
+            var insumo = CleanNumericInput(insumoRaw);
+            
             if (!string.IsNullOrEmpty(insumo) && !double.TryParse(insumo, out _))
             {
-                 validationErrors.Add($"Fila {rowNum} (Rutina: {nombreRutina}, Parte: {nombreParte}, Actividad: {descActividad}): El campo 'Insumo' debe ser vacío o un valor numérico. Valor encontrado: '{insumo}'");
+                 validationErrors.Add($"Fila {rowNum} (Rutina: {nombreRutina}, Parte: {nombreParte}, Actividad: {descActividad}): El campo 'Insumo' debe ser vacío o un valor numérico. Valor encontrado: '{insumo}' (Original: '{insumoRaw}')");
             }
 
             // Cantidad
-            var cantStr = GetVal(row, "Cantidad") ?? (table.Columns.Count > 12 ? row[12]?.ToString()?.Trim() : "0");
+            var cantStr = CleanNumericInput(GetVal(row, "Cantidad") ?? (table.Columns.Count > 12 ? row[12]?.ToString()?.Trim() : "0"));
             double.TryParse(cantStr, out double cantidad);
 
             _session.Events.Append(rutinaId, new ActividadDeRutinaMigrada(
@@ -292,7 +302,7 @@ public class ExcelImportService
             }
         }
         
-        await System.IO.File.WriteAllLinesAsync("debug_import.txt", logLines);
+
 
         if (validationErrors.Any())
         {

@@ -39,7 +39,9 @@ const EmployeeConfig = () => {
         try {
             const res = await authFetch('/empleados');
             if (res.ok) {
-                const data = await res.json();
+                const response = await res.json();
+                // Handle paginated response
+                const data = response.data || response;
                 setEmpleados(data);
             }
         } catch (error) {

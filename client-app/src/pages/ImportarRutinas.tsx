@@ -1,5 +1,5 @@
 import { useState, ChangeEvent, SyntheticEvent } from 'react';
-import { UploadFile, DeleteForever, CloudUpload, Engineering, LocalShipping, People } from '@mui/icons-material';
+import { UploadFile, DeleteForever, CloudUpload, Engineering, LocalShipping, People, Download } from '@mui/icons-material';
 import {
   Box, Typography, Container, Paper, Button, Alert, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Tabs, Tab
 } from '@mui/material';
@@ -100,6 +100,57 @@ export default function ImportarRutinas() {
     return 'Importar Empleados';
   };
 
+  const getTabDescription = () => {
+    if (activeTab === 0) return 'Sube el archivo Excel con las rutinas de mantenimiento desglosadas (Grupo, Parte, Actividad, Frecuencia).';
+    if (activeTab === 1) return 'Sube el archivo Excel con el listado de equipos. Todos los campos son obligatorios.';
+    return 'Sube el archivo Excel con el listado de empleados (Nombre, Documento, Cargo, Estado).';
+  };
+
+  const handleDownloadTemplate = async () => {
+    try {
+      let endpoint = '';
+      let defaultFileName = '';
+
+      if (activeTab === 0) {
+        endpoint = '/rutinas/plantilla';
+        defaultFileName = `plantillaRutinas_${new Date().toISOString().slice(0, 10)}.xlsx`;
+      } else if (activeTab === 1) {
+        endpoint = '/equipos/plantilla';
+        defaultFileName = `plantillaEquipos_${new Date().toISOString().slice(0, 10)}.xlsx`;
+      } else {
+        endpoint = '/empleados/plantilla';
+        defaultFileName = `plantillaEmpleados_${new Date().toISOString().slice(0, 10)}.xlsx`;
+      }
+
+      const response = await authFetch(endpoint, {
+        method: 'GET',
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+
+        // Extraer el nombre del archivo del header Content-Disposition o usar uno por defecto
+        const contentDisposition = response.headers.get('Content-Disposition');
+        // Regex ajustado para capturar solo el valor de filename, deteniéndose ante un punto y coma
+        const fileNameMatch = contentDisposition?.match(/filename="?([^";]+)"?/);
+        const fileName = fileNameMatch ? fileNameMatch[1] : defaultFileName;
+
+        link.setAttribute('download', fileName);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+      } else {
+        setMessage('Error al descargar la plantilla');
+      }
+    } catch (error: any) {
+      setMessage(`Error al descargar: ${error.message}`);
+    }
+  };
+
   return (
     <Container maxWidth="md" sx={{ mt: 4 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
@@ -126,15 +177,25 @@ export default function ImportarRutinas() {
 
       <Paper elevation={3} sx={{ p: 4, borderRadius: 2, bgcolor: 'background.paper' }}>
 
-        <Box sx={{ mb: 2 }}>
-          <Typography variant="h6" gutterBottom>
-            {getTabLabel()}
-          </Typography>
-          <Typography variant="body2" color="text.secondary" paragraph>
-            {activeTab === 0 && 'Sube el archivo Excel con las rutinas de mantenimiento desglosadas (Grupo, Parte, Actividad, Frecuencia).'}
-            {activeTab === 1 && 'Sube el archivo Excel "fichaEq.xlsx" con el listado de equipos, placas y descripción.'}
-            {activeTab === 2 && 'Sube el archivo Excel con el listado de empleados (Nombre, Documento, Cargo, Estado).'}
-          </Typography>
+        <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <Box>
+            <Typography variant="h6" gutterBottom>
+              {getTabLabel()}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" paragraph>
+              {getTabDescription()}
+            </Typography>
+          </Box>
+
+          <Button
+            variant="outlined"
+            startIcon={<Download />}
+            onClick={handleDownloadTemplate}
+            sx={{ flexShrink: 0 }}
+          >
+            Descargar Plantilla
+          </Button>
+
         </Box>
 
         {/* Upload Section */}

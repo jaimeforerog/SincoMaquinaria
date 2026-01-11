@@ -7,6 +7,8 @@ using SincoMaquinaria.DTOs.Common;
 using SincoMaquinaria.Infrastructure;
 using SincoMaquinaria.Services;
 using SincoMaquinaria.Extensions;
+using OfficeOpenXml;
+using OfficeOpenXml.Style;
 
 namespace SincoMaquinaria.Endpoints;
 
@@ -20,7 +22,8 @@ public static class EquiposEndpoints
 
         group.MapPost("/importar", async (
             ExcelEquipoImportService importService,
-            IFormFile? file) => await ImportarEquipos(importService, file, maxFileUploadSizeMB))
+            IFormFile? file, 
+            DashboardNotifier notifier) => await ImportarEquipos(importService, file, maxFileUploadSizeMB, notifier))
             .DisableAntiforgery();
 
         group.MapGet("/", ListarEquipos);
@@ -28,13 +31,65 @@ public static class EquiposEndpoints
         group.MapPut("/{id:guid}", ActualizarEquipo)
             .AddEndpointFilter<ValidationFilter<ActualizarEquipoRequest>>();
 
+        // Plantilla Excel para importación
+        group.MapGet("/plantilla", DescargarPlantilla)
+            .AllowAnonymous();
+
         return app;
+    }
+
+    private static IResult DescargarPlantilla()
+    {
+        // Configurar licencia EPPlus (Non-Commercial)
+        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+        using var package = new ExcelPackage();
+        var worksheet = package.Workbook.Worksheets.Add("Equipos");
+
+        // Encabezados
+        var headers = new[]
+        {
+            "Placa",
+            "Descripcion",
+            "Grupo de mtto",
+            "Rutina",
+            "Medidor 1",
+            "Medidor inicial medidor 1",
+            "Fecha inicial medidor 1",
+            "Medidor 2",
+            "Medidor inicial medidor 2",
+            "Fecha inicial medidor 2",
+            "Fecha ultima OT"
+        };
+
+        // Escribir encabezados en la fila 1
+        for (int i = 0; i < headers.Length; i++)
+        {
+            worksheet.Cells[1, i + 1].Value = headers[i];
+            worksheet.Cells[1, i + 1].Style.Font.Bold = true;
+            worksheet.Cells[1, i + 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
+            worksheet.Cells[1, i + 1].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.FromArgb(68, 114, 196));
+            worksheet.Cells[1, i + 1].Style.Font.Color.SetColor(System.Drawing.Color.White);
+        }
+
+        // Ajustar ancho de columnas automáticamente
+        worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
+        // Ajustar ancho de columnas automáticamente
+        worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
+
+        // Generar el archivo
+        var bytes = package.GetAsByteArray();
+        var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+        var fileName = $"plantillaEquipos_{timestamp}.xlsx";
+
+        return Results.File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
     }
 
     private static async Task<IResult> ImportarEquipos(
         ExcelEquipoImportService importService,
         IFormFile? file,
-        int maxFileUploadSizeMB)
+        int maxFileUploadSizeMB,
+        DashboardNotifier notifier) // Inject notifier
     {
         if (file == null || file.Length == 0)
             return Results.BadRequest("No file uploaded");
@@ -54,6 +109,10 @@ public static class EquiposEndpoints
         try
         {
             var count = await importService.ImportarEquipos(stream);
+            
+            // Notificar al Dashboard
+            await notifier.NotificarEquiposImportados();
+
             return Results.Ok(new { Message = $"Importación completada. {count} equipos creados/actualizados." });
         }
         catch (Exception ex)

@@ -6,6 +6,10 @@ using SincoMaquinaria.DTOs.Requests;
 using SincoMaquinaria.DTOs.Common;
 using SincoMaquinaria.Infrastructure;
 using SincoMaquinaria.Extensions;
+using SincoMaquinaria.Services;
+using Microsoft.AspNetCore.Http;
+using System.Security.Claims;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace SincoMaquinaria.Endpoints;
 
@@ -32,14 +36,18 @@ public static class OrdenesEndpoints
 
     private static async Task<IResult> CrearOrden(
         IDocumentSession session, 
+        DashboardNotifier notifier,
+        HttpContext httpContext,
         [FromBody] CrearOrdenRequest req)
     {
+        var (userId, userName) = GetUserContext(httpContext);
+
         var ordenId = Guid.NewGuid();
         var events = new List<object>();
 
         var fechaOrden = req.FechaOrden ?? DateTime.Now;
         events.Add(new OrdenDeTrabajoCreada(ordenId, req.Numero, req.EquipoId, 
-            req.Origen, req.Tipo, fechaOrden, DateTimeOffset.Now));
+            req.Origen, req.Tipo, fechaOrden, DateTimeOffset.Now, userId, userName));
 
         // Si viene RutinaId, cargamos actividades de la rutina
         if (req.RutinaId.HasValue)
@@ -58,7 +66,9 @@ public static class OrdenesEndpoints
                                 Guid.NewGuid(), 
                                 $"{parte.Descripcion}: {act.Descripcion}", 
                                 DateTime.Now.AddHours(act.Frecuencia), 
-                                act.Frecuencia));
+                                act.Frecuencia,
+                                null, null,
+                                userId, userName));
                         }
                     }
                 }
@@ -69,11 +79,15 @@ public static class OrdenesEndpoints
         if (!string.IsNullOrEmpty(req.ActividadInicial))
         {
             events.Add(new ActividadAgregada(Guid.NewGuid(), req.ActividadInicial, 
-                DateTime.Now.AddHours(1))); // 1h default deadline
+                DateTime.Now.AddHours(1), 0, null, null, userId, userName)); 
         }
 
         session.Events.StartStream<OrdenDeTrabajo>(ordenId, events);
         await session.SaveChangesAsync();
+        
+        // Notificar al dashboard
+        await notifier.NotificarOrdenCreada();
+        
         return Results.Created($"/ordenes/{ordenId}", new { Id = ordenId });
     }
 
@@ -104,12 +118,15 @@ public static class OrdenesEndpoints
     private static async Task<IResult> AgregarActividad(
         IDocumentSession session, 
         Guid ordenId, 
+        HttpContext httpContext,
         [FromBody] AgregarActividadRequest req)
     {
+        var (userId, userName) = GetUserContext(httpContext);
+
         var detalleId = Guid.NewGuid();
         session.Events.Append(ordenId, 
             new ActividadAgregada(detalleId, req.Descripcion, req.FechaEstimada, 0, 
-                req.TipoFallaId, req.CausaFallaId));
+                req.TipoFallaId, req.CausaFallaId, userId, userName));
         await session.SaveChangesAsync();
         return Results.Ok(new { DetalleId = detalleId });
     }
@@ -117,11 +134,14 @@ public static class OrdenesEndpoints
     private static async Task<IResult> RegistrarAvance(
         IDocumentSession session, 
         Guid ordenId, 
+        HttpContext httpContext,
         [FromBody] RegistrarAvanceRequest req)
     {
+        var (userId, userName) = GetUserContext(httpContext);
+
         session.Events.Append(ordenId, 
             new AvanceDeActividadRegistrado(req.DetalleId, req.Porcentaje, 
-                req.Observacion, req.NuevoEstado));
+                req.Observacion, req.NuevoEstado, userId, userName));
         await session.SaveChangesAsync();
         return Results.Ok();
     }
@@ -141,11 +161,40 @@ public static class OrdenesEndpoints
         return Results.Ok(historial);
     }
 
-    private static string GetEventDescription(object eventData) => eventData switch
+    private static string GetEventDescription(object eventData)
     {
-        OrdenDeTrabajoCreada e => $"Orden creada. Equipo: {e.EquipoId}. Tipo: {e.TipoMantenimiento}",
-        ActividadAgregada e => $"Se agregó actividad: {e.Descripcion}",
-        AvanceDeActividadRegistrado e => $"Avance: {e.PorcentajeAvance}%. Estado: {e.NuevoEstado}. {e.Observacion}",
-        _ => "Evento registrado"
-    };
+        string desc = eventData switch
+        {
+            OrdenDeTrabajoCreada e => $"Orden creada. Equipo: {e.EquipoId}. Tipo: {e.TipoMantenimiento}",
+            ActividadAgregada e => $"Se agregó actividad: {e.Descripcion}",
+            AvanceDeActividadRegistrado e => $"Avance: {e.PorcentajeAvance}%. Estado: {e.NuevoEstado}. {e.Observacion}",
+            OrdenFinalizada e => $"Orden finalizada en estado: {e.EstadoFinal}",
+            _ => "Evento registrado"
+        };
+
+        // Try to extract User Name if present via reflection or dynamic to handle multiple record types generically
+        // checking the "UsuarioNombre" property if it exists
+        var prop = eventData.GetType().GetProperty("UsuarioNombre");
+        if (prop != null)
+        {
+            var val = prop.GetValue(eventData) as string;
+            if (!string.IsNullOrEmpty(val))
+            {
+                desc += $" - Por: {val}";
+            }
+        }
+
+        return desc;
+    }
+
+    private static (Guid? UserId, string? UserName) GetUserContext(HttpContext context)
+    {
+        var sub = context.User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+        var name = context.User.FindFirst(ClaimTypes.Name)?.Value;
+        
+        Guid? uid = null;
+        if (Guid.TryParse(sub, out var g)) uid = g;
+
+        return (uid, name);
+    }
 }

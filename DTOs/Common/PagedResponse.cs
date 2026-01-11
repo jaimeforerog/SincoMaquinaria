@@ -65,8 +65,8 @@ public class PagedResponse<T>
         return new PagedResponse<T>
         {
             Data = data,
-            Page = request.Page,
-            PageSize = request.PageSize,
+            Page = request.GetPage(),
+            PageSize = request.GetPageSize(),
             TotalCount = totalCount
         };
     }

@@ -46,6 +46,9 @@ try
     app.MapConfiguracionEndpoints();
     app.MapAdminEndpoints(builder.Configuration);
 
+    // --- SIGNALR HUBS ---
+    app.MapHub<SincoMaquinaria.Infrastructure.Hubs.DashboardHub>("/hubs/dashboard");
+
     // Configuración de URLs y puerto (configurable para Docker y producción)
     var urls = Environment.GetEnvironmentVariable("ASPNETCORE_URLS");
 

@@ -63,9 +63,14 @@ public static class AuthEndpoints
         var usuarioId = Guid.NewGuid();
         var passwordHash = JwtService.HashPassword(req.Password);
 
+        if (!Enum.TryParse<RolUsuario>(req.Rol, true, out var rolUsuario))
+        {
+            rolUsuario = RolUsuario.User;
+        }
+
         session.Events.StartStream<Usuario>(usuarioId,
             new UsuarioCreado(usuarioId, req.Email, passwordHash, req.Nombre, 
-                RolUsuario.User, DateTime.UtcNow));
+                rolUsuario, DateTime.UtcNow));
 
         await session.SaveChangesAsync();
 

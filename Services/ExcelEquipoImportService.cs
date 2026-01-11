@@ -116,27 +116,79 @@ public class ExcelEquipoImportService
                 continue;
             }
 
-            var descripcion = GetValByMap(row, "Descripcion", "Descripción") ?? "Sin Descripción";
+            // Validar campos obligatorios
+            var descripcion = GetValByMap(row, "Descripcion", "Descripción");
+            if (string.IsNullOrEmpty(descripcion))
+            {
+                validationErrors.Add($"Fila {rowNum}: El campo 'Descripcion' es obligatorio.");
+                continue;
+            }
             
-            // Validate Grupo
-            var grupo = GetValByMap(row, "Grupo de mtto", "Grupo") ?? "";
+            var grupo = GetValByMap(row, "Grupo de mtto", "Grupo");
+            if (string.IsNullOrEmpty(grupo))
+            {
+                validationErrors.Add($"Fila {rowNum}: El campo 'Grupo de mtto' es obligatorio.");
+                continue;
+            }
+
+            var rutina = GetValByMap(row, "Rutina");
+            if (string.IsNullOrEmpty(rutina))
+            {
+                validationErrors.Add($"Fila {rowNum}: El campo 'Rutina' es obligatorio.");
+                continue;
+            }
+
+            var medidor1 = GetValByMap(row, "Medidor 1", "Medidor1");
+            if (string.IsNullOrEmpty(medidor1))
+            {
+                validationErrors.Add($"Fila {rowNum}: El campo 'Medidor 1' es obligatorio.");
+                continue;
+            }
+
+            var medidorInicial1Str = GetValByMap(row, "Medidor inicial medidor 1");
+            if (string.IsNullOrEmpty(medidorInicial1Str))
+            {
+                validationErrors.Add($"Fila {rowNum}: El campo 'Medidor inicial medidor 1' es obligatorio.");
+                continue;
+            }
+
+            var fechaInicial1Str = GetValByMap(row, "Fecha inicial medidor 1");
+            if (string.IsNullOrEmpty(fechaInicial1Str))
+            {
+                validationErrors.Add($"Fila {rowNum}: El campo 'Fecha inicial medidor 1' es obligatorio.");
+                continue;
+            }
+
+            var fechaOTStr = GetValByMap(row, "Fecha ultima OT", "Fecha Ultima OT");
+            if (string.IsNullOrEmpty(fechaOTStr))
+            {
+                validationErrors.Add($"Fila {rowNum}: El campo 'Fecha ultima OT' es obligatorio.");
+                continue;
+            }
+
+            // Validate Grupo exists in configuration
             var gruposDisponibles = config?.GruposMantenimiento.Where(g => g.Activo).Select(g => g.Nombre).ToHashSet(StringComparer.OrdinalIgnoreCase) 
                                     ?? new HashSet<string>();
             
-            if (!string.IsNullOrEmpty(grupo) && !gruposDisponibles.Contains(grupo))
+            if (!gruposDisponibles.Contains(grupo))
             {
                  // Check by Code too just in case
                  if (config?.GruposMantenimiento.Any(g => g.Codigo.Equals(grupo, StringComparison.OrdinalIgnoreCase) && g.Activo) != true)
                  {
-                     var sugerencias = string.Join(", ", gruposDisponibles.Take(10));
-                     validationErrors.Add($"Fila {rowNum}: El Grupo '{grupo}' no existe. Grupos válidos disponibles: {sugerencias}...");
+                     // Auto-Create Group if it doesn't exist (Migration Support)
+                     var nuevoGrupoCodigo = grupo.ToUpperInvariant().Replace(" ", "_");
+                     var nuevoGrupoEvento = new GrupoMantenimientoCreado(nuevoGrupoCodigo, grupo, "Auto-creado por importación", true);
+                     
+                     _session.Events.Append(ConfiguracionGlobal.SingletonId, nuevoGrupoEvento);
+                     
+                     // Update local cache so we don't try to create it again in this batch
+                     gruposDisponibles.Add(grupo);
+                     
+                     // Log for debugging
+                     // Console.WriteLine($"[Import] Auto-creating missing Group: '{grupo}'");
                  }
             }
-
-            var rutina = GetValByMap(row, "Rutina") ?? "";
-            
-            // Medidor 1 - Validate Unit
-            var medidor1 = GetValByMap(row, "Medidor 1", "Medidor1"); 
+ 
             var medidor1Id = "";
             var medidor1Unidad = ""; // To store the Unit (e.g. "Km") for comparison
 
@@ -235,9 +287,7 @@ public class ExcelEquipoImportService
             if (validationErrors.Any()) continue;
 
             // Validar Fechas 
-            // Validar Fechas 
-            // Local ValidarFechaOT needs updated signature or adapter
-            var fechaOTStr = GetValByMap(row, "Fecha ultima OT", "Fecha Ultima OT");
+            // Validar formato de fecha
             if (DateTime.TryParse(fechaOTStr, out DateTime fechaOT))
             {
                  // Relaxting validation as per user request (Reference Step 403)
@@ -253,6 +303,11 @@ public class ExcelEquipoImportService
                  if (DateTime.TryParse(fechaM2Str, out DateTime fechaM2) && fechaOT < fechaM2)
                       validationErrors.Add($"Fila {rowNum}: La 'Fecha ultima OT' ({fechaOT:d}) no puede ser menor a la 'Fecha inicial medidor 2' ({fechaM2:d}).");
                  */
+            }
+            else
+            {
+                 validationErrors.Add($"Fila {rowNum}: El campo 'Fecha ultima OT' tiene un formato de fecha inválido: '{fechaOTStr}'.");
+                 continue;
             }
 
             if (validationErrors.Any()) continue;
@@ -308,6 +363,33 @@ public class ExcelEquipoImportService
              {
                  sb.AppendLine("--- Errores de Validación (razón por la que se saltaron filas) ---");
                  sb.AppendLine(string.Join("\n", validationErrors.Take(20)));
+             }
+             else
+             {
+                 sb.AppendLine("--- Depuración de Mapeo ---");
+                 if (headerRowIndex + 1 < table.Rows.Count)
+                 {
+                     var firstDataRow = table.Rows[headerRowIndex + 1];
+                     // Check Placa specifically
+                     if (colMap.TryGetValue("Placa", out int placaIdx))
+                     {
+                         var rawPlaca = firstDataRow[placaIdx]?.ToString();
+                         sb.AppendLine($"[Fila {headerRowIndex + 2}] Valor crudo en columna 'Placa' (índice {placaIdx}): '{rawPlaca}'");
+                         if (string.IsNullOrWhiteSpace(rawPlaca))
+                         {
+                             sb.AppendLine("-> La fila se saltó porque el valor de 'Placa' está vacío o es nulo.");
+                         }
+                     }
+                     else
+                     {
+                         sb.AppendLine("-> No se pudo determinar el índice de la columna 'Placa' en el mapa de columnas.");
+                     }
+                 }
+                 else
+                 {
+                     sb.AppendLine("-> No hay filas de datos después del encabezado.");
+                 }
+                 sb.AppendLine("Asegúrese de que la columna 'Placa' tenga datos y coincida exactamente con el nombre del encabezado.");
              }
 
              throw new Exception(sb.ToString());

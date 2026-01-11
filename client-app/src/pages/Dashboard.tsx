@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { LocalShipping, Warning, CheckCircle, Add, Engineering, Build } from '@mui/icons-material';
+import { LocalShipping, Warning, CheckCircle, Add, Engineering, Agriculture, Assignment } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 
 import { OrdenDeTrabajo } from '../types';
@@ -8,6 +8,10 @@ import {
     Box, Grid, Card, CardContent, Typography, Button,
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Chip, CircularProgress
 } from '@mui/material';
+
+import { useDashboardSocket } from '../hooks/useDashboardSocket';
+
+// ... imports ...
 
 const Dashboard = () => {
     const authFetch = useAuthFetch();
@@ -31,40 +35,52 @@ const Dashboard = () => {
         return id;
     };
 
-    useEffect(() => {
-        const fetchData = async () => {
-            setLoading(true);
-            try {
-                // Fetch Ordenes
-                const resOrdenes = await authFetch('/ordenes').catch(() => null);
-                if (resOrdenes && resOrdenes.ok) {
-                    setOrdenes(await resOrdenes.json());
-                }
-
-                // Fetch Equipos
-                const resEquipos = await authFetch('/equipos').catch(() => null);
-                if (resEquipos && resEquipos.ok) {
-                    const data = await resEquipos.json();
-                    setEquiposList(data);
-                    setEquiposCount(data.length);
-                }
-
-                // Fetch Rutinas
-                const resRutinas = await authFetch('/rutinas').catch(() => null);
-                if (resRutinas && resRutinas.ok) {
-                    const data = await resRutinas.json();
-                    setRutinasCount(data.length);
-                }
-
-            } catch (error) {
-                console.error("Error fetching dashboard data", error);
-            } finally {
-                setLoading(false);
+    const fetchData = React.useCallback(async () => {
+        // Don't set loading to true here to avoid flickering on updates
+        // or set it if you want to show progress
+        try {
+            // Fetch Ordenes
+            const resOrdenes = await authFetch('/ordenes').catch(() => null);
+            if (resOrdenes && resOrdenes.ok) {
+                const response = await resOrdenes.json();
+                // Handle both paginated and non-paginated responses
+                setOrdenes(response.data || response);
             }
-        };
 
-        fetchData();
+            // Fetch Equipos
+            const resEquipos = await authFetch('/equipos').catch(() => null);
+            if (resEquipos && resEquipos.ok) {
+                const response = await resEquipos.json();
+                const data = response.data || response;
+                setEquiposList(data);
+                setEquiposCount(response.totalCount ?? data.length);
+            }
+
+            // Fetch Rutinas
+            const resRutinas = await authFetch('/rutinas').catch(() => null);
+            if (resRutinas && resRutinas.ok) {
+                const response = await resRutinas.json();
+                const data = response.data || response;
+                setRutinasCount(response.totalCount ?? data.length);
+            }
+
+        } catch (error) {
+            console.error("Error fetching dashboard data", error);
+        } finally {
+            setLoading(false);
+        }
     }, [authFetch]);
+
+    useEffect(() => {
+        setLoading(true);
+        fetchData();
+    }, [fetchData]);
+
+    // Listen for real-time updates
+    useDashboardSocket(() => {
+        console.log("Recibida actualización en tiempo real. Recargando datos...");
+        fetchData();
+    });
 
     const activeOrders = ordenes.length;
     const pendingOrders = ordenes.filter(o => o.estado === 'Borrador' || o.estado === 'Programada').length;
@@ -100,7 +116,7 @@ const Dashboard = () => {
                         <KpiCard
                             title="Equipos"
                             value={equiposCount}
-                            icon={<Build fontSize="large" sx={{ color: '#2e7d32' }} />}
+                            icon={<Agriculture fontSize="large" sx={{ color: '#2e7d32' }} />}
                             loading={loading}
                         />
                     </Box>
@@ -117,7 +133,7 @@ const Dashboard = () => {
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>
                     <KpiCard
-                        icon={<LocalShipping sx={{ fontSize: 32, color: "#90caf9" }} />} // MUI Blue 200
+                        icon={<Assignment sx={{ fontSize: 32, color: "#90caf9" }} />} // MUI Blue 200
                         title="Órdenes Activas"
                         value={activeOrders}
                         change="Total Registrado"

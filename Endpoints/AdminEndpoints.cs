@@ -25,6 +25,10 @@ public static class AdminEndpoints
         app.MapGet("/debug/excel-headers", InspeccionarExcel)
             .WithTags("Debug");
 
+        // Endpoint temporal para resetear DB sin autenticación (solo desarrollo)
+        app.MapPost("/debug/reset-db", ResetDatabase)
+            .WithTags("Debug");
+
         return app;
     }
 

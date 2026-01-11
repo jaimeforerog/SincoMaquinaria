@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowBack, CalendarToday, Person, LocalShipping, AccessTime, Add, ExpandMore } from '@mui/icons-material';
+import { ArrowBack, CalendarToday, Person, LocalShipping, AccessTime, Add, ExpandMore, PictureAsPdf } from '@mui/icons-material';
+import { exportOrdenToPDF } from '../services/PDFExportService';
 import { OrdenDeTrabajo } from '../types';
 import {
     Box, Typography, Container, Paper, Grid, Card, CardContent, Chip, IconButton, Button, Tabs, Tab, TextField, Divider, List, ListItem, ListItemText, ListItemIcon, MenuItem,
@@ -25,8 +26,11 @@ const InfoCard = ({ icon, label, value }: { icon: React.ReactElement, label: str
     </Card>
 );
 
+import { useAuthFetch } from '../hooks/useAuthFetch';
+
 const OrderDetail = () => {
     const { id } = useParams<OrderDetailParams>();
+    const authFetch = useAuthFetch();
     const [order, setOrder] = useState<OrdenDeTrabajo & { detalles?: any[] } | null>(null);
     const [history, setHistory] = useState<any[]>([]);
     const [equipo, setEquipo] = useState<any | null>(null);
@@ -46,30 +50,59 @@ const OrderDetail = () => {
 
     const fetchOrder = async () => {
         try {
-            const resOrder = await fetch(`/ordenes/${id}`);
+            const resOrder = await authFetch(`/ordenes/${id}`);
             if (resOrder.ok) {
                 const data = await resOrder.json();
+                console.log("Order loaded:", data);
                 setOrder(data);
 
                 // Fetch Equipment details
                 if (data.equipoId) {
                     try {
-                        const resEq = await fetch(`/equipos/${data.equipoId}`);
+                        const resEq = await authFetch(`/equipos/${data.equipoId}`);
                         if (resEq.ok) {
                             const foundEq = await resEq.json();
+                            console.log("Equipment loaded:", foundEq);
                             setEquipo(foundEq);
 
-                            // Load Routine if Equipment has one
-                            if (foundEq && foundEq.rutina) {
+                            // Load Routine
+                            // Priority 1: Use Routine ID from Order (Preventive/Corrective with specific routine)
+                            console.log("Checking Routine ID:", data.rutinaId);
+                            if (data.rutinaId) {
                                 try {
-                                    const resRutinas = await fetch('/rutinas');
+                                    const resSingleRutina = await authFetch(`/rutinas/${data.rutinaId}`);
+                                    if (resSingleRutina.ok) {
+                                        const fullRoutine = await resSingleRutina.json();
+                                        console.log("Full Routine loaded from ID:", fullRoutine);
+                                        if (fullRoutine && fullRoutine.partes) {
+                                            setRutinaParts(fullRoutine.partes);
+                                        }
+                                    } else {
+                                        console.warn("Failed to load routine from ID", resSingleRutina.status);
+                                    }
+                                } catch (e) {
+                                    console.error("Error loading routine from ID", e);
+                                }
+                            }
+                            // Priority 2: Fallback to Equipment Routine string (Legacy/Implicit)
+                            else if (foundEq && foundEq.rutina) {
+                                console.log("Fallback to Equipment Routine string:", foundEq.rutina);
+                                try {
+                                    const resRutinas = await authFetch('/rutinas');
                                     if (resRutinas.ok) {
                                         const allRutinas = await resRutinas.json();
-                                        const match = allRutinas.find((r: any) => r.descripcion === foundEq.rutina);
+                                        console.log("All Rutinas loaded:", allRutinas);
+                                        // Handle paginated response structure if needed (though endpoint returns list in .data usually)
+                                        const rutinasList = allRutinas.data || allRutinas;
+
+                                        const match = rutinasList.find((r: any) => r.descripcion === foundEq.rutina);
+                                        console.log("Match found:", match);
+
                                         if (match) {
-                                            const resSingleRutina = await fetch(`/rutinas/${match.id}`);
+                                            const resSingleRutina = await authFetch(`/rutinas/${match.id}`);
                                             if (resSingleRutina.ok) {
                                                 const fullRoutine = await resSingleRutina.json();
+                                                console.log("Full Routine loaded from Description match:", fullRoutine);
                                                 if (fullRoutine && fullRoutine.partes) {
                                                     setRutinaParts(fullRoutine.partes);
                                                 }
@@ -77,8 +110,10 @@ const OrderDetail = () => {
                                         }
                                     }
                                 } catch (e) {
-                                    console.error("Error loading routine parts", e);
+                                    console.error("Error loading routine parts from description", e);
                                 }
+                            } else {
+                                console.log("No routine ID in order and no routine string in equipment.");
                             }
                         }
                     } catch (e) {
@@ -87,7 +122,7 @@ const OrderDetail = () => {
                 }
             }
 
-            const resHistory = await fetch(`/ordenes/${id}/historial`);
+            const resHistory = await authFetch(`/ordenes/${id}/historial`);
             if (resHistory.ok) {
                 const data = await resHistory.json();
                 setHistory(data);
@@ -103,13 +138,13 @@ const OrderDetail = () => {
         if (id) fetchOrder();
         // Fetch failure types and causes for corrective orders
         fetchFailureData();
-    }, [id]);
+    }, [id, authFetch]);
 
     const fetchFailureData = async () => {
         try {
             const [resTipos, resCausas] = await Promise.all([
-                fetch('/configuracion/fallas'),
-                fetch('/configuracion/causas-falla')
+                authFetch('/configuracion/fallas'),
+                authFetch('/configuracion/causas-falla')
             ]);
             if (resTipos.ok) setTiposFalla(await resTipos.json());
             if (resCausas.ok) setCausasFalla(await resCausas.json());
@@ -120,6 +155,10 @@ const OrderDetail = () => {
 
     const handleAddActivity = async () => {
         if (!newActivity || !id) return;
+        if (rutinaParts.length > 0 && !selectedPartId) {
+            alert("Debes seleccionar una parte del equipo");
+            return;
+        }
 
         let finalDescription = newActivity;
         if (selectedPartId) {
@@ -130,7 +169,7 @@ const OrderDetail = () => {
         }
 
         try {
-            const res = await fetch(`/ordenes/${id}/actividades`, {
+            const res = await authFetch(`/ordenes/${id}/actividades`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -171,7 +210,7 @@ const OrderDetail = () => {
                     </IconButton>
                     <Box>
                         <Typography variant="h4" component="h1" fontWeight="bold">
-                            {order.numero}
+                            {order.numero} - {order.tipo}
                         </Typography>
                         <Typography variant="subtitle1" color="text.secondary">
                             Orden de Mantenimiento
@@ -185,6 +224,15 @@ const OrderDetail = () => {
                     variant="outlined"
                     sx={{ px: 1, fontWeight: 'bold' }}
                 />
+                <Button
+                    variant="contained"
+                    color="primary"
+                    startIcon={<PictureAsPdf />}
+                    onClick={() => order && exportOrdenToPDF(order, equipo, history)}
+                    sx={{ ml: 2 }}
+                >
+                    Exportar PDF
+                </Button>
             </Box>
 
             {/* Info Cards */}
@@ -220,14 +268,14 @@ const OrderDetail = () => {
                                     {rutinaParts.length > 0 && (
                                         <TextField
                                             select
-                                            label="Parte del Equipo (Opcional)"
+                                            label="Parte del Equipo"
                                             fullWidth
                                             size="small"
                                             value={selectedPartId}
                                             onChange={(e) => setSelectedPartId(e.target.value)}
-                                            helperText="Selecciona la parte afectada según la rutina"
+                                            helperText="Selecciona la parte afectada (Requerido)"
+                                            required
                                         >
-                                            <MenuItem value=""><em>-- General / Sin Parte --</em></MenuItem>
                                             {rutinaParts.map((p: any) => (
                                                 <MenuItem key={p.id} value={p.id}>{p.descripcion}</MenuItem>
                                             ))}
@@ -245,7 +293,7 @@ const OrderDetail = () => {
                                         <Button
                                             variant="contained"
                                             onClick={handleAddActivity}
-                                            disabled={!newActivity}
+                                            disabled={!newActivity || (rutinaParts.length > 0 && !selectedPartId)}
                                             startIcon={<Add />}
                                         >
                                             Agregar
@@ -392,6 +440,11 @@ const OrderDetail = () => {
                                                             {event.tipo === 'OrdenDeTrabajoCreada' && equipo
                                                                 ? `Orden creada. Equipo: ${equipo.placa} - ${equipo.descripcion}. Tipo: ${order?.tipo}`
                                                                 : event.descripcion}
+                                                            {event.datos?.usuarioNombre && (
+                                                                <Box component="span" sx={{ fontWeight: 'bold', ml: 1 }}>
+                                                                    - Por: {event.datos.usuarioNombre}
+                                                                </Box>
+                                                            )}
                                                         </Typography>
                                                     </>
                                                 }

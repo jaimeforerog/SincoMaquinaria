@@ -5,17 +5,17 @@ namespace SincoMaquinaria.Domain.Events;
 
 // --- Ciclo de Vida ---
 
-public record OrdenDeTrabajoCreada(Guid OrdenId, string NumeroOrden, string EquipoId, string Origen, string TipoMantenimiento, DateTime FechaOrden, DateTimeOffset FechaCreacion);
+public record OrdenDeTrabajoCreada(Guid OrdenId, string NumeroOrden, string EquipoId, string Origen, string TipoMantenimiento, DateTime FechaOrden, DateTimeOffset FechaCreacion, Guid? UsuarioId = null, string? UsuarioNombre = null);
 
-public record OrdenProgramada(DateTime FechaProgramada, TimeSpan DuracionEstimada);
+public record OrdenProgramada(DateTime FechaProgramada, TimeSpan DuracionEstimada, Guid? UsuarioId = null, string? UsuarioNombre = null);
 
-public record OrdenFinalizada(string EstadoFinal, string AprobadoPor, DateTime FechaAprobacion);
+public record OrdenFinalizada(string EstadoFinal, string AprobadoPor, DateTime FechaAprobacion, Guid? UsuarioId = null, string? UsuarioNombre = null);
 
 // --- Actividades ---
 
-public record ActividadAgregada(Guid ItemDetalleId, string Descripcion, DateTime FechaEstimadaEjecucion, int Frecuencia = 0, string? TipoFallaId = null, string? CausaFallaId = null);
+public record ActividadAgregada(Guid ItemDetalleId, string Descripcion, DateTime FechaEstimadaEjecucion, int Frecuencia = 0, string? TipoFallaId = null, string? CausaFallaId = null, Guid? UsuarioId = null, string? UsuarioNombre = null);
 
-public record AvanceDeActividadRegistrado(Guid ItemDetalleId, decimal PorcentajeAvance, string Observacion, string NuevoEstado);
+public record AvanceDeActividadRegistrado(Guid ItemDetalleId, decimal PorcentajeAvance, string Observacion, string NuevoEstado, Guid? UsuarioId = null, string? UsuarioNombre = null);
 
 // --- Mediciones (Horómetros) ---
 

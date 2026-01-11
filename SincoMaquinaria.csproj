@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="AspNetCoreRateLimit" Version="5.0.0" />
+    <PackageReference Include="EPPlus" Version="7.0.0" />
     <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" />
     <PackageReference Include="Marten" Version="8.17.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.0" />

@@ -16,8 +16,11 @@ import {
     InputAdornment
 } from '@mui/material';
 
+import { useAuthFetch } from '../hooks/useAuthFetch';
+
 const CreateOrder = () => {
     const navigate = useNavigate();
+    const authFetch = useAuthFetch();
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
         equipoId: '',
@@ -35,22 +38,22 @@ const CreateOrder = () => {
 
     useEffect(() => {
         // Cargar rutinas al montar
-        fetch('/rutinas')
+        authFetch('/rutinas')
             .then(res => res.json())
-            .then(data => setRutinas(data))
+            .then(response => setRutinas(response.data || response))
             .catch(err => console.error("Error cargando rutinas", err));
 
         // Cargar equipos al montar (MIGRACIÓN)
-        fetch('/equipos')
+        authFetch('/equipos')
             .then(res => res.json())
-            .then(data => setEquiposList(data))
+            .then(response => setEquiposList(response.data || response))
             .catch(err => console.error("Error cargando equipos", err));
-    }, []);
+    }, [authFetch]);
 
     // Effect to fetch routine details and extract frequencies
     useEffect(() => {
         if (formData.rutinaId && formData.tipo === 'Preventivo') {
-            fetch(`/rutinas/${formData.rutinaId}`)
+            authFetch(`/rutinas/${formData.rutinaId}`)
                 .then(res => res.json())
                 .then((data: Rutina) => {
                     const freqs = new Set<number>();
@@ -68,7 +71,7 @@ const CreateOrder = () => {
             setAvailableFrequencies([]);
             setFrecuenciaPreventiva('');
         }
-    }, [formData.rutinaId, formData.tipo]);
+    }, [formData.rutinaId, formData.tipo, authFetch]);
 
     const handleSubmit = async () => {
         setLoading(true);
@@ -83,7 +86,7 @@ const CreateOrder = () => {
                 frecuenciaPreventiva: frecuenciaPreventiva ? parseInt(frecuenciaPreventiva) : null
             };
 
-            const response = await fetch('/ordenes', {
+            const response = await authFetch('/ordenes', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -136,7 +139,13 @@ const CreateOrder = () => {
                             value={equipoValue}
                             onChange={(event, newValue: any) => {
                                 setEquipoValue(newValue);
-                                setFormData({ ...formData, equipoId: newValue ? newValue.id : '' });
+                                let newRutinaId = '';
+                                // Always try to associate routine if available on equipment
+                                if (newValue && newValue.rutina) {
+                                    const match = rutinas.find(r => r.descripcion === newValue.rutina);
+                                    if (match) newRutinaId = match.id;
+                                }
+                                setFormData({ ...formData, equipoId: newValue ? newValue.id : '', rutinaId: newRutinaId });
                             }}
                             renderInput={(params) => (
                                 <TextField
@@ -172,15 +181,27 @@ const CreateOrder = () => {
                                     onChange={(e) => {
                                         const newTipo = e.target.value;
                                         const newOrigen = newTipo === 'Preventivo' ? 'Planificacion' : 'Manual';
-                                        setFormData({ ...formData, tipo: newTipo, origen: newOrigen });
-                                        if (newTipo !== 'Preventivo') {
-                                            setFormData(prev => ({ ...prev, tipo: newTipo, origen: newOrigen, rutinaId: '' }));
+
+                                        // Always look for routine if equipment is selected
+                                        let newRutinaId = formData.rutinaId;
+                                        if (equipoValue && equipoValue.rutina) {
+                                            const match = rutinas.find(r => r.descripcion === equipoValue.rutina);
+                                            if (match) newRutinaId = match.id;
+                                        } else if (newTipo === 'Preventivo') {
+                                            // If switching to preventive but no routine match found yet, we might want to clear or keep user selection
+                                            // But for now let's keep it robust
                                         }
+
+                                        setFormData(prev => ({
+                                            ...prev,
+                                            tipo: newTipo,
+                                            origen: newOrigen,
+                                            rutinaId: newRutinaId
+                                        }));
                                     }}
                                 >
                                     <MenuItem value="Correctivo">Correctivo</MenuItem>
                                     <MenuItem value="Preventivo">Preventivo</MenuItem>
-                                    <MenuItem value="Predictivo">Predictivo</MenuItem>
                                 </TextField>
                             </Grid>
 
@@ -205,6 +226,7 @@ const CreateOrder = () => {
                                             value={formData.rutinaId}
                                             onChange={(e) => setFormData({ ...formData, rutinaId: e.target.value })}
                                             helperText="Selecciona la rutina de mantenimiento asociada"
+                                            disabled={!!(equipoValue && equipoValue.rutina)}
                                         >
                                             <MenuItem value="">
                                                 <em>-- Seleccionar Rutina --</em>

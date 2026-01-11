@@ -61,6 +61,10 @@ public static class ServiceCollectionExtensions
         // JWT Service
         services.AddScoped<JwtService>();
 
+        // SignalR & Notifications
+        services.AddSignalR();
+        services.AddScoped<DashboardNotifier>();
+
         // FluentValidation
         services.AddValidatorsFromAssemblyContaining<CrearOrdenRequestValidator>();
 
@@ -123,7 +127,15 @@ public static class ServiceCollectionExtensions
         services.Configure<IpRateLimitOptions>(configuration.GetSection("IpRateLimiting"));
         services.Configure<IpRateLimitPolicies>(configuration.GetSection("IpRateLimitPolicies"));
         services.AddInMemoryRateLimiting();
+        services.AddInMemoryRateLimiting();
         services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
+
+        // Configure Global JSON Options for API Responses
+        services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
+        {
+            options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+        });
 
         return services;
     }

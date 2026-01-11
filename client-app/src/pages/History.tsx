@@ -7,7 +7,10 @@ import {
     Box, Typography, Container, Paper, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Chip, IconButton, Button
 } from '@mui/material';
 
+import { useAuthFetch } from '../hooks/useAuthFetch';
+
 const History = () => {
+    const authFetch = useAuthFetch();
     const [ordenes, setOrdenes] = useState<OrdenDeTrabajo[]>([]);
     const [equiposList, setEquiposList] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -34,15 +37,17 @@ const History = () => {
         const fetchData = async () => {
             try {
                 const [resOrdenes, resEquipos] = await Promise.all([
-                    fetch('/ordenes'),
-                    fetch('/equipos')
+                    authFetch('/ordenes'),
+                    authFetch('/equipos')
                 ]);
 
                 if (resOrdenes.ok) {
-                    setOrdenes(await resOrdenes.json());
+                    const response = await resOrdenes.json();
+                    setOrdenes(response.data || response);
                 }
                 if (resEquipos.ok) {
-                    setEquiposList(await resEquipos.json());
+                    const response = await resEquipos.json();
+                    setEquiposList(response.data || response);
                 }
             } catch (error) {
                 console.error("Error fetching data", error);
@@ -52,7 +57,7 @@ const History = () => {
         };
 
         fetchData();
-    }, []);
+    }, [authFetch]);
 
     return (
         <Container maxWidth="xl">

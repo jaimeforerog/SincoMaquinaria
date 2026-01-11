@@ -40,7 +40,9 @@ const EquipmentConfig = () => {
         try {
             const res = await authFetch('/equipos');
             if (res.ok) {
-                const data = await res.json();
+                const response = await res.json();
+                // Handle paginated response
+                const data = response.data || response;
                 setEquipos(data);
             }
         } catch (error) {

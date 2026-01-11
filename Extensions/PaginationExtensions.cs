@@ -20,7 +20,7 @@ public static class PaginationExtensions
         // Obtener datos paginados
         var data = await query
             .Skip(pagination.GetOffset())
-            .Take(pagination.PageSize)
+            .Take(pagination.GetPageSize())
             .ToListAsync(cancellationToken);
 
         return PagedResponse<T>.Create(data, pagination, totalCount);
