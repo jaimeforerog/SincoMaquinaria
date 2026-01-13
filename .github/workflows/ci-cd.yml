@@ -111,12 +111,12 @@ jobs:
         path: client-app/dist/
         retention-days: 1
 
-  # Job 3: Docker Build
+  # Job 3: Docker Build (Disabled - using azure-deploy.yml with ACR instead)
   docker-build:
     name: Docker Build
     runs-on: ubuntu-latest
     needs: [backend-test, frontend-build]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: false  # Disabled - we use ACR via azure-deploy.yml
 
     steps:
     - name: Checkout code
