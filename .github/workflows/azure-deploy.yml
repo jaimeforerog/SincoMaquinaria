@@ -6,9 +6,8 @@ on:
   workflow_dispatch:
 
 env:
-  DOTNET_VERSION: '9.0.x'
-  NODE_VERSION: '20.x'
   AZURE_WEBAPP_NAME: 'sincomaquinaria-app-1601'
+  AZURE_RESOURCE_GROUP: 'SincoMaquinariaRG'
 
 jobs:
   build-and-deploy:
@@ -18,49 +17,50 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    # Setup Node.js
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
+    # Login to Azure
+    - name: Azure Login
+      uses: azure/login@v2
       with:
-        node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
-        cache-dependency-path: client-app/package-lock.json
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    # Build Frontend
-    - name: Install frontend dependencies
-      working-directory: ./client-app
-      run: npm ci --legacy-peer-deps
-
-    - name: Build frontend
-      working-directory: ./client-app
-      run: npm run build
-
-    # Setup .NET
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: ${{ env.DOTNET_VERSION }}
-
-    # Build Backend
-    - name: Restore dependencies
-      run: dotnet restore
-
-    - name: Build backend
-      run: dotnet build --configuration Release --no-restore
-
-    - name: Publish backend
-      run: dotnet publish SincoMaquinaria.csproj -c Release -o ${{env.DOTNET_ROOT}}/sincomaquinaria
-
-    # Copy frontend to wwwroot
-    - name: Copy frontend to wwwroot
+    # Get ACR credentials
+    - name: Get ACR Info
+      id: acr
       run: |
-        mkdir -p ${{env.DOTNET_ROOT}}/sincomaquinaria/wwwroot
-        cp -r client-app/dist/* ${{env.DOTNET_ROOT}}/sincomaquinaria/wwwroot/
+        # Find ACR in the resource group
+        ACR_NAME=$(az acr list --resource-group ${{ env.AZURE_RESOURCE_GROUP }} --query "[0].name" -o tsv)
+        ACR_LOGIN_SERVER=$(az acr show --name $ACR_NAME --query "loginServer" -o tsv)
+        echo "ACR_NAME=$ACR_NAME" >> $GITHUB_OUTPUT
+        echo "ACR_LOGIN_SERVER=$ACR_LOGIN_SERVER" >> $GITHUB_OUTPUT
 
-    # Deploy to Azure Web App
-    - name: Deploy to Azure Web App
-      uses: azure/webapps-deploy@v3
-      with:
-        app-name: ${{ env.AZURE_WEBAPP_NAME }}
-        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-        package: ${{env.DOTNET_ROOT}}/sincomaquinaria
+    # Login to ACR
+    - name: Login to Azure Container Registry
+      run: |
+        az acr login --name ${{ steps.acr.outputs.ACR_NAME }}
+
+    # Build and push Docker image using ACR Tasks (faster, builds in cloud)
+    - name: Build and Push Docker Image
+      run: |
+        az acr build \
+          --registry ${{ steps.acr.outputs.ACR_NAME }} \
+          --image sincomaquinaria:${{ github.sha }} \
+          --image sincomaquinaria:latest \
+          .
+
+    # Update Web App to use new image
+    - name: Update Web App Container
+      run: |
+        az webapp config container set \
+          --name ${{ env.AZURE_WEBAPP_NAME }} \
+          --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+          --container-image-name ${{ steps.acr.outputs.ACR_LOGIN_SERVER }}/sincomaquinaria:${{ github.sha }}
+
+    # Restart the Web App
+    - name: Restart Web App
+      run: |
+        az webapp restart \
+          --name ${{ env.AZURE_WEBAPP_NAME }} \
+          --resource-group ${{ env.AZURE_RESOURCE_GROUP }}
+
+    - name: Azure Logout
+      run: az logout
