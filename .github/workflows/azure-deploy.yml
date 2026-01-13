@@ -36,22 +36,37 @@ jobs:
         # Find ACR in the resource group
         ACR_NAME=$(az acr list --resource-group ${{ env.AZURE_RESOURCE_GROUP }} --query "[0].name" -o tsv)
         ACR_LOGIN_SERVER=$(az acr show --name $ACR_NAME --query "loginServer" -o tsv)
+        ACR_USERNAME=$(az acr credential show --name $ACR_NAME --query "username" -o tsv)
+        ACR_PASSWORD=$(az acr credential show --name $ACR_NAME --query "passwords[0].value" -o tsv)
         echo "ACR_NAME=$ACR_NAME" >> $GITHUB_OUTPUT
         echo "ACR_LOGIN_SERVER=$ACR_LOGIN_SERVER" >> $GITHUB_OUTPUT
+        echo "ACR_USERNAME=$ACR_USERNAME" >> $GITHUB_OUTPUT
+        echo "ACR_PASSWORD=$ACR_PASSWORD" >> $GITHUB_OUTPUT
 
-    # Login to ACR
+    # Login to ACR with Docker
     - name: Login to Azure Container Registry
-      run: |
-        az acr login --name ${{ steps.acr.outputs.ACR_NAME }}
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ steps.acr.outputs.ACR_LOGIN_SERVER }}
+        username: ${{ steps.acr.outputs.ACR_USERNAME }}
+        password: ${{ steps.acr.outputs.ACR_PASSWORD }}
 
-    # Build and push Docker image using ACR Tasks (faster, builds in cloud)
+    # Set up Docker Buildx
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    # Build and push Docker image
     - name: Build and Push Docker Image
-      run: |
-        az acr build \
-          --registry ${{ steps.acr.outputs.ACR_NAME }} \
-          --image sincomaquinaria:${{ github.sha }} \
-          --image sincomaquinaria:latest \
-          .
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile
+        push: true
+        tags: |
+          ${{ steps.acr.outputs.ACR_LOGIN_SERVER }}/sincomaquinaria:${{ github.sha }}
+          ${{ steps.acr.outputs.ACR_LOGIN_SERVER }}/sincomaquinaria:latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
 
     # Update Web App to use new image
     - name: Update Web App Container
