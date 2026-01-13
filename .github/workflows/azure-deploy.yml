@@ -5,6 +5,12 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+permissions:
+  contents: read
+  id-token: write
+  checks: write
+  statuses: write
+
 env:
   AZURE_WEBAPP_NAME: 'sincomaquinaria-app-1601'
   AZURE_RESOURCE_GROUP: 'SincoMaquinariaRG'
