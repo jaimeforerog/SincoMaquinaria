@@ -52,12 +52,21 @@ public static class AuthEndpoints
         [FromBody] RegisterRequest req)
     {
         // Verificar si el email ya existe
-        var existingUser = await session.Query<Usuario>()
+        var existingByEmail = await session.Query<Usuario>()
             .FirstOrDefaultAsync(u => u.Email == req.Email);
 
-        if (existingUser != null)
+        if (existingByEmail != null)
         {
-            return Results.Conflict("El email ya está registrado");
+            return Results.Conflict("El correo electrónico ya está registrado");
+        }
+
+        // Verificar si el nombre completo ya existe
+        var existingByName = await session.Query<Usuario>()
+            .FirstOrDefaultAsync(u => u.Nombre.ToLower() == req.Nombre.ToLower());
+
+        if (existingByName != null)
+        {
+            return Results.Conflict("Ya existe un usuario con ese nombre completo");
         }
 
         var usuarioId = Guid.NewGuid();
