@@ -1,6 +1,7 @@
 using System.Text;
 using FluentValidation;
 using Marten;
+using Weasel.Core;
 using Marten.Events.Projections;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -52,7 +53,7 @@ public static class ServiceCollectionExtensions
             opts.Projections.Snapshot<Usuario>(SnapshotLifecycle.Inline);
 
             // Permitir que Marten cree las tablas automáticamente si no existen
-            opts.AutoCreateSchemaObjects = Weasel.Core.AutoCreate.All;
+            opts.AutoCreateSchemaObjects = AutoCreate.All;
 
             // Proyecciones
             // opts.Projections.Add<SincoMaquinaria.Domain.Projections.AuditoriaProjection>(Marten.Events.Projections.ProjectionLifecycle.Inline);
