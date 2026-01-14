@@ -15,12 +15,26 @@ Log.Logger = new LoggerConfiguration()
 try
 {
     Log.Information("Iniciando SincoMaquinaria API...");
+    Console.WriteLine("--- [DEBUG] STARTING APP ---");
     
     var builder = WebApplication.CreateBuilder(args);
     builder.Host.UseSerilog();
 
+    var connStr = builder.Configuration.GetConnectionString("DefaultConnection");
+    Console.WriteLine($"--- [DEBUG] Connection String Found: {!string.IsNullOrEmpty(connStr)} ---");
+
     // --- CONFIGURACIÓN DE SERVICIOS ---
-    builder.Services.AddApplicationServices(builder.Configuration);
+    try 
+    {
+        Console.WriteLine("--- [DEBUG] Configuring Services... ---");
+        builder.Services.AddApplicationServices(builder.Configuration);
+        Console.WriteLine("--- [DEBUG] Services Configured Successfully ---");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"--- [DEBUG] Service Configuration Failed: {ex} ---");
+        throw;
+    }
 
     var app = builder.Build();
 
