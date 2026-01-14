@@ -1,9 +1,10 @@
 # =======================================
 # Stage 1: Build Frontend (React + Vite)
 # =======================================
-FROM node:20-alpine AS node-build
+FROM node:20 AS node-build
 
 WORKDIR /app/client-app
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 
 # Copy package files
 COPY client-app/package.json client-app/package-lock.json ./
