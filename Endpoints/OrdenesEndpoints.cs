@@ -10,6 +10,8 @@ using SincoMaquinaria.Services;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace SincoMaquinaria.Endpoints;
 
@@ -30,6 +32,7 @@ public static class OrdenesEndpoints
         group.MapPost("/{ordenId:guid}/avance", RegistrarAvance)
             .AddEndpointFilter<ValidationFilter<RegistrarAvanceRequest>>();
         group.MapGet("/{ordenId:guid}/historial", ObtenerHistorial);
+        group.MapDelete("/{ordenId:guid}", EliminarOrden);
 
         return app;
     }
@@ -102,11 +105,32 @@ public static class OrdenesEndpoints
         IQuerySession session,
         [AsParameters] PaginationRequest pagination)
     {
-        var query = session.Query<OrdenDeTrabajo>()
-            .ApplyOrdering(pagination);
-
-        var result = await query.ToPagedResponseAsync(pagination);
-        return Results.Ok(result);
+        // Get all orders and filter in memory to avoid Marten LINQ translation issues with enums
+        var allOrdenes = await session.Query<OrdenDeTrabajo>().ToListAsync();
+        var filteredOrdenes = allOrdenes
+            .Where(o => o.Estado != EstadoOrdenDeTrabajo.Eliminada)
+            .ToList();
+        
+        // Apply ordering
+        if (!string.IsNullOrWhiteSpace(pagination.OrderBy))
+        {
+            var propertyInfo = typeof(OrdenDeTrabajo).GetProperty(pagination.OrderBy);
+            if (propertyInfo != null)
+            {
+                filteredOrdenes = pagination.IsDescending()
+                    ? filteredOrdenes.OrderByDescending(x => propertyInfo.GetValue(x)).ToList()
+                    : filteredOrdenes.OrderBy(x => propertyInfo.GetValue(x)).ToList();
+            }
+        }
+        
+        // Apply pagination
+        var totalCount = filteredOrdenes.Count;
+        var data = filteredOrdenes
+            .Skip(pagination.GetOffset())
+            .Take(pagination.GetPageSize())
+            .ToList();
+        
+        return Results.Ok(PagedResponse<OrdenDeTrabajo>.Create(data, pagination, totalCount));
     }
 
     private static async Task<IResult> ObtenerOrden(IQuerySession session, Guid ordenId)
@@ -187,11 +211,27 @@ public static class OrdenesEndpoints
         return desc;
     }
 
+    private static async Task<IResult> EliminarOrden(
+        IDocumentSession session,
+        Guid ordenId,
+        HttpContext httpContext)
+    {
+        var (userId, userName) = GetUserContext(httpContext);
+
+        session.Events.Append(ordenId, new OrdenDeTrabajoEliminada(ordenId, userId, userName));
+        await session.SaveChangesAsync();
+
+        return Results.Ok();
+    }
+
     private static (Guid? UserId, string? UserName) GetUserContext(HttpContext context)
     {
-        var sub = context.User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
-        var name = context.User.FindFirst(ClaimTypes.Name)?.Value;
+        var sub = context.User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value 
+                  ?? context.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         
+        var name = context.User.FindFirst(ClaimTypes.Name)?.Value 
+                   ?? context.User.FindFirst("name")?.Value;
+
         Guid? uid = null;
         if (Guid.TryParse(sub, out var g)) uid = g;
 

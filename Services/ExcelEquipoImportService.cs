@@ -19,7 +19,7 @@ public class ExcelEquipoImportService
         _session = session;
     }
 
-    public async Task<int> ImportarEquipos(Stream fileStream)
+    public async Task<int> ImportarEquipos(Stream fileStream, Guid? usuarioId = null, string? usuarioNombre = null)
     {
         // 1. Cargar Configuración Global para validar Tipos de Medidor (Por Nombre ahora)
         var config = await _session.LoadAsync<ConfiguracionGlobal>(ConfiguracionGlobal.SingletonId);
@@ -177,7 +177,7 @@ public class ExcelEquipoImportService
                  {
                      // Auto-Create Group if it doesn't exist (Migration Support)
                      var nuevoGrupoCodigo = grupo.ToUpperInvariant().Replace(" ", "_");
-                     var nuevoGrupoEvento = new GrupoMantenimientoCreado(nuevoGrupoCodigo, grupo, "Auto-creado por importación", true);
+                     var nuevoGrupoEvento = new GrupoMantenimientoCreado(nuevoGrupoCodigo, grupo, "Auto-creado por importación", true, usuarioId, usuarioNombre, DateTimeOffset.Now);
                      
                      _session.Events.Append(ConfiguracionGlobal.SingletonId, nuevoGrupoEvento);
                      
@@ -318,7 +318,7 @@ public class ExcelEquipoImportService
             if (existingVersion == null)
             {
                 _session.Events.StartStream<Equipo>(equipoId, 
-                    new EquipoMigrado(equipoId, placa, descripcion, "" /*Marca*/, "" /*Modelo*/, "" /*Serie*/, "" /*Codigo*/, medidor1Id, medidor2Id, grupo, rutina)
+                    new EquipoMigrado(equipoId, placa, descripcion, "" /*Marca*/, "" /*Modelo*/, "" /*Serie*/, "" /*Codigo*/, medidor1Id, medidor2Id, grupo, rutina, usuarioId, usuarioNombre, DateTimeOffset.Now)
                 );
 
                 // Lecturas Iniciales - Adapted to use GetValByMap or passed values
@@ -331,7 +331,7 @@ public class ExcelEquipoImportService
             else
             {
                 _session.Events.Append(equipoId, 
-                    new EquipoActualizado(equipoId, descripcion, "" /*Marca*/, "" /*Modelo*/, "" /*Serie*/, "" /*Codigo*/, medidor1Id, medidor2Id, grupo, rutina)
+                    new EquipoActualizado(equipoId, descripcion, "" /*Marca*/, "" /*Modelo*/, "" /*Serie*/, "" /*Codigo*/, medidor1Id, medidor2Id, grupo, rutina, usuarioId, usuarioNombre)
                 );
                 count++;
                 placasProcesadas.Add(placa);

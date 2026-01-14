@@ -5,7 +5,9 @@ import { OrdenDeTrabajo } from '../types';
 export const exportOrdenToPDF = (
     order: OrdenDeTrabajo & { detalles?: any[] },
     equipo: any,
-    history: any[]
+    history: any[],
+    tiposFalla?: any[],
+    causasFalla?: any[]
 ) => {
     const doc = new jsPDF();
     const isCorrective = order.tipo === 'Correctivo';
@@ -62,6 +64,19 @@ export const exportOrdenToPDF = (
         columns.push('Tipo Falla', 'Causa Falla');
     }
 
+    // Helper to get description from code
+    const getTipoFallaDesc = (codigo: string) => {
+        if (!codigo || !tiposFalla) return 'N/A';
+        const tipo = tiposFalla.find(t => t.codigo === codigo);
+        return tipo?.descripcion || codigo;
+    };
+
+    const getCausaFallaDesc = (codigo: string) => {
+        if (!codigo || !causasFalla) return 'N/A';
+        const causa = causasFalla.find(c => c.codigo === codigo);
+        return causa?.descripcion || codigo;
+    };
+
     // Map data
     const activitiesData = (order.detalles || []).map((detalle: any) => {
         const row = [
@@ -75,8 +90,8 @@ export const exportOrdenToPDF = (
         }
 
         if (isCorrective) {
-            row.push(detalle.tipoFallaId || 'N/A');
-            row.push(detalle.causaFallaId || 'N/A');
+            row.push(getTipoFallaDesc(detalle.tipoFallaId));
+            row.push(getCausaFallaDesc(detalle.causaFallaId));
         }
 
         return row;

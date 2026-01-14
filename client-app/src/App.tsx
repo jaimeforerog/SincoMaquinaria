@@ -10,11 +10,13 @@ import OrderDetail from './pages/OrderDetail';
 import CreateOrder from './pages/CreateOrder';
 import History from './pages/History';
 import ImportarRutinas from './pages/ImportarRutinas';
+import EditarRutinas from './pages/EditarRutinas';
 import EquipmentConfig from './pages/EquipmentConfig';
 import EmployeeConfig from './pages/EmployeeConfig';
 import Configuracion from './pages/Configuracion';
 import LogsErrores from './pages/LogsErrores';
 import UserManagement from './pages/UserManagement';
+import Auditoria from './pages/Auditoria';
 
 const darkTheme = createTheme({
   palette: {
@@ -50,10 +52,12 @@ function App() {
               <Route path="ordenes/:id" element={<OrderDetail />} />
               <Route path="historial" element={<History />} />
               <Route path="importar-rutinas" element={<ImportarRutinas />} />
+              <Route path="editar-rutinas" element={<EditarRutinas />} />
               <Route path="gestion-equipos" element={<EquipmentConfig />} />
               <Route path="gestion-empleados" element={<EmployeeConfig />} />
               <Route path="gestion-usuarios" element={<UserManagement />} />
               <Route path="configuracion" element={<Configuracion />} />
+              <Route path="auditoria" element={<Auditoria />} />
               <Route path="logs" element={<LogsErrores />} />
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />

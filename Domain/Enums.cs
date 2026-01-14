@@ -20,7 +20,10 @@ public enum EstadoOrdenDeTrabajo
     EnEjecucion,
 
     [Description("Ejecución Completa")]
-    EjecucionCompleta
+    EjecucionCompleta,
+
+    [Description("Eliminada")]
+    Eliminada
 }
 
 /// <summary>

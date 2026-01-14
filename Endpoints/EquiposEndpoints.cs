@@ -9,6 +9,8 @@ using SincoMaquinaria.Services;
 using SincoMaquinaria.Extensions;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
+using System.Security.Claims;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace SincoMaquinaria.Endpoints;
 
@@ -22,11 +24,13 @@ public static class EquiposEndpoints
 
         group.MapPost("/importar", async (
             ExcelEquipoImportService importService,
+            HttpContext httpContext,
             IFormFile? file, 
-            DashboardNotifier notifier) => await ImportarEquipos(importService, file, maxFileUploadSizeMB, notifier))
+            DashboardNotifier notifier) => await ImportarEquipos(importService, httpContext, file, maxFileUploadSizeMB, notifier))
             .DisableAntiforgery();
 
         group.MapGet("/", ListarEquipos);
+        group.MapPost("/", CrearEquipo);
         group.MapGet("/{id:guid}", ObtenerEquipo);
         group.MapPut("/{id:guid}", ActualizarEquipo)
             .AddEndpointFilter<ValidationFilter<ActualizarEquipoRequest>>();
@@ -87,6 +91,7 @@ public static class EquiposEndpoints
 
     private static async Task<IResult> ImportarEquipos(
         ExcelEquipoImportService importService,
+        HttpContext httpContext,
         IFormFile? file,
         int maxFileUploadSizeMB,
         DashboardNotifier notifier) // Inject notifier
@@ -105,10 +110,13 @@ public static class EquiposEndpoints
         if (!allowedExtensions.Contains(fileExtension))
             return Results.BadRequest($"Tipo de archivo no permitido. Solo se aceptan archivos: {string.Join(", ", allowedExtensions)}");
 
+        // Extraer usuario del JWT
+        var (userId, userName) = GetUserContext(httpContext);
+
         using var stream = file.OpenReadStream();
         try
         {
-            var count = await importService.ImportarEquipos(stream);
+            var count = await importService.ImportarEquipos(stream, userId, userName);
             
             // Notificar al Dashboard
             await notifier.NotificarEquiposImportados();
@@ -138,16 +146,79 @@ public static class EquiposEndpoints
         return equipo is not null ? Results.Ok(equipo) : Results.NotFound();
     }
 
+    private static async Task<IResult> CrearEquipo(
+        IDocumentSession session,
+        HttpContext httpContext,
+        [FromBody] CrearEquipoRequest req)
+    {
+        var (userId, userName) = GetUserContext(httpContext);
+        
+        // Validar campos obligatorios
+        if (string.IsNullOrEmpty(req.Grupo) || string.IsNullOrEmpty(req.Rutina))
+            return Results.BadRequest("El Grupo de Mantenimiento y la Rutina Asignada son obligatorios.");
+
+        // Verificar si ya existe un equipo con la misma placa (opcional pero recomendado)
+        var existe = await session.Query<Equipo>().AnyAsync(e => e.Placa == req.Placa);
+        if (existe)
+            return Results.Conflict($"Ya existe un equipo con la placa {req.Placa}");
+
+        var id = Guid.NewGuid();
+        
+        session.Events.StartStream<Equipo>(id, 
+            new EquipoCreado(id, req.Placa, req.Descripcion, req.Marca, req.Modelo, 
+                req.Serie, req.Codigo, req.TipoMedidorId, req.TipoMedidorId2, 
+                req.Grupo, req.Rutina, userId, userName, DateTimeOffset.Now));
+
+        // Registrar lecturas iniciales
+        if (!string.IsNullOrEmpty(req.TipoMedidorId) && req.LecturaInicial1.HasValue)
+        {
+            var fecha = req.FechaInicial1 ?? DateTime.Now;
+            // TrabajaAcumuladoCalculado se asume igual a la lectura inicial
+            session.Events.Append(id, new MedicionRegistrada(req.TipoMedidorId, req.LecturaInicial1.Value, fecha, req.LecturaInicial1.Value));
+        }
+
+        if (!string.IsNullOrEmpty(req.TipoMedidorId2) && req.LecturaInicial2.HasValue)
+        {
+            var fecha = req.FechaInicial2 ?? DateTime.Now;
+            session.Events.Append(id, new MedicionRegistrada(req.TipoMedidorId2, req.LecturaInicial2.Value, fecha, req.LecturaInicial2.Value));
+        }
+        
+        await session.SaveChangesAsync();
+        return Results.Created($"/equipos/{id}", new { Id = id });
+    }
+
     private static async Task<IResult> ActualizarEquipo(
-        IDocumentSession session, 
+        IDocumentSession session,
+        HttpContext httpContext,
         Guid id, 
         [FromBody] ActualizarEquipoRequest req)
     {
+        var (userId, userName) = GetUserContext(httpContext);
+        
+        // Validar campos obligatorios
+        if (string.IsNullOrEmpty(req.Grupo) || string.IsNullOrEmpty(req.Rutina))
+            return Results.BadRequest("El Grupo de Mantenimiento y la Rutina Asignada son obligatorios.");
+
         session.Events.Append(id, 
             new EquipoActualizado(id, req.Descripcion, req.Marca, req.Modelo, 
                 req.Serie, req.Codigo, req.TipoMedidorId, req.TipoMedidorId2, 
-                req.Grupo, req.Rutina));
+                req.Grupo, req.Rutina, userId, userName));
         await session.SaveChangesAsync();
         return Results.Ok();
+    }
+
+    // Helper para extraer contexto del usuario desde JWT
+    private static (Guid? UserId, string? UserName) GetUserContext(HttpContext context)
+    {
+        var sub = context.User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value 
+                  ?? context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        
+        var name = context.User.FindFirst(ClaimTypes.Name)?.Value 
+                   ?? context.User.FindFirst("name")?.Value;
+
+        Guid? uid = null;
+        if (Guid.TryParse(sub, out var g)) uid = g;
+
+        return (uid, name);
     }
 }

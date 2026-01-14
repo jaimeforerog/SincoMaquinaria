@@ -3,7 +3,7 @@ import {
     Box, Typography, Button, Table, TableBody, TableCell, TableContainer,
     TableHead, TableRow, Paper, Dialog, DialogTitle,
     DialogContent, DialogActions, TextField, Grid, CircularProgress,
-    FormControl, InputLabel, Select, MenuItem, SelectChangeEvent,
+    FormControl, InputLabel, Select, MenuItem,
     Switch, FormControlLabel, IconButton
 } from '@mui/material';
 import { Add, Edit } from '@mui/icons-material';
@@ -14,6 +14,8 @@ export interface Empleado {
     nombre: string;
     identificacion: string;
     cargo: string;
+    especialidad: string;
+    valorHora: number;
     estado: string;
 }
 
@@ -28,6 +30,8 @@ const EmployeeConfig = () => {
     const [nombre, setNombre] = useState('');
     const [identificacion, setIdentificacion] = useState('');
     const [cargo, setCargo] = useState('');
+    const [especialidad, setEspecialidad] = useState('');
+    const [valorHora, setValorHora] = useState<number>(0);
     const [estado, setEstado] = useState('Activo');
 
     useEffect(() => {
@@ -55,6 +59,8 @@ const EmployeeConfig = () => {
         setNombre('');
         setIdentificacion('');
         setCargo('');
+        setEspecialidad('');
+        setValorHora(0);
         setEstado('Activo');
         setEditingId(null);
         setOpenDialog(true);
@@ -64,6 +70,8 @@ const EmployeeConfig = () => {
         setNombre(emp.nombre);
         setIdentificacion(emp.identificacion);
         setCargo(emp.cargo);
+        setEspecialidad(emp.especialidad || '');
+        setValorHora(emp.valorHora || 0);
         setEstado(emp.estado);
         setEditingId(emp.id);
         setOpenDialog(true);
@@ -87,6 +95,8 @@ const EmployeeConfig = () => {
                     Nombre: nombre,
                     Identificacion: identificacion,
                     Cargo: cargo,
+                    Especialidad: especialidad,
+                    ValorHora: valorHora,
                     Estado: estado
                 })
             });
@@ -130,6 +140,8 @@ const EmployeeConfig = () => {
                                 <TableCell><strong>Nombre</strong></TableCell>
                                 <TableCell><strong>Identificación</strong></TableCell>
                                 <TableCell><strong>Cargo</strong></TableCell>
+                                <TableCell><strong>Especialidad</strong></TableCell>
+                                <TableCell><strong>Valor Hora ($)</strong></TableCell>
                                 <TableCell><strong>Estado</strong></TableCell>
                                 <TableCell align="center"><strong>Acciones</strong></TableCell>
                             </TableRow>
@@ -140,6 +152,8 @@ const EmployeeConfig = () => {
                                     <TableCell>{emp.nombre}</TableCell>
                                     <TableCell>{emp.identificacion}</TableCell>
                                     <TableCell>{emp.cargo}</TableCell>
+                                    <TableCell>{emp.especialidad || '-'}</TableCell>
+                                    <TableCell>${emp.valorHora?.toLocaleString('es-CO') || '0'}</TableCell>
                                     <TableCell>{emp.estado}</TableCell>
                                     <TableCell align="center">
                                         <IconButton onClick={() => startEditing(emp)} color="primary" size="small">
@@ -173,7 +187,7 @@ const EmployeeConfig = () => {
                                 onChange={(e) => setIdentificacion(e.target.value)}
                             />
                         </Grid>
-                        <Grid item xs={12}>
+                        <Grid item xs={12} sm={6}>
                             <FormControl fullWidth>
                                 <InputLabel>Cargo</InputLabel>
                                 <Select
@@ -186,6 +200,25 @@ const EmployeeConfig = () => {
                                     <MenuItem value="Mecanico">Mecánico</MenuItem>
                                 </Select>
                             </FormControl>
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                            <TextField
+                                label="Especialidad"
+                                fullWidth
+                                value={especialidad}
+                                onChange={(e) => setEspecialidad(e.target.value)}
+                                placeholder="Ej: Eléctrico, Hidráulico, etc."
+                            />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <TextField
+                                label="Valor Hora ($)"
+                                fullWidth
+                                type="number"
+                                value={valorHora}
+                                onChange={(e) => setValorHora(parseFloat(e.target.value) || 0)}
+                                inputProps={{ min: 0, step: 1000 }}
+                            />
                         </Grid>
                         <Grid item xs={12}>
                             {editingId ? (

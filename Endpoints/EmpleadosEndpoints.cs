@@ -7,6 +7,8 @@ using SincoMaquinaria.DTOs.Common;
 using SincoMaquinaria.Infrastructure;
 using SincoMaquinaria.Services;
 using SincoMaquinaria.Extensions;
+using System.Security.Claims;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace SincoMaquinaria.Endpoints;
 
@@ -20,7 +22,8 @@ public static class EmpleadosEndpoints
 
         group.MapPost("/importar", async (
             ExcelEmpleadoImportService importService,
-            IFormFile? file) => await ImportarEmpleados(importService, file, maxFileUploadSizeMB))
+            HttpContext httpContext,
+            IFormFile? file) => await ImportarEmpleados(importService, httpContext, file, maxFileUploadSizeMB))
             .DisableAntiforgery();
 
         group.MapPost("/", CrearEmpleado)
@@ -80,6 +83,7 @@ public static class EmpleadosEndpoints
 
     private static async Task<IResult> ImportarEmpleados(
         ExcelEmpleadoImportService importService,
+        HttpContext httpContext,
         IFormFile? file,
         int maxFileUploadSizeMB)
     {
@@ -97,10 +101,13 @@ public static class EmpleadosEndpoints
         if (!allowedExtensions.Contains(fileExtension))
             return Results.BadRequest($"Tipo de archivo no permitido. Solo se aceptan archivos: {string.Join(", ", allowedExtensions)}");
 
+        // Extraer usuario del JWT
+        var (userId, userName) = GetUserContext(httpContext);
+
         using var stream = file.OpenReadStream();
         try
         {
-            var count = await importService.ImportarEmpleados(stream);
+            var count = await importService.ImportarEmpleados(stream, userId, userName);
             return Results.Ok(new { Message = $"Importación completada. {count} empleados creados." });
         }
         catch (Exception ex)
@@ -110,13 +117,15 @@ public static class EmpleadosEndpoints
     }
 
     private static async Task<IResult> CrearEmpleado(
-        IDocumentSession session, 
+        IDocumentSession session,
+        HttpContext httpContext,
         [FromBody] CrearEmpleadoRequest req)
     {
+        var (userId, userName) = GetUserContext(httpContext);
         var empleadoId = Guid.NewGuid();
         session.Events.StartStream<Empleado>(empleadoId, 
             new EmpleadoCreado(empleadoId, req.Nombre, req.Identificacion, 
-                req.Cargo, req.Especialidad ?? "", req.ValorHora, req.Estado));
+                req.Cargo, req.Especialidad ?? "", req.ValorHora, req.Estado, userId, userName, DateTimeOffset.Now));
         await session.SaveChangesAsync();
         return Results.Ok();
     }
@@ -155,14 +164,31 @@ public static class EmpleadosEndpoints
     }
 
     private static async Task<IResult> ActualizarEmpleado(
-        IDocumentSession session, 
+        IDocumentSession session,
+        HttpContext httpContext,
         Guid id, 
         [FromBody] ActualizarEmpleadoRequest req)
     {
+        var (userId, userName) = GetUserContext(httpContext);
         session.Events.Append(id, 
             new EmpleadoActualizado(id, req.Nombre, req.Identificacion, 
-                req.Cargo, req.Especialidad ?? "", req.ValorHora, req.Estado));
+                req.Cargo, req.Especialidad ?? "", req.ValorHora, req.Estado, userId, userName));
         await session.SaveChangesAsync();
         return Results.Ok();
+    }
+
+    // Helper para extraer contexto del usuario desde JWT
+    private static (Guid? UserId, string? UserName) GetUserContext(HttpContext context)
+    {
+        var sub = context.User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value 
+                  ?? context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        
+        var name = context.User.FindFirst(ClaimTypes.Name)?.Value 
+                   ?? context.User.FindFirst("name")?.Value;
+
+        Guid? uid = null;
+        if (Guid.TryParse(sub, out var g)) uid = g;
+
+        return (uid, name);
     }
 }

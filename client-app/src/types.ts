@@ -51,7 +51,12 @@ export interface Actividad {
     clase: string;
     frecuencia: number;
     unidadMedida: string;
+    nombreMedidor: string;
     alertaFaltando: number;
+    frecuencia2: number;
+    unidadMedida2: string;
+    nombreMedidor2: string;
+    alertaFaltando2: number;
     insumo?: string;
     cantidad: number;
 }

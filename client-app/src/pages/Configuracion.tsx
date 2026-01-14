@@ -8,6 +8,7 @@ import { Edit, Save, Cancel, Add } from '@mui/icons-material';
 import { TipoMedidor, GrupoMantenimiento, TipoFalla, CausaFalla } from '../types';
 import { useAuthFetch } from '../hooks/useAuthFetch';
 import EmployeeConfig from './EmployeeConfig';
+import UserManagement from './UserManagement';
 
 const MedidoresPanel = () => {
     const authFetch = useAuthFetch();
@@ -562,6 +563,7 @@ const Configuracion = () => {
                         <Tab label="Grupos Mantenimiento" />
                         <Tab label="Tipos de Falla" />
                         <Tab label="Causas de Falla" />
+                        <Tab label="Usuarios" />
                         <Tab label="Empleados" />
                     </Tabs>
                 </Box>
@@ -570,7 +572,8 @@ const Configuracion = () => {
                     {activeTab === 1 && <GruposPanel />}
                     {activeTab === 2 && <FallasPanel />}
                     {activeTab === 3 && <CausasFallaPanel />}
-                    {activeTab === 4 && <EmployeeConfig />}
+                    {activeTab === 4 && <UserManagement />}
+                    {activeTab === 5 && <EmployeeConfig />}
                 </Box>
             </Box>
         </Container>

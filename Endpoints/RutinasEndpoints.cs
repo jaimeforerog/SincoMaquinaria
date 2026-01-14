@@ -2,6 +2,7 @@ using Marten;
 using Microsoft.AspNetCore.Mvc;
 using SincoMaquinaria.Domain;
 using SincoMaquinaria.DTOs.Common;
+using SincoMaquinaria.DTOs.Requests;
 using SincoMaquinaria.Services;
 using SincoMaquinaria.Extensions;
 
@@ -22,7 +23,16 @@ public static class RutinasEndpoints
 
         group.MapGet("/", ListarRutinas);
         group.MapGet("/{id:guid}", ObtenerRutina);
-
+        group.MapPost("/", CrearRutina);
+        
+        // Update endpoints
+        group.MapPut("/{id:guid}", ActualizarRutina);
+        group.MapPut("/{id:guid}/partes/{parteId:guid}", ActualizarParte);
+        group.MapPost("/{id:guid}/partes", AgregarParte);
+        group.MapDelete("/{id:guid}/partes/{parteId:guid}", EliminarParte);
+        group.MapPut("/{id:guid}/partes/{parteId:guid}/actividades/{actividadId:guid}", ActualizarActividad);
+        group.MapPost("/{id:guid}/partes/{parteId:guid}/actividades", AgregarActividad);
+        group.MapDelete("/{id:guid}/partes/{parteId:guid}/actividades/{actividadId:guid}", EliminarActividad);
 
         // Plantilla Excel para importación
         group.MapGet("/plantilla", DescargarPlantilla)
@@ -131,7 +141,213 @@ public static class RutinasEndpoints
 
     private static async Task<IResult> ObtenerRutina(IQuerySession session, Guid id)
     {
-        var rutina = await session.Events.AggregateStreamAsync<RutinaMantenimiento>(id);
+        var rutina = await session.LoadAsync<RutinaMantenimiento>(id);
         return rutina != null ? Results.Ok(rutina) : Results.NotFound();
+    }
+
+    private static async Task<IResult> CrearRutina(
+        IDocumentSession session,
+        CreateRutinaRequest request)
+    {
+        var nuevaRutina = new RutinaMantenimiento
+        {
+            Id = Guid.NewGuid(),
+            Descripcion = request.Descripcion,
+            Grupo = request.Grupo,
+            Partes = new List<ParteEquipo>()
+        };
+
+        session.Store(nuevaRutina);
+        await session.SaveChangesAsync();
+
+        return Results.Created($"/rutinas/{nuevaRutina.Id}", nuevaRutina);
+    }
+
+    private static async Task<IResult> ActualizarRutina(
+        IDocumentSession session,
+        Guid id,
+        UpdateRutinaRequest request)
+    {
+        var rutina = await session.LoadAsync<RutinaMantenimiento>(id);
+        if (rutina == null)
+            return Results.NotFound();
+
+        rutina.Descripcion = request.Descripcion;
+        rutina.Grupo = request.Grupo;
+
+        session.Update(rutina);
+        await session.SaveChangesAsync();
+
+        return Results.Ok(rutina);
+    }
+
+    private static async Task<IResult> ActualizarParte(
+        IDocumentSession session,
+        Guid id,
+        Guid parteId,
+        UpdateParteRequest request)
+    {
+        var rutina = await session.LoadAsync<RutinaMantenimiento>(id);
+        if (rutina == null)
+            return Results.NotFound("Rutina no encontrada");
+
+        var parte = rutina.Partes.FirstOrDefault(p => p.Id == parteId);
+        if (parte == null)
+            return Results.NotFound("Parte no encontrada");
+
+        parte.Descripcion = request.Descripcion;
+
+        session.Update(rutina);
+        await session.SaveChangesAsync();
+
+        return Results.Ok(parte);
+    }
+
+    private static async Task<IResult> AgregarParte(
+        IDocumentSession session,
+        Guid id,
+        AddParteRequest request)
+    {
+        var rutina = await session.LoadAsync<RutinaMantenimiento>(id);
+        if (rutina == null)
+            return Results.NotFound("Rutina no encontrada");
+
+        var nuevaParte = new ParteEquipo
+        {
+            Id = Guid.NewGuid(),
+            Descripcion = request.Descripcion,
+            Actividades = new List<ActividadMantenimiento>()
+        };
+
+        rutina.Partes.Add(nuevaParte);
+
+        session.Update(rutina);
+        await session.SaveChangesAsync();
+
+        return Results.Created($"/rutinas/{id}/partes/{nuevaParte.Id}", nuevaParte);
+    }
+
+    private static async Task<IResult> EliminarParte(
+        IDocumentSession session,
+        Guid id,
+        Guid parteId)
+    {
+        var rutina = await session.LoadAsync<RutinaMantenimiento>(id);
+        if (rutina == null)
+            return Results.NotFound("Rutina no encontrada");
+
+        var parte = rutina.Partes.FirstOrDefault(p => p.Id == parteId);
+        if (parte == null)
+            return Results.NotFound("Parte no encontrada");
+
+        rutina.Partes.Remove(parte);
+
+        session.Update(rutina);
+        await session.SaveChangesAsync();
+
+        return Results.NoContent();
+    }
+
+    private static async Task<IResult> ActualizarActividad(
+        IDocumentSession session,
+        Guid id,
+        Guid parteId,
+        Guid actividadId,
+        UpdateActividadRequest request)
+    {
+        var rutina = await session.LoadAsync<RutinaMantenimiento>(id);
+        if (rutina == null)
+            return Results.NotFound("Rutina no encontrada");
+
+        var parte = rutina.Partes.FirstOrDefault(p => p.Id == parteId);
+        if (parte == null)
+            return Results.NotFound("Parte no encontrada");
+
+        var actividad = parte.Actividades.FirstOrDefault(a => a.Id == actividadId);
+        if (actividad == null)
+            return Results.NotFound("Actividad no encontrada");
+
+        actividad.Descripcion = request.Descripcion;
+        actividad.Clase = request.Clase;
+        actividad.Frecuencia = request.Frecuencia;
+        actividad.UnidadMedida = request.UnidadMedida;
+        actividad.NombreMedidor = request.NombreMedidor;
+        actividad.AlertaFaltando = request.AlertaFaltando;
+        actividad.Frecuencia2 = request.Frecuencia2;
+        actividad.UnidadMedida2 = request.UnidadMedida2;
+        actividad.NombreMedidor2 = request.NombreMedidor2;
+        actividad.AlertaFaltando2 = request.AlertaFaltando2;
+        actividad.Insumo = request.Insumo;
+        actividad.Cantidad = request.Cantidad;
+
+        session.Update(rutina);
+        await session.SaveChangesAsync();
+
+        return Results.Ok(actividad);
+    }
+
+    private static async Task<IResult> AgregarActividad(
+        IDocumentSession session,
+        Guid id,
+        Guid parteId,
+        AddActividadRequest request)
+    {
+        var rutina = await session.LoadAsync<RutinaMantenimiento>(id);
+        if (rutina == null)
+            return Results.NotFound("Rutina no encontrada");
+
+        var parte = rutina.Partes.FirstOrDefault(p => p.Id == parteId);
+        if (parte == null)
+            return Results.NotFound("Parte no encontrada");
+
+        var nuevaActividad = new ActividadMantenimiento
+        {
+            Id = Guid.NewGuid(),
+            Descripcion = request.Descripcion,
+            Clase = request.Clase,
+            Frecuencia = request.Frecuencia,
+            UnidadMedida = request.UnidadMedida,
+            NombreMedidor = request.NombreMedidor,
+            AlertaFaltando = request.AlertaFaltando,
+            Frecuencia2 = request.Frecuencia2,
+            UnidadMedida2 = request.UnidadMedida2,
+            NombreMedidor2 = request.NombreMedidor2,
+            AlertaFaltando2 = request.AlertaFaltando2,
+            Insumo = request.Insumo,
+            Cantidad = request.Cantidad
+        };
+
+        parte.Actividades.Add(nuevaActividad);
+
+        session.Update(rutina);
+        await session.SaveChangesAsync();
+
+        return Results.Created($"/rutinas/{id}/partes/{parteId}/actividades/{nuevaActividad.Id}", nuevaActividad);
+    }
+
+    private static async Task<IResult> EliminarActividad(
+        IDocumentSession session,
+        Guid id,
+        Guid parteId,
+        Guid actividadId)
+    {
+        var rutina = await session.LoadAsync<RutinaMantenimiento>(id);
+        if (rutina == null)
+            return Results.NotFound("Rutina no encontrada");
+
+        var parte = rutina.Partes.FirstOrDefault(p => p.Id == parteId);
+        if (parte == null)
+            return Results.NotFound("Parte no encontrada");
+
+        var actividad = parte.Actividades.FirstOrDefault(a => a.Id == actividadId);
+        if (actividad == null)
+            return Results.NotFound("Actividad no encontrada");
+
+        parte.Actividades.Remove(actividad);
+
+        session.Update(rutina);
+        await session.SaveChangesAsync();
+
+        return Results.NoContent();
     }
 }

@@ -24,8 +24,10 @@ import {
   Select,
   FormControl,
   InputLabel,
+  InputAdornment,
+  IconButton,
 } from '@mui/material';
-import { Add, PersonAdd } from '@mui/icons-material';
+import { Add, PersonAdd, Visibility, VisibilityOff } from '@mui/icons-material';
 import { useAuthFetch } from '../hooks/useAuthFetch';
 
 interface Usuario {
@@ -44,6 +46,7 @@ const UserManagement: React.FC = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -264,12 +267,25 @@ const UserManagement: React.FC = () => {
             fullWidth
             label="Contraseña"
             name="password"
-            type="password"
+            type={showPassword ? 'text' : 'password'}
             value={formData.password}
             onChange={handleInputChange}
             margin="normal"
             required
             helperText="Mínimo 6 caracteres"
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    aria-label="toggle password visibility"
+                    onClick={() => setShowPassword(!showPassword)}
+                    edge="end"
+                  >
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
           />
 
           <FormControl fullWidth margin="normal">

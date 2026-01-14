@@ -82,7 +82,7 @@ const CreateOrder = () => {
                 origen: formData.origen,
                 tipo: formData.tipo,
                 fechaOrden: formData.fechaOrden ? new Date(formData.fechaOrden).toISOString() : null,
-                rutinaId: formData.rutinaId || null,
+                rutinaId: (formData.tipo === 'Preventivo' && formData.rutinaId) ? formData.rutinaId : null,
                 frecuenciaPreventiva: frecuenciaPreventiva ? parseInt(frecuenciaPreventiva) : null
             };
 
@@ -140,8 +140,8 @@ const CreateOrder = () => {
                             onChange={(event, newValue: any) => {
                                 setEquipoValue(newValue);
                                 let newRutinaId = '';
-                                // Always try to associate routine if available on equipment
-                                if (newValue && newValue.rutina) {
+                                // Only associate routine for PREVENTIVE orders
+                                if (newValue && newValue.rutina && formData.tipo === 'Preventivo') {
                                     const match = rutinas.find(r => r.descripcion === newValue.rutina);
                                     if (match) newRutinaId = match.id;
                                 }
@@ -182,14 +182,11 @@ const CreateOrder = () => {
                                         const newTipo = e.target.value;
                                         const newOrigen = newTipo === 'Preventivo' ? 'Planificacion' : 'Manual';
 
-                                        // Always look for routine if equipment is selected
-                                        let newRutinaId = formData.rutinaId;
-                                        if (equipoValue && equipoValue.rutina) {
+                                        // Only assign routine for Preventivo orders
+                                        let newRutinaId = '';
+                                        if (newTipo === 'Preventivo' && equipoValue && equipoValue.rutina) {
                                             const match = rutinas.find(r => r.descripcion === equipoValue.rutina);
                                             if (match) newRutinaId = match.id;
-                                        } else if (newTipo === 'Preventivo') {
-                                            // If switching to preventive but no routine match found yet, we might want to clear or keep user selection
-                                            // But for now let's keep it robust
                                         }
 
                                         setFormData(prev => ({

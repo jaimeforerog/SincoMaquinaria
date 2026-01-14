@@ -13,6 +13,14 @@ public class Empleado
     public decimal ValorHora { get; set; }
     public EstadoEmpleado Estado { get; set; } = EstadoEmpleado.Activo;
 
+    // Auditoría
+    public Guid? CreadoPor { get; set; }
+    public string? CreadoPorNombre { get; set; }
+    public DateTimeOffset FechaCreacion { get; set; }
+    public Guid? ModificadoPor { get; set; }
+    public string? ModificadoPorNombre { get; set; }
+    public DateTimeOffset? FechaModificacion { get; set; }
+
     public Empleado() { }
 
     public void Apply(EmpleadoCreado @event)
@@ -24,6 +32,10 @@ public class Empleado
         Especialidad = @event.Especialidad;
         ValorHora = @event.ValorHora;
         Estado = @event.Estado.ToEnum<EstadoEmpleado>();
+        // Auditoría
+        CreadoPor = @event.UsuarioId;
+        CreadoPorNombre = @event.UsuarioNombre;
+        FechaCreacion = @event.FechaCreacion ?? DateTimeOffset.Now;
     }
 
     public void Apply(EmpleadoActualizado @event)
@@ -34,5 +46,9 @@ public class Empleado
         Especialidad = @event.Especialidad;
         ValorHora = @event.ValorHora;
         Estado = @event.Estado.ToEnum<EstadoEmpleado>();
+        // Auditoría de modificación
+        ModificadoPor = @event.UsuarioId;
+        ModificadoPorNombre = @event.UsuarioNombre;
+        FechaModificacion = DateTimeOffset.Now;
     }
 }

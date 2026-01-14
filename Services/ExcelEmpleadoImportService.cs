@@ -19,7 +19,7 @@ public class ExcelEmpleadoImportService
         _session = session;
     }
 
-    public async Task<int> ImportarEmpleados(Stream fileStream)
+    public async Task<int> ImportarEmpleados(Stream fileStream, Guid? usuarioId = null, string? usuarioNombre = null)
     {
         // Allowed positions - Get from enum
         var cargosValidos = EnumExtensions.GetEnumValues<CargoEmpleado>();
@@ -132,7 +132,7 @@ public class ExcelEmpleadoImportService
             // Process
             var empleadoId = Guid.NewGuid();
             _session.Events.StartStream<Empleado>(empleadoId, 
-                new EmpleadoCreado(empleadoId, nombre!, documento!, cargo!, especialidad ?? "", valorHora, estado)
+                new EmpleadoCreado(empleadoId, nombre!, documento!, cargo!, especialidad ?? "", valorHora, estado, usuarioId, usuarioNombre, DateTimeOffset.Now)
             );
             count++;
         }

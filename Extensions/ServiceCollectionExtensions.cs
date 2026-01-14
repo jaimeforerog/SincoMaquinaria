@@ -50,6 +50,9 @@ public static class ServiceCollectionExtensions
             opts.Projections.Snapshot<RutinaMantenimiento>(SnapshotLifecycle.Inline);
             opts.Projections.Snapshot<Empleado>(SnapshotLifecycle.Inline);
             opts.Projections.Snapshot<Usuario>(SnapshotLifecycle.Inline);
+
+            // Proyecciones
+            // opts.Projections.Add<SincoMaquinaria.Domain.Projections.AuditoriaProjection>(Marten.Events.Projections.ProjectionLifecycle.Inline);
         });
 
         // Excel Services
@@ -102,7 +105,8 @@ public static class ServiceCollectionExtensions
                 corsBuilder.WithOrigins(allowedOrigins)
                     .AllowAnyMethod()
                     .AllowAnyHeader()
-                    .AllowCredentials();
+                    .AllowCredentials()
+                    .WithExposedHeaders("Content-Disposition");
             });
         });
 
@@ -126,7 +130,6 @@ public static class ServiceCollectionExtensions
         services.AddMemoryCache();
         services.Configure<IpRateLimitOptions>(configuration.GetSection("IpRateLimiting"));
         services.Configure<IpRateLimitPolicies>(configuration.GetSection("IpRateLimitPolicies"));
-        services.AddInMemoryRateLimiting();
         services.AddInMemoryRateLimiting();
         services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
 

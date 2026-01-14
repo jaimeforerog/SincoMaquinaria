@@ -44,6 +44,7 @@ try
     app.MapEmpleadosEndpoints(maxFileUploadSizeMB);
     app.MapRutinasEndpoints(maxFileUploadSizeMB);
     app.MapConfiguracionEndpoints();
+    app.MapAuditoriaEndpoints();
     app.MapAdminEndpoints(builder.Configuration);
 
     // --- SIGNALR HUBS ---

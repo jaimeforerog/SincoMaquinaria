@@ -21,6 +21,34 @@ public class Equipo
     
     public string Estado { get; set; } = "Inactivo";
 
+    // Auditoría
+    public Guid? CreadoPor { get; set; }
+    public string? CreadoPorNombre { get; set; }
+    public DateTimeOffset FechaCreacion { get; set; }
+    public Guid? ModificadoPor { get; set; }
+    public string? ModificadoPorNombre { get; set; }
+    public DateTimeOffset? FechaModificacion { get; set; }
+
+    public void Apply(EquipoCreado @event)
+    {
+        Id = @event.Id;
+        Placa = @event.Placa;
+        Descripcion = @event.Descripcion;
+        Marca = @event.Marca;
+        Modelo = @event.Modelo;
+        Serie = @event.Serie;
+        Codigo = @event.Codigo;
+        TipoMedidorId = @event.TipoMedidorId;
+        TipoMedidorId2 = @event.TipoMedidorId2;
+        Grupo = @event.Grupo;
+        Rutina = @event.Rutina;
+        Estado = "Activo";
+        // Auditoría
+        CreadoPor = @event.UsuarioId;
+        CreadoPorNombre = @event.UsuarioNombre;
+        FechaCreacion = @event.FechaCreacion ?? DateTimeOffset.Now;
+    }
+
     public void Apply(EquipoMigrado @event)
     {
         Id = @event.Id;
@@ -35,6 +63,10 @@ public class Equipo
         Grupo = @event.Grupo;
         Rutina = @event.Rutina;
         Estado = "Activo"; // Asumimos activo al migrar
+        // Auditoría
+        CreadoPor = @event.UsuarioId;
+        CreadoPorNombre = @event.UsuarioNombre;
+        FechaCreacion = @event.FechaCreacion ?? DateTimeOffset.Now;
     }
 
     public void Apply(EquipoActualizado @event)
@@ -49,5 +81,9 @@ public class Equipo
         TipoMedidorId2 = @event.TipoMedidorId2;
         Grupo = @event.Grupo;
         Rutina = @event.Rutina;
+        // Auditoría de modificación
+        ModificadoPor = @event.UsuarioId;
+        ModificadoPorNombre = @event.UsuarioNombre;
+        FechaModificacion = DateTimeOffset.Now;
     }
 }

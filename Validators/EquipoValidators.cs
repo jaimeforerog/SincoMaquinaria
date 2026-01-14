@@ -12,11 +12,9 @@ public class ActualizarEquipoRequestValidator : AbstractValidator<ActualizarEqui
             .MaximumLength(200).WithMessage("La descripción no puede exceder 200 caracteres");
 
         RuleFor(x => x.Marca)
-            .NotEmpty().WithMessage("La marca es requerida")
             .MaximumLength(100).WithMessage("La marca no puede exceder 100 caracteres");
 
         RuleFor(x => x.Modelo)
-            .NotEmpty().WithMessage("El modelo es requerido")
             .MaximumLength(100).WithMessage("El modelo no puede exceder 100 caracteres");
 
         RuleFor(x => x.Serie)

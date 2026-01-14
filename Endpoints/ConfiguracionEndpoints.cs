@@ -4,6 +4,8 @@ using SincoMaquinaria.Domain;
 using SincoMaquinaria.Domain.Events;
 using SincoMaquinaria.DTOs.Requests;
 using SincoMaquinaria.Infrastructure;
+using System.Security.Claims;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace SincoMaquinaria.Endpoints;
 
@@ -63,9 +65,11 @@ public static class ConfiguracionEndpoints
     // --- Tipos de Medidor ---
 
     private static async Task<IResult> CrearTipoMedidor(
-        IDocumentSession session, 
+        IDocumentSession session,
+        HttpContext httpContext,
         [FromBody] CrearTipoMedidorRequest req)
     {
+        var (userId, userName) = GetUserContext(httpContext);
         var configId = ConfiguracionGlobal.SingletonId;
         
         // Validar si ya existe nombre
@@ -78,7 +82,7 @@ public static class ConfiguracionEndpoints
         
         var nuevoCodigo = Guid.NewGuid().ToString("N").ToUpper().Substring(0, 8);
         session.Events.Append(configId, 
-            new TipoMedidorCreado(nuevoCodigo, req.Nombre, req.Unidad.ToUpper()));
+            new TipoMedidorCreado(nuevoCodigo, req.Nombre, req.Unidad.ToUpper(), userId, userName, DateTimeOffset.Now));
         await session.SaveChangesAsync();
         return Results.Ok();
     }
@@ -90,23 +94,27 @@ public static class ConfiguracionEndpoints
     }
 
     private static async Task<IResult> ActualizarTipoMedidor(
-        IDocumentSession session, 
+        IDocumentSession session,
+        HttpContext httpContext,
         string codigo, 
         [FromBody] ActualizarTipoMedidorRequest req)
     {
+        var (userId, userName) = GetUserContext(httpContext);
         session.Events.Append(ConfiguracionGlobal.SingletonId, 
-            new TipoMedidorActualizado(codigo, req.Nombre, req.Unidad));
+            new TipoMedidorActualizado(codigo, req.Nombre, req.Unidad, userId, userName));
         await session.SaveChangesAsync();
         return Results.Ok();
     }
 
     private static async Task<IResult> CambiarEstadoMedidor(
-        IDocumentSession session, 
+        IDocumentSession session,
+        HttpContext httpContext,
         string codigo, 
         [FromBody] CambiarEstadoRequest req)
     {
+        var (userId, userName) = GetUserContext(httpContext);
         session.Events.Append(ConfiguracionGlobal.SingletonId, 
-            new EstadoTipoMedidorCambiado(codigo, req.Activo));
+            new EstadoTipoMedidorCambiado(codigo, req.Activo, userId, userName));
         await session.SaveChangesAsync();
         return Results.Ok();
     }
@@ -114,9 +122,11 @@ public static class ConfiguracionEndpoints
     // --- Grupos de Mantenimiento ---
 
     private static async Task<IResult> CrearGrupo(
-        IDocumentSession session, 
+        IDocumentSession session,
+        HttpContext httpContext,
         [FromBody] CrearGrupoRequest req)
     {
+        var (userId, userName) = GetUserContext(httpContext);
         var configId = ConfiguracionGlobal.SingletonId;
         
         var config = await session.LoadAsync<ConfiguracionGlobal>(configId);
@@ -128,7 +138,7 @@ public static class ConfiguracionEndpoints
         
         var nuevoCodigo = Guid.NewGuid().ToString("N").ToUpper().Substring(0, 8);
         session.Events.Append(configId, 
-            new GrupoMantenimientoCreado(nuevoCodigo, req.Nombre, req.Descripcion, true));
+            new GrupoMantenimientoCreado(nuevoCodigo, req.Nombre, req.Descripcion, true, userId, userName, DateTimeOffset.Now));
         await session.SaveChangesAsync();
         return Results.Ok();
     }
@@ -140,23 +150,37 @@ public static class ConfiguracionEndpoints
     }
 
     private static async Task<IResult> ActualizarGrupo(
-        IDocumentSession session, 
+        IDocumentSession session,
+        HttpContext httpContext,
         string codigo, 
         [FromBody] ActualizarGrupoRequest req)
     {
+        var (userId, userName) = GetUserContext(httpContext);
+        
+        // Validación de unicidad
+        var config = await session.LoadAsync<ConfiguracionGlobal>(ConfiguracionGlobal.SingletonId);
+        if (config != null && config.GruposMantenimiento.Any(g => 
+            g.Codigo != codigo && 
+            g.Nombre.Trim().Equals(req.Nombre.Trim(), StringComparison.OrdinalIgnoreCase)))
+        {
+            return Results.Conflict($"El grupo '{req.Nombre}' ya existe.");
+        }
+
         session.Events.Append(ConfiguracionGlobal.SingletonId,
-            new GrupoMantenimientoActualizado(codigo, req.Nombre, req.Descripcion));
+            new GrupoMantenimientoActualizado(codigo, req.Nombre, req.Descripcion, userId, userName));
         await session.SaveChangesAsync();
         return Results.Ok();
     }
 
     private static async Task<IResult> CambiarEstadoGrupo(
-        IDocumentSession session, 
+        IDocumentSession session,
+        HttpContext httpContext,
         string codigo, 
         [FromBody] CambiarEstadoRequest req)
     {
+        var (userId, userName) = GetUserContext(httpContext);
         session.Events.Append(ConfiguracionGlobal.SingletonId, 
-            new EstadoGrupoMantenimientoCambiado(codigo, req.Activo));
+            new EstadoGrupoMantenimientoCambiado(codigo, req.Activo, userId, userName));
         await session.SaveChangesAsync();
         return Results.Ok();
     }
@@ -164,9 +188,11 @@ public static class ConfiguracionEndpoints
     // --- Tipos de Falla ---
 
     private static async Task<IResult> CrearTipoFalla(
-        IDocumentSession session, 
+        IDocumentSession session,
+        HttpContext httpContext,
         [FromBody] CrearTipoFallaRequest req)
     {
+        var (userId, userName) = GetUserContext(httpContext);
         var configId = ConfiguracionGlobal.SingletonId;
         
         var config = await session.LoadAsync<ConfiguracionGlobal>(configId);
@@ -178,7 +204,7 @@ public static class ConfiguracionEndpoints
         
         var nuevoCodigo = Guid.NewGuid().ToString("N").ToUpper().Substring(0, 8);
         session.Events.Append(configId, 
-            new TipoFallaCreado(nuevoCodigo, req.Descripcion, req.Prioridad));
+            new TipoFallaCreado(nuevoCodigo, req.Descripcion, req.Prioridad, userId, userName, DateTimeOffset.Now));
         await session.SaveChangesAsync();
         return Results.Ok();
     }
@@ -192,21 +218,23 @@ public static class ConfiguracionEndpoints
     // --- Causas de Falla ---
 
     private static async Task<IResult> CrearCausaFalla(
-        IDocumentSession session, 
+        IDocumentSession session,
+        HttpContext httpContext,
         [FromBody] CrearCausaFallaRequest req)
     {
+        var (userId, userName) = GetUserContext(httpContext);
         var configId = ConfiguracionGlobal.SingletonId;
         
         var config = await session.LoadAsync<ConfiguracionGlobal>(configId);
         if (config != null && config.CausasFalla.Any(c => 
-            c.Descripcion.Equals(req.Descripcion, StringComparison.OrdinalIgnoreCase)))
+            c.Descripcion.Trim().Equals(req.Descripcion.Trim(), StringComparison.OrdinalIgnoreCase)))
         {
             return Results.Conflict($"La causa de falla '{req.Descripcion}' ya existe.");
         }
         
         var nuevoCodigo = Guid.NewGuid().ToString("N").ToUpper().Substring(0, 8);
         session.Events.Append(configId, 
-            new CausaFallaCreada(nuevoCodigo, req.Descripcion));
+            new CausaFallaCreada(nuevoCodigo, req.Descripcion, userId, userName, DateTimeOffset.Now));
         await session.SaveChangesAsync();
         return Results.Ok();
     }
@@ -218,24 +246,53 @@ public static class ConfiguracionEndpoints
     }
 
     private static async Task<IResult> ActualizarCausaFalla(
-        IDocumentSession session, 
+        IDocumentSession session,
+        HttpContext httpContext,
         string codigo, 
         [FromBody] ActualizarCausaFallaRequest req)
     {
+        var (userId, userName) = GetUserContext(httpContext);
+        
+        // Validación de unicidad
+        var config = await session.LoadAsync<ConfiguracionGlobal>(ConfiguracionGlobal.SingletonId);
+        if (config != null && config.CausasFalla.Any(c => 
+            c.Codigo != codigo && 
+            c.Descripcion.Trim().Equals(req.Descripcion.Trim(), StringComparison.OrdinalIgnoreCase)))
+        {
+            return Results.Conflict($"La causa de falla '{req.Descripcion}' ya existe.");
+        }
+
         session.Events.Append(ConfiguracionGlobal.SingletonId, 
-            new CausaFallaActualizada(codigo, req.Descripcion));
+            new CausaFallaActualizada(codigo, req.Descripcion, userId, userName));
         await session.SaveChangesAsync();
         return Results.Ok();
     }
 
     private static async Task<IResult> CambiarEstadoCausaFalla(
         IDocumentSession session, 
+        HttpContext httpContext,
         string codigo, 
         [FromBody] CambiarEstadoRequest req)
     {
+        var (userId, userName) = GetUserContext(httpContext);
         session.Events.Append(ConfiguracionGlobal.SingletonId, 
-            new EstadoCausaFallaCambiado(codigo, req.Activo));
+            new EstadoCausaFallaCambiado(codigo, req.Activo, userId, userName));
         await session.SaveChangesAsync();
         return Results.Ok();
+    }
+
+    // Helper para extraer contexto del usuario desde JWT
+    private static (Guid? UserId, string? UserName) GetUserContext(HttpContext context)
+    {
+        var sub = context.User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value 
+                  ?? context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        
+        var name = context.User.FindFirst(ClaimTypes.Name)?.Value 
+                   ?? context.User.FindFirst("name")?.Value;
+
+        Guid? uid = null;
+        if (Guid.TryParse(sub, out var g)) uid = g;
+
+        return (uid, name);
     }
 }

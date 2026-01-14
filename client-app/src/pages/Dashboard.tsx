@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { LocalShipping, Warning, CheckCircle, Add, Engineering, Agriculture, Assignment } from '@mui/icons-material';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import { OrdenDeTrabajo } from '../types';
 import { useAuthFetch } from '../hooks/useAuthFetch';
@@ -15,6 +15,7 @@ import { useDashboardSocket } from '../hooks/useDashboardSocket';
 
 const Dashboard = () => {
     const authFetch = useAuthFetch();
+    const navigate = useNavigate();
     const [ordenes, setOrdenes] = useState<OrdenDeTrabajo[]>([]);
     const [equiposList, setEquiposList] = useState<any[]>([]); // Store full list
     const [equiposCount, setEquiposCount] = useState(0);
@@ -123,22 +124,26 @@ const Dashboard = () => {
                 </Grid>
 
                 <Grid item xs={12} sm={6} md={2}>
-                    <KpiCard
-                        icon={<Engineering sx={{ fontSize: 32, color: "#78909c" }} />} // Blue Grey
-                        title="Rutinas"
-                        value={rutinasCount}
-                        change="Definidas"
-                        loading={loading}
-                    />
+                    <Box component={Link} to="/editar-rutinas" sx={{ textDecoration: 'none' }}>
+                        <KpiCard
+                            icon={<Engineering sx={{ fontSize: 32, color: "#78909c" }} />} // Blue Grey
+                            title="Rutinas"
+                            value={rutinasCount}
+                            change="Definidas"
+                            loading={loading}
+                        />
+                    </Box>
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>
-                    <KpiCard
-                        icon={<Assignment sx={{ fontSize: 32, color: "#90caf9" }} />} // MUI Blue 200
-                        title="Órdenes Activas"
-                        value={activeOrders}
-                        change="Total Registrado"
-                        loading={loading}
-                    />
+                    <Box component={Link} to="/historial" sx={{ textDecoration: 'none' }}>
+                        <KpiCard
+                            icon={<Assignment sx={{ fontSize: 32, color: "#90caf9" }} />} // MUI Blue 200
+                            title="Órdenes Activas"
+                            value={activeOrders}
+                            change="Total Registrado"
+                            loading={loading}
+                        />
+                    </Box>
                 </Grid>
                 <Grid item xs={12} sm={6} md={2}>
                     <KpiCard
@@ -161,66 +166,6 @@ const Dashboard = () => {
             </Grid>
 
             {/* Listado de Órdenes */}
-            <Typography variant="overline" display="block" color="text.secondary" sx={{ mb: 2, fontSize: '0.85rem' }}>
-                Órdenes Recientes
-            </Typography>
-
-            <TableContainer component={Paper} elevation={2} sx={{ borderRadius: 2 }}>
-                {loading ? (
-                    <Box sx={{ p: 4, textAlign: 'center' }}>
-                        <Typography>Cargando datos...</Typography>
-                    </Box>
-                ) : ordenes.length === 0 ? (
-                    <Box sx={{ p: 4, textAlign: 'center' }}>
-                        <Typography color="text.secondary">No hay órdenes registradas.</Typography>
-                    </Box>
-                ) : (
-                    <Table sx={{ minWidth: 650 }} aria-label="ordenes table">
-                        <TableHead sx={{ bgcolor: 'action.hover' }}>
-                            <TableRow>
-                                <TableCell><strong>Número</strong></TableCell>
-                                <TableCell><strong>Equipo</strong></TableCell>
-                                <TableCell><strong>Tipo</strong></TableCell>
-                                <TableCell><strong>Estado</strong></TableCell>
-                                <TableCell align="center"><strong>Acción</strong></TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {ordenes.map((orden) => (
-                                <TableRow
-                                    key={orden.id}
-                                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                                    hover
-                                >
-                                    <TableCell component="th" scope="row" sx={{ fontWeight: 'bold' }}>
-                                        {orden.numero}
-                                    </TableCell>
-                                    <TableCell>{getEquipoDetails(orden.equipoId)}</TableCell>
-                                    <TableCell>{orden.tipo || 'N/A'}</TableCell>
-                                    <TableCell>
-                                        <Chip
-                                            label={orden.estado}
-                                            color={orden.estado === 'Finalizada' ? 'success' : orden.estado === 'Cancelada' ? 'error' : 'secondary'}
-                                            variant="outlined"
-                                            size="small"
-                                        />
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        <Button
-                                            component={Link}
-                                            to={`/ordenes/${orden.id}`}
-                                            size="small"
-                                            sx={{ textTransform: 'none' }}
-                                        >
-                                            Ver Detalle
-                                        </Button>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                )}
-            </TableContainer>
         </Box>
     );
 };

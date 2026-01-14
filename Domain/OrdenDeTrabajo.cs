@@ -90,6 +90,11 @@ public class OrdenDeTrabajo
     {
         Estado = @event.EstadoFinal.ToEnum<EstadoOrdenDeTrabajo>();
     }
+
+    public void Apply(OrdenDeTrabajoEliminada @event)
+    {
+        Estado = EstadoOrdenDeTrabajo.Eliminada;
+    }
 }
 
 public class DetalleOrden

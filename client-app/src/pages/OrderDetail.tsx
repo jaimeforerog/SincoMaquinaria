@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { ArrowBack, CalendarToday, Person, LocalShipping, AccessTime, Add, ExpandMore, PictureAsPdf } from '@mui/icons-material';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { ArrowBack, CalendarToday, Person, LocalShipping, AccessTime, Add, ExpandMore, PictureAsPdf, Delete } from '@mui/icons-material';
 import { exportOrdenToPDF } from '../services/PDFExportService';
 import { OrdenDeTrabajo } from '../types';
 import {
     Box, Typography, Container, Paper, Grid, Card, CardContent, Chip, IconButton, Button, Tabs, Tab, TextField, Divider, List, ListItem, ListItemText, ListItemIcon, MenuItem,
-    Accordion, AccordionSummary, AccordionDetails, Table, TableBody, TableCell, TableContainer, TableHead, TableRow
+    Accordion, AccordionSummary, AccordionDetails, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Dialog, DialogTitle, DialogContent, DialogActions
 } from '@mui/material';
 
 interface OrderDetailParams extends Record<string, string | undefined> {
@@ -30,6 +30,7 @@ import { useAuthFetch } from '../hooks/useAuthFetch';
 
 const OrderDetail = () => {
     const { id } = useParams<OrderDetailParams>();
+    const navigate = useNavigate();
     const authFetch = useAuthFetch();
     const [order, setOrder] = useState<OrdenDeTrabajo & { detalles?: any[] } | null>(null);
     const [history, setHistory] = useState<any[]>([]);
@@ -47,6 +48,9 @@ const OrderDetail = () => {
     const [causasFalla, setCausasFalla] = useState<any[]>([]);
     const [selectedTipoFalla, setSelectedTipoFalla] = useState('');
     const [selectedCausaFalla, setSelectedCausaFalla] = useState('');
+
+    // Delete confirmation state
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     const fetchOrder = async () => {
         try {
@@ -197,6 +201,27 @@ const OrderDetail = () => {
         setActiveTab(newValue);
     };
 
+    const handleDelete = async () => {
+        if (!id) return;
+
+        try {
+            const res = await authFetch(`/ordenes/${id}`, {
+                method: 'DELETE'
+            });
+
+            if (res.ok) {
+                navigate('/historial');
+            } else {
+                alert('Error al eliminar la orden');
+            }
+        } catch (error) {
+            console.error(error);
+            alert('Error de conexión');
+        } finally {
+            setShowDeleteConfirm(false);
+        }
+    };
+
     if (loading) return <Box sx={{ p: 4, display: 'flex', justifyContent: 'center' }}><Typography>Cargando detalle...</Typography></Box>;
     if (!order) return <Box sx={{ p: 4 }}><Typography>No se encontró la orden.</Typography></Box>;
 
@@ -228,10 +253,19 @@ const OrderDetail = () => {
                     variant="contained"
                     color="primary"
                     startIcon={<PictureAsPdf />}
-                    onClick={() => order && exportOrdenToPDF(order, equipo, history)}
+                    onClick={() => order && exportOrdenToPDF(order, equipo, history, tiposFalla, causasFalla)}
                     sx={{ ml: 2 }}
                 >
                     Exportar PDF
+                </Button>
+                <Button
+                    variant="contained"
+                    color="warning"
+                    startIcon={<Delete />}
+                    onClick={() => setShowDeleteConfirm(true)}
+                    sx={{ ml: 2 }}
+                >
+                    Eliminar OT
                 </Button>
             </Box>
 
@@ -282,6 +316,44 @@ const OrderDetail = () => {
                                         </TextField>
                                     )}
 
+                                    {/* Failure info for corrective orders - BEFORE the add button */}
+                                    {order?.tipo === 'Correctivo' && (
+                                        <Box sx={{ display: 'flex', gap: 2 }}>
+                                            <TextField
+                                                select
+                                                label="Tipo de Falla *"
+                                                fullWidth
+                                                size="small"
+                                                value={selectedTipoFalla}
+                                                onChange={(e) => setSelectedTipoFalla(e.target.value)}
+                                                helperText="Requerido para OT Correctiva"
+                                                required
+                                                error={!selectedTipoFalla}
+                                            >
+                                                <MenuItem value=""><em>-- Seleccionar --</em></MenuItem>
+                                                {tiposFalla.filter(t => t.activo).map((tipo: any) => (
+                                                    <MenuItem key={tipo.codigo} value={tipo.codigo}>{tipo.descripcion}</MenuItem>
+                                                ))}
+                                            </TextField>
+                                            <TextField
+                                                select
+                                                label="Causa de Falla *"
+                                                fullWidth
+                                                size="small"
+                                                value={selectedCausaFalla}
+                                                onChange={(e) => setSelectedCausaFalla(e.target.value)}
+                                                helperText="Requerido para OT Correctiva"
+                                                required
+                                                error={!selectedCausaFalla}
+                                            >
+                                                <MenuItem value=""><em>-- Seleccionar --</em></MenuItem>
+                                                {causasFalla.filter(c => c.activo).map((causa: any) => (
+                                                    <MenuItem key={causa.codigo} value={causa.codigo}>{causa.descripcion}</MenuItem>
+                                                ))}
+                                            </TextField>
+                                        </Box>
+                                    )}
+
                                     <Box sx={{ display: 'flex', gap: 2 }}>
                                         <TextField
                                             fullWidth
@@ -293,46 +365,17 @@ const OrderDetail = () => {
                                         <Button
                                             variant="contained"
                                             onClick={handleAddActivity}
-                                            disabled={!newActivity || (rutinaParts.length > 0 && !selectedPartId)}
+                                            disabled={
+                                                !newActivity ||
+                                                (rutinaParts.length > 0 && !selectedPartId) ||
+                                                (order?.tipo === 'Correctivo' && (!selectedTipoFalla || !selectedCausaFalla))
+                                            }
                                             startIcon={<Add />}
+                                            sx={{ minWidth: 120 }}
                                         >
                                             Agregar
                                         </Button>
                                     </Box>
-
-                                    {/* Failure info for corrective orders */}
-                                    {order?.tipo === 'Correctivo' && (
-                                        <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
-                                            <TextField
-                                                select
-                                                label="Tipo de Falla"
-                                                fullWidth
-                                                size="small"
-                                                value={selectedTipoFalla}
-                                                onChange={(e) => setSelectedTipoFalla(e.target.value)}
-                                                helperText="Selecciona el tipo de falla"
-                                            >
-                                                <MenuItem value=""><em>-- Seleccionar --</em></MenuItem>
-                                                {tiposFalla.filter(t => t.activo).map((tipo: any) => (
-                                                    <MenuItem key={tipo.codigo} value={tipo.codigo}>{tipo.descripcion}</MenuItem>
-                                                ))}
-                                            </TextField>
-                                            <TextField
-                                                select
-                                                label="Causa de Falla"
-                                                fullWidth
-                                                size="small"
-                                                value={selectedCausaFalla}
-                                                onChange={(e) => setSelectedCausaFalla(e.target.value)}
-                                                helperText="Selecciona la causa de la falla"
-                                            >
-                                                <MenuItem value=""><em>-- Seleccionar --</em></MenuItem>
-                                                {causasFalla.filter(c => c.activo).map((causa: any) => (
-                                                    <MenuItem key={causa.codigo} value={causa.codigo}>{causa.descripcion}</MenuItem>
-                                                ))}
-                                            </TextField>
-                                        </Box>
-                                    )}
                                 </Box>
                             </Box>
 
@@ -459,6 +502,25 @@ const OrderDetail = () => {
                     )}
                 </Box>
             </Paper>
+
+            {/* Delete Confirmation Dialog */}
+            <Dialog open={showDeleteConfirm} onClose={() => setShowDeleteConfirm(false)}>
+                <DialogTitle>Confirmar Eliminación</DialogTitle>
+                <DialogContent>
+                    <Typography>
+                        ¿Está seguro que desea eliminar la orden {order.numero}?
+                        Esta acción no se puede deshacer.
+                    </Typography>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setShowDeleteConfirm(false)}>
+                        Cancelar
+                    </Button>
+                    <Button onClick={handleDelete} color="warning" variant="contained">
+                        Eliminar
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Container>
     );
 };

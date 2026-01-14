@@ -29,7 +29,10 @@ public class ConfiguracionGlobal
                 Codigo = @event.Codigo, 
                 Nombre = @event.Nombre, 
                 Unidad = @event.Unidad, 
-                Activo = true 
+                Activo = true,
+                CreadoPor = @event.UsuarioId,
+                CreadoPorNombre = @event.UsuarioNombre,
+                FechaCreacion = @event.FechaCreacion ?? DateTimeOffset.Now
             });
         }
     }
@@ -54,7 +57,10 @@ public class ConfiguracionGlobal
                 Codigo = @event.Codigo,
                 Nombre = @event.Nombre,
                 Descripcion = @event.Descripcion,
-                Activo = @event.Activo
+                Activo = @event.Activo,
+                CreadoPor = @event.UsuarioId,
+                CreadoPorNombre = @event.UsuarioNombre,
+                FechaCreacion = @event.FechaCreacion ?? DateTimeOffset.Now
             });
         }
     }
@@ -99,7 +105,10 @@ public class ConfiguracionGlobal
                 Codigo = @event.Codigo, 
                 Descripcion = @event.Descripcion, 
                 Prioridad = @event.Prioridad, 
-                Activo = true 
+                Activo = true,
+                CreadoPor = @event.UsuarioId,
+                CreadoPorNombre = @event.UsuarioNombre,
+                FechaCreacion = @event.FechaCreacion ?? DateTimeOffset.Now
             });
         }
     }
@@ -114,7 +123,10 @@ public class ConfiguracionGlobal
             { 
                 Codigo = @event.Codigo, 
                 Descripcion = @event.Descripcion, 
-                Activo = true 
+                Activo = true,
+                CreadoPor = @event.UsuarioId,
+                CreadoPorNombre = @event.UsuarioNombre,
+                FechaCreacion = @event.FechaCreacion ?? DateTimeOffset.Now
             });
         }
     }
@@ -144,6 +156,13 @@ public class TipoMedidor
     public string Nombre { get; set; } = string.Empty;
     public string Unidad { get; set; } = string.Empty;
     public bool Activo { get; set; }
+    // Auditoría
+    public Guid? CreadoPor { get; set; }
+    public string? CreadoPorNombre { get; set; }
+    public DateTimeOffset FechaCreacion { get; set; }
+    public Guid? ModificadoPor { get; set; }
+    public string? ModificadoPorNombre { get; set; }
+    public DateTimeOffset? FechaModificacion { get; set; }
 }
 
 public class GrupoMantenimiento
@@ -152,6 +171,13 @@ public class GrupoMantenimiento
     public string Nombre { get; set; } = string.Empty;
     public string Descripcion { get; set; } = string.Empty;
     public bool Activo { get; set; }
+    // Auditoría
+    public Guid? CreadoPor { get; set; }
+    public string? CreadoPorNombre { get; set; }
+    public DateTimeOffset FechaCreacion { get; set; }
+    public Guid? ModificadoPor { get; set; }
+    public string? ModificadoPorNombre { get; set; }
+    public DateTimeOffset? FechaModificacion { get; set; }
 }
 
 public class TipoFalla
@@ -160,6 +186,13 @@ public class TipoFalla
     public string Descripcion { get; set; } = string.Empty;
     public string Prioridad { get; set; } = "Media";
     public bool Activo { get; set; }
+    // Auditoría
+    public Guid? CreadoPor { get; set; }
+    public string? CreadoPorNombre { get; set; }
+    public DateTimeOffset FechaCreacion { get; set; }
+    public Guid? ModificadoPor { get; set; }
+    public string? ModificadoPorNombre { get; set; }
+    public DateTimeOffset? FechaModificacion { get; set; }
 }
 
 public class CausaFalla
@@ -167,4 +200,11 @@ public class CausaFalla
     public string Codigo { get; set; } = string.Empty;
     public string Descripcion { get; set; } = string.Empty;
     public bool Activo { get; set; }
+    // Auditoría
+    public Guid? CreadoPor { get; set; }
+    public string? CreadoPorNombre { get; set; }
+    public DateTimeOffset FechaCreacion { get; set; }
+    public Guid? ModificadoPor { get; set; }
+    public string? ModificadoPorNombre { get; set; }
+    public DateTimeOffset? FechaModificacion { get; set; }
 }

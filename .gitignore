@@ -124,3 +124,12 @@ secrets.json
 # User secrets
 secrets/
 *.secret
+
+# Locally added ignores
+azure-credentials.xml
+azure-publish-profile.xml
+*.zip
+*.ps1
+*.xls
+*.xlsx
+*.csv
