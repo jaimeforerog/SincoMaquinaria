@@ -119,8 +119,7 @@ public static class ServiceCollectionExtensions
         });
 
         // Health Checks
-        services.AddHealthChecks()
-            .AddNpgSql(connectionString, name: "postgresql");
+        services.AddHealthChecks();
 
         // Swagger (sin configuración avanzada por ahora)
         services.AddEndpointsApiExplorer();
