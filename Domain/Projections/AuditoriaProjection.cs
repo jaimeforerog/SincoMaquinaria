@@ -1,7 +1,8 @@
 using Marten;
 using Marten.Events;
 using Marten.Events.Projections;
-using SincoMaquinaria.Domain.Events;
+using JasperFx.Events;
+using JasperFx.Events.Projections;
 using System.Reflection;
 using System.Text.Json;
 using System.Collections.Generic;
@@ -10,41 +11,43 @@ using System.Threading.Tasks;
 
 namespace SincoMaquinaria.Domain.Projections;
 
-public class AuditoriaProjection : EventProjection
+public class AuditoriaProjection : IProjection
 {
-    public AuditoriaProjection()
+    public void Apply(IDocumentOperations operations, IReadOnlyList<IEvent> events)
     {
-        // Explicitly map all events to the Create method if convention doesn't pick up IEvent
-        // However, let's try convention first with Create(IEvent)
-        // If that fails, we might need to be more specific or use Project(IEvent, ops)
+        ApplyAsync(operations, events, CancellationToken.None).GetAwaiter().GetResult();
     }
 
-    // Convention-based method to create a document from an event
-    /*
-    public RegistroAuditoria? Create(IEvent @event)
+    public Task ApplyAsync(IDocumentOperations operations, IReadOnlyList<IEvent> events, CancellationToken cancellation)
     {
-        var data = @event.Data;
-        if (data == null) return null;
-
-        var typeName = @event.EventTypeName;
-        var modulo = EventoModuloMap.TryGetValue(typeName, out var mod) ? mod : "Otros";
-
-        var (usuarioId, usuarioNombre, fechaAccion, detalles) = ExtractAuditData(data, @event.Timestamp);
-
-        return new RegistroAuditoria
+        foreach (var @event in events)
         {
-            Id = @event.Id, // Use Event Id as the Document Id
-            StreamId = @event.StreamId,
-            TipoEvento = typeName,
-            Modulo = modulo,
-            UsuarioId = usuarioId,
-            UsuarioNombre = usuarioNombre,
-            Fecha = fechaAccion,
-            Version = @event.Version,
-            Detalles = JsonSerializer.Serialize(detalles)
-        };
+            var data = @event.Data;
+            if (data == null) continue;
+
+            var typeName = @event.EventTypeName;
+            var modulo = EventoModuloMap.TryGetValue(typeName, out var mod) ? mod : "Otros";
+
+            var (usuarioId, usuarioNombre, fechaAccion, detalles) = ExtractAuditData(data, @event.Timestamp);
+
+            var registro = new RegistroAuditoria
+            {
+                Id = @event.Id,
+                StreamId = @event.StreamId,
+                TipoEvento = typeName,
+                Modulo = modulo,
+                UsuarioId = usuarioId,
+                UsuarioNombre = usuarioNombre,
+                Fecha = fechaAccion,
+                Version = @event.Version,
+                Detalles = JsonSerializer.Serialize(detalles)
+            };
+
+            operations.Store(registro);
+        }
+
+        return Task.CompletedTask;
     }
-    */
 
     private static readonly Dictionary<string, string> EventoModuloMap = new()
     {

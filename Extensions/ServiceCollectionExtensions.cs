@@ -2,6 +2,8 @@ using System.Text;
 using FluentValidation;
 using Marten;
 using Marten.Events.Projections;
+using JasperFx.Events;
+using JasperFx.Events.Projections;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using SincoMaquinaria.Domain;
@@ -52,7 +54,7 @@ public static class ServiceCollectionExtensions
             opts.Projections.Snapshot<Usuario>(SnapshotLifecycle.Inline);
 
             // Proyecciones
-            // opts.Projections.Add<SincoMaquinaria.Domain.Projections.AuditoriaProjection>(Marten.Events.Projections.ProjectionLifecycle.Inline);
+            opts.Projections.Add(new SincoMaquinaria.Domain.Projections.AuditoriaProjection(), ProjectionLifecycle.Inline);
         });
 
         // Excel Services
