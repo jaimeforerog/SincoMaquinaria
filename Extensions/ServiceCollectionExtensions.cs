@@ -51,6 +51,9 @@ public static class ServiceCollectionExtensions
             opts.Projections.Snapshot<Empleado>(SnapshotLifecycle.Inline);
             opts.Projections.Snapshot<Usuario>(SnapshotLifecycle.Inline);
 
+            // Permitir que Marten cree las tablas automáticamente si no existen
+            opts.AutoCreateSchemaObjects = Weasel.Core.AutoCreate.All;
+
             // Proyecciones
             // opts.Projections.Add<SincoMaquinaria.Domain.Projections.AuditoriaProjection>(Marten.Events.Projections.ProjectionLifecycle.Inline);
         });
