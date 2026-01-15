@@ -19,6 +19,7 @@ public static class AuthEndpoints
         group.MapGet("/me", GetCurrentUser).RequireAuthorization();
         group.MapGet("/users", GetAllUsers).RequireAuthorization("Admin");
         group.MapPost("/setup", SetupAdmin); // Solo para crear el primer admin
+        group.MapPut("/users/{id:guid}", ActualizarUsuario).RequireAuthorization("Admin");
 
         return app;
     }
@@ -157,5 +158,47 @@ public static class AuthEndpoints
             Id = usuarioId,
             Message = "Administrador creado exitosamente"
         });
+    }
+
+    private static async Task<IResult> ActualizarUsuario(
+        IDocumentSession session,
+        HttpContext httpContext,
+        Guid id,
+        [FromBody] ActualizarUsuarioRequest req)
+    {
+        var currentUserId = GetCurrentUserId(httpContext);
+        
+        var usuario = await session.LoadAsync<Usuario>(id);
+        if (usuario == null) return Results.NotFound();
+
+        // Prevent self-deactivation or role downgrade if you are the last admin? 
+        // For simplicity, just allow updates.
+        
+        string? newPasswordHash = null;
+        if (!string.IsNullOrEmpty(req.Password))
+        {
+            newPasswordHash = JwtService.HashPassword(req.Password);
+        }
+
+        if (!Enum.TryParse<RolUsuario>(req.Rol, true, out var rolUsuario))
+        {
+             return Results.BadRequest("Rol inválido");
+        }
+        
+        var currentUser = await session.LoadAsync<Usuario>(currentUserId);
+        var currentUserName = currentUser?.Nombre ?? "Unknown";
+
+        session.Events.Append(id, 
+            new UsuarioActualizado(id, req.Nombre, rolUsuario, req.Activo, newPasswordHash, currentUserId, currentUserName, DateTimeOffset.Now));
+
+        await session.SaveChangesAsync();
+        return Results.Ok();
+    }
+    
+    private static Guid GetCurrentUserId(HttpContext context)
+    {
+         var userIdClaim = context.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+         if (userIdClaim != null && Guid.TryParse(userIdClaim.Value, out var id)) return id;
+         return Guid.Empty;
     }
 }

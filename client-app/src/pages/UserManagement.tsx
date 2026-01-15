@@ -26,8 +26,10 @@ import {
   InputLabel,
   InputAdornment,
   IconButton,
+  FormControlLabel,
+  Switch,
 } from '@mui/material';
-import { Add, PersonAdd, Visibility, VisibilityOff } from '@mui/icons-material';
+import { Add, PersonAdd, Visibility, VisibilityOff, Edit } from '@mui/icons-material';
 import { useAuthFetch } from '../hooks/useAuthFetch';
 
 interface Usuario {
@@ -47,6 +49,7 @@ const UserManagement: React.FC = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -54,6 +57,7 @@ const UserManagement: React.FC = () => {
     email: '',
     password: '',
     rol: 'User',
+    activo: true,
   });
 
   useEffect(() => {
@@ -80,11 +84,27 @@ const UserManagement: React.FC = () => {
   };
 
   const handleOpenDialog = () => {
+    setEditingId(null);
     setFormData({
       nombre: '',
       email: '',
       password: '',
       rol: 'User',
+      activo: true,
+    });
+    setError('');
+    setSuccess('');
+    setOpenDialog(true);
+  };
+
+  const startEditing = (user: Usuario) => {
+    setEditingId(user.id);
+    setFormData({
+      nombre: user.nombre,
+      email: user.email,
+      password: '', // Password is reset on edit
+      rol: user.rol,
+      activo: user.activo,
     });
     setError('');
     setSuccess('');
@@ -111,39 +131,65 @@ const UserManagement: React.FC = () => {
     });
   };
 
-  const handleCreateUser = async () => {
+  const handleActivoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      activo: e.target.checked
+    });
+  };
+
+  const handleSaveUser = async () => {
     setError('');
     setSuccess('');
 
     // Validation
-    if (!formData.nombre || !formData.email || !formData.password) {
-      setError('Todos los campos son obligatorios');
+    if (!formData.nombre || !formData.email) {
+      setError('Nombre y Email son obligatorios');
       return;
     }
 
-    if (formData.password.length < 6) {
+    // Password validation: Required for New, Optional (min 6) for Edit
+    if (!editingId && !formData.password) {
+      setError('La contraseña es obligatoria para nuevos usuarios');
+      return;
+    }
+
+    if (formData.password && formData.password.length < 6) {
       setError('La contraseña debe tener al menos 6 caracteres');
       return;
     }
 
     try {
-      const response = await authFetch('/auth/register', {
-        method: 'POST',
-        body: JSON.stringify(formData),
+      const url = editingId ? `/auth/users/${editingId}` : '/auth/register';
+      const method = editingId ? 'PUT' : 'POST';
+
+      const body = {
+        Nombre: formData.nombre,
+        Email: formData.email, // Email might not be editable in backend logic generally, but sending it just in case or ignored
+        Rol: formData.rol,
+        Activo: formData.activo,
+        Password: formData.password || undefined // Send undefined if empty to avoid update
+      };
+
+      const response = await authFetch(url, {
+        method: method,
+        body: JSON.stringify(body),
+        headers: { 'Content-Type': 'application/json' }
       });
 
       if (!response.ok) {
+        // Try to read error text
         const errorText = await response.text();
-        throw new Error(errorText || 'Error al crear usuario');
+        throw new Error(errorText || 'Error al guardar usuario');
       }
 
-      setSuccess('Usuario creado exitosamente');
+      setSuccess(editingId ? 'Usuario actualizado exitosamente' : 'Usuario creado exitosamente');
       setTimeout(() => {
         handleCloseDialog();
         fetchUsuarios();
       }, 1500);
     } catch (err: any) {
-      setError(err.message || 'Error al crear usuario');
+      setError(err.message || 'Error al procesar solicitud');
     }
   };
 
@@ -182,12 +228,13 @@ const UserManagement: React.FC = () => {
                     <TableCell>Email</TableCell>
                     <TableCell>Rol</TableCell>
                     <TableCell>Estado</TableCell>
+                    <TableCell>Acciones</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {usuarios.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={4} align="center">
+                      <TableCell colSpan={5} align="center">
                         <Typography variant="body2" color="text.secondary" sx={{ py: 3 }}>
                           No hay usuarios registrados. Crea el primer usuario usando el botón de arriba.
                         </Typography>
@@ -212,6 +259,11 @@ const UserManagement: React.FC = () => {
                             size="small"
                           />
                         </TableCell>
+                        <TableCell>
+                          <IconButton onClick={() => startEditing(usuario)} color="primary">
+                            <Edit />
+                          </IconButton>
+                        </TableCell>
                       </TableRow>
                     ))
                   )}
@@ -222,12 +274,12 @@ const UserManagement: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Create User Dialog */}
+      {/* Create/Edit User Dialog */}
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
         <DialogTitle>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <PersonAdd sx={{ mr: 1 }} />
-            Crear Nuevo Usuario
+            {editingId ? 'Editar Usuario' : 'Crear Nuevo Usuario'}
           </Box>
         </DialogTitle>
         <DialogContent>
@@ -261,18 +313,19 @@ const UserManagement: React.FC = () => {
             onChange={handleInputChange}
             margin="normal"
             required
+            disabled={!!editingId} // Email usually immutable as it is login ID
           />
 
           <TextField
             fullWidth
-            label="Contraseña"
+            label={editingId ? "Contraseña (Dejar en blanco para mantener)" : "Contraseña"}
             name="password"
             type={showPassword ? 'text' : 'password'}
             value={formData.password}
             onChange={handleInputChange}
             margin="normal"
-            required
-            helperText="Mínimo 6 caracteres"
+            required={!editingId}
+            helperText={editingId ? "Solo llenar si desea cambiarla" : "Mínimo 6 caracteres"}
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
@@ -295,15 +348,27 @@ const UserManagement: React.FC = () => {
               <MenuItem value="Admin">Administrador</MenuItem>
             </Select>
           </FormControl>
+
+          {editingId && (
+            <Box sx={{ mt: 2 }}>
+              <FormControlLabel
+                control={
+                  <Switch checked={formData.activo} onChange={handleActivoChange} color="primary" />
+                }
+                label={formData.activo ? "Usuario Activo" : "Usuario Inactivo"}
+              />
+            </Box>
+          )}
+
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancelar</Button>
           <Button
-            onClick={handleCreateUser}
+            onClick={handleSaveUser}
             variant="contained"
             disabled={!!success}
           >
-            Crear Usuario
+            {editingId ? 'Guardar Cambios' : 'Crear Usuario'}
           </Button>
         </DialogActions>
       </Dialog>

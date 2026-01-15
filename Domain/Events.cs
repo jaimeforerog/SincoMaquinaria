@@ -57,5 +57,5 @@ public record EmpleadoActualizado(Guid Id, string Nombre, string Identificacion,
 // --- Usuarios (Autenticación) ---
 
 public record UsuarioCreado(Guid Id, string Email, string PasswordHash, string Nombre, RolUsuario Rol, DateTime FechaCreacion);
-public record UsuarioActualizado(Guid Id, string Nombre, string? PasswordHash);
+public record UsuarioActualizado(Guid Id, string Nombre, RolUsuario Rol, bool Activo, string? PasswordHash, Guid? ModificadoPor, string? ModificadoPorNombre, DateTimeOffset FechaModificacion);
 public record UsuarioDesactivado(Guid Id);

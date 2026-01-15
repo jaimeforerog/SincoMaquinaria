@@ -11,3 +11,10 @@ public record AuthResponse(
     string Nombre, 
     string Rol
 );
+
+public record ActualizarUsuarioRequest(
+    string Nombre, 
+    string Rol, 
+    bool Activo, 
+    string? Password = null
+);

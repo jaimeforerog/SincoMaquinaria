@@ -28,6 +28,8 @@ public class Usuario
     public void Apply(UsuarioActualizado @event)
     {
         Nombre = @event.Nombre;
+        Rol = @event.Rol;
+        Activo = @event.Activo;
         if (!string.IsNullOrEmpty(@event.PasswordHash))
             PasswordHash = @event.PasswordHash;
     }
