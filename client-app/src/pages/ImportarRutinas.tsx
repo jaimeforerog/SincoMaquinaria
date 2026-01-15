@@ -5,9 +5,11 @@ import {
 } from '@mui/material';
 
 import { useAuthFetch } from '../hooks/useAuthFetch';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function ImportarRutinas() {
   const authFetch = useAuthFetch();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState(0);
   const [file, setFile] = useState<File | null>(null);
   const [message, setMessage] = useState('');
@@ -256,23 +258,25 @@ export default function ImportarRutinas() {
           </Alert>
         )}
 
-        {/* Danger Zone */}
-        <Box sx={{ mt: 4, pt: 4, borderTop: 1, borderColor: 'divider' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2, color: 'error.main' }}>
-            <DeleteForever />
-            <Typography variant="subtitle2" fontWeight="bold">Zona de Peligro</Typography>
-          </Box>
+        {/* Danger Zone - Solamente visible para administradores */}
+        {user?.rol === 'Admin' && (
+          <Box sx={{ mt: 4, pt: 4, borderTop: 1, borderColor: 'divider' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2, color: 'error.main' }}>
+              <DeleteForever />
+              <Typography variant="subtitle2" fontWeight="bold">Zona de Peligro</Typography>
+            </Box>
 
-          <Button
-            variant="outlined"
-            color="error"
-            fullWidth
-            startIcon={<DeleteForever />}
-            onClick={() => setOpenDialog(true)}
-          >
-            BORRAR BASE DE DATOS
-          </Button>
-        </Box>
+            <Button
+              variant="outlined"
+              color="error"
+              fullWidth
+              startIcon={<DeleteForever />}
+              onClick={() => setOpenDialog(true)}
+            >
+              BORRAR BASE DE DATOS
+            </Button>
+          </Box>
+        )}
 
         {/* Confirm Dialog */}
         <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>

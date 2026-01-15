@@ -5,6 +5,9 @@ using SincoMaquinaria.DTOs.Common;
 using SincoMaquinaria.DTOs.Requests;
 using SincoMaquinaria.Services;
 using SincoMaquinaria.Extensions;
+using System.Security.Claims;
+using System.IdentityModel.Tokens.Jwt;
+using System.IO;
 
 namespace SincoMaquinaria.Endpoints;
 
@@ -18,7 +21,8 @@ public static class RutinasEndpoints
 
         group.MapPost("/importar", async (
             ExcelImportService importService,
-            IFormFile? file) => await ImportarRutinas(importService, file, maxFileUploadSizeMB))
+            HttpContext httpContext,
+            IFormFile? file) => await ImportarRutinas(importService, httpContext, file, maxFileUploadSizeMB))
             .DisableAntiforgery();
 
         group.MapGet("/", ListarRutinas);
@@ -91,6 +95,7 @@ public static class RutinasEndpoints
 
     private static async Task<IResult> ImportarRutinas(
         ExcelImportService importService,
+        HttpContext httpContext,
         IFormFile? file,
         int maxFileUploadSizeMB)
     {
@@ -108,9 +113,27 @@ public static class RutinasEndpoints
         if (!allowedExtensions.Contains(fileExtension))
             return Results.BadRequest($"Tipo de archivo no permitido. Solo se aceptan archivos: {string.Join(", ", allowedExtensions)}");
 
+        // Extraer usuario del JWT
+        var (userId, userName) = GetUserContext(httpContext);
+
         using var stream = file.OpenReadStream();
-        var count = await importService.ImportarRutinas(stream);
+        var count = await importService.ImportarRutinas(stream, userId, userName);
         return Results.Ok(new { Message = $"Importación completada. {count} rutinas creadas." });
+    }
+
+    // Helper para extraer contexto del usuario desde JWT
+    private static (Guid? UserId, string? UserName) GetUserContext(HttpContext context)
+    {
+        var sub = context.User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value 
+                  ?? context.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        
+        var name = context.User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value 
+                   ?? context.User.FindFirst("name")?.Value;
+
+        Guid? uid = null;
+        if (Guid.TryParse(sub, out var g)) uid = g;
+
+        return (uid, name);
     }
 
     private static async Task<IResult> ListarRutinas(

@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using System;
+using System.Collections.Generic;
 
 namespace SincoMaquinaria.Tests.Integration;
 
@@ -17,6 +18,14 @@ public class EquiposEndpointsTests : IClassFixture<CustomWebApplicationFactory>
         _client = factory.CreateClient();
     }
 
+    // Local class to deserialize paged response
+    private class PagedResult
+    {
+        public List<object>? Data { get; set; }
+        public int Page { get; set; }
+        public int PageSize { get; set; }
+        public int TotalCount { get; set; }
+    }
 
     [Fact]
     public async Task GetEquipos_DebeRetornarLista()
@@ -26,8 +35,9 @@ public class EquiposEndpointsTests : IClassFixture<CustomWebApplicationFactory>
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var equipos = await response.Content.ReadFromJsonAsync<object[]>();
-        equipos.Should().NotBeNull();
+        var result = await response.Content.ReadFromJsonAsync<PagedResult>();
+        result.Should().NotBeNull();
+        result!.Data.Should().NotBeNull();
     }
 
     [Fact]

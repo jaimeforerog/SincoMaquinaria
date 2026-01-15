@@ -18,7 +18,7 @@ public class ExcelImportService
         _session = session;
     }
 
-    public async Task<int> ImportarRutinas(Stream fileStream)
+    public async Task<int> ImportarRutinas(Stream fileStream, Guid? userId = null, string? userName = null)
     {
         ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
@@ -26,7 +26,53 @@ public class ExcelImportService
         var worksheet = package.Workbook.Worksheets.FirstOrDefault();
         if (worksheet == null) return 0;
 
+        // --- VALIDACIÓN DE DEPENDENCIAS ---
+        var config = await _session.LoadAsync<ConfiguracionGlobal>(ConfiguracionGlobal.SingletonId);
+        if (config == null)
+            throw new InvalidOperationException("No se ha inicializado la Configuración Global. Por favor cree unidades y grupos primero.");
+
+        var validGrupos = new HashSet<string>(config.GruposMantenimiento.Where(g => g.Activo).Select(g => g.Nombre), StringComparer.OrdinalIgnoreCase);
+        // Validamos por Unidad (Código/Símbolo) que es lo que suele venir en el excel (ej: hr, km)
+        var validUnidades = new HashSet<string>(config.TiposMedidor.Where(t => t.Activo).Select(t => t.Unidad), StringComparer.OrdinalIgnoreCase);
+
         var rowCount = worksheet.Dimension.Rows;
+        var validationErrors = new List<string>();
+
+        // Primera pasada: Validación
+        for (int row = 2; row <= rowCount; row++)
+        {
+            var grupo = worksheet.Cells[row, 1].Text?.Trim();
+            var rutinaDesc = worksheet.Cells[row, 2].Text?.Trim();
+            
+            // Si no hay grupo ni descripción, asumimos fin de archivo o fila vacía
+            if (string.IsNullOrEmpty(grupo) && string.IsNullOrEmpty(rutinaDesc)) continue; 
+
+            if (!string.IsNullOrEmpty(grupo) && !validGrupos.Contains(grupo))
+            {
+                validationErrors.Add($"Fila {row}: El Grupo de Mantenimiento '{grupo}' no existe o no está activo.");
+            }
+
+            // Validar unidades (Cols 7 y 10)
+            var unidad1 = worksheet.Cells[row, 7].Text?.Trim();
+            var unidad2 = worksheet.Cells[row, 10].Text?.Trim();
+
+            if (!string.IsNullOrEmpty(unidad1) && !validUnidades.Contains(unidad1))
+            {
+                validationErrors.Add($"Fila {row}: La Unidad de Medida '{unidad1}' no existe o no está activa.");
+            }
+
+            if (!string.IsNullOrEmpty(unidad2) && !validUnidades.Contains(unidad2))
+            {
+                validationErrors.Add($"Fila {row}: La Unidad de Medida '{unidad2}' no existe o no está activa.");
+            }
+        }
+
+        if (validationErrors.Any())
+        {
+            throw new InvalidOperationException($"Errores de validación:\n{string.Join("\n", validationErrors)}");
+        }
+        // ----------------------------------
+
         var rutinasMap = new Dictionary<string, (Guid Id, List<object> Events, Dictionary<string, Guid> PartesMap)>();
 
         for (int row = 2; row <= rowCount; row++)
@@ -46,8 +92,8 @@ public class ExcelImportService
                 var rutinaId = Guid.NewGuid();
                 rutinasMap[rutinaKey] = (rutinaId, new List<object>(), new Dictionary<string, Guid>());
                 
-                // Evento RutinaMigrada
-                rutinasMap[rutinaKey].Events.Add(new RutinaMigrada(rutinaId, rutinaDesc, grupo));
+                // Evento RutinaMigrada con Auditoría
+                rutinasMap[rutinaKey].Events.Add(new RutinaMigrada(rutinaId, rutinaDesc, grupo, userId, userName));
             }
 
             var (rId, rEvents, rPartes) = rutinasMap[rutinaKey];

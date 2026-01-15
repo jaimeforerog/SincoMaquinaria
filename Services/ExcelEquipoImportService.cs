@@ -241,6 +241,13 @@ public class ExcelEquipoImportService
             {
                  if (rutinasMap.TryGetValue(rutina, out var rutinaObj))
                  {
+                     // Validar que el Grupo del Equipo coincida con el Grupo de la Rutina
+                     if (!string.Equals(grupo, rutinaObj.Grupo, StringComparison.OrdinalIgnoreCase))
+                     {
+                         validationErrors.Add($"Fila {rowNum}: El Grupo del equipo '{grupo}' no coincide con el Grupo de la Rutina asignada '{rutina}' ({rutinaObj.Grupo}).");
+                         // Continuamos para reportar más errores si los hay, o puedes hacer 'continue' si prefieres parar aquí.
+                     }
+
                      // Check if Routine has activities requiring meters
                      var activities = rutinaObj.Partes.SelectMany(p => p.Actividades).ToList();
                      
@@ -321,9 +328,9 @@ public class ExcelEquipoImportService
                     new EquipoMigrado(equipoId, placa, descripcion, "" /*Marca*/, "" /*Modelo*/, "" /*Serie*/, "" /*Codigo*/, medidor1Id, medidor2Id, grupo, rutina, usuarioId, usuarioNombre, DateTimeOffset.Now)
                 );
 
-                // Lecturas Iniciales - Adapted to use GetValByMap or passed values
-                ProcesarLecturaInicial(equipoId, row, "Medidor inicial medidor 1", "Fecha inicial medidor 1", medidor1Id, GetValByMap);
-                ProcesarLecturaInicial(equipoId, row, "Medidor inicial medidor 2", "Fecha inicial medidor 2", medidor2Id, GetValByMap);
+                // Lecturas Iniciales
+                ProcesarLecturaInicial(equipoId, row, "Medidor inicial medidor 1", "Fecha inicial medidor 1", medidor1Id, GetValByMap, usuarioId, usuarioNombre);
+                ProcesarLecturaInicial(equipoId, row, "Medidor inicial medidor 2", "Fecha inicial medidor 2", medidor2Id, GetValByMap, usuarioId, usuarioNombre);
 
                 count++;
                 placasProcesadas.Add(placa);
@@ -409,7 +416,7 @@ public class ExcelEquipoImportService
         return _session.Query<RutinaMantenimiento>();
     }
 
-    private void ProcesarLecturaInicial(Guid equipoId, System.Data.DataRow row, string colValor, string colFecha, string tipoMedidorId, Func<System.Data.DataRow, string, string[], string?> getVal)
+    private void ProcesarLecturaInicial(Guid equipoId, System.Data.DataRow row, string colValor, string colFecha, string tipoMedidorId, Func<System.Data.DataRow, string, string[], string?> getVal, Guid? usuarioId, string? usuarioNombre)
     {
         if (string.IsNullOrEmpty(tipoMedidorId)) return;
         
@@ -422,7 +429,7 @@ public class ExcelEquipoImportService
              if (DateTime.TryParse(fechaStr, out DateTime f)) fecha = f;
              
              // Emitir evento de lectura
-             _session.Events.Append(equipoId, new MedicionRegistrada(tipoMedidorId, valor, fecha, valor));
+             _session.Events.Append(equipoId, new MedicionRegistrada(tipoMedidorId, valor, fecha, valor, usuarioId, usuarioNombre));
         }
     }
 

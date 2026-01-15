@@ -174,13 +174,13 @@ public static class EquiposEndpoints
         {
             var fecha = req.FechaInicial1 ?? DateTime.Now;
             // TrabajaAcumuladoCalculado se asume igual a la lectura inicial
-            session.Events.Append(id, new MedicionRegistrada(req.TipoMedidorId, req.LecturaInicial1.Value, fecha, req.LecturaInicial1.Value));
+            session.Events.Append(id, new MedicionRegistrada(req.TipoMedidorId, req.LecturaInicial1.Value, fecha, req.LecturaInicial1.Value, userId, userName));
         }
 
         if (!string.IsNullOrEmpty(req.TipoMedidorId2) && req.LecturaInicial2.HasValue)
         {
             var fecha = req.FechaInicial2 ?? DateTime.Now;
-            session.Events.Append(id, new MedicionRegistrada(req.TipoMedidorId2, req.LecturaInicial2.Value, fecha, req.LecturaInicial2.Value));
+            session.Events.Append(id, new MedicionRegistrada(req.TipoMedidorId2, req.LecturaInicial2.Value, fecha, req.LecturaInicial2.Value, userId, userName));
         }
         
         await session.SaveChangesAsync();

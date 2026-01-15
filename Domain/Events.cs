@@ -21,7 +21,7 @@ public record AvanceDeActividadRegistrado(Guid ItemDetalleId, decimal Porcentaje
 
 // --- Mediciones (Horómetros) ---
 
-public record MedicionRegistrada(string TipoMedidor, decimal ValorMedicion, DateTime FechaLectura, decimal TrabajaAcumuladoCalculado);
+public record MedicionRegistrada(string TipoMedidor, decimal ValorMedicion, DateTime FechaLectura, decimal TrabajaAcumuladoCalculado, Guid? UsuarioId = null, string? UsuarioNombre = null);
 
 // --- Configuración Global (Tipos de Medidor) ---
 

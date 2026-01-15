@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { LocalShipping, Warning, CheckCircle, Add, Engineering, Agriculture, Assignment } from '@mui/icons-material';
+import { LocalShipping, Engineering, Agriculture, Assignment } from '@mui/icons-material';
 import { Link, useNavigate } from 'react-router-dom';
 
 import { OrdenDeTrabajo } from '../types';
@@ -84,8 +84,7 @@ const Dashboard = () => {
     });
 
     const activeOrders = ordenes.length;
-    const pendingOrders = ordenes.filter(o => o.estado === 'Borrador' || o.estado === 'Programada').length;
-    const completedOrders = ordenes.filter(o => o.estado === 'Finalizada').length;
+
 
     return (
         <Box sx={{ flexGrow: 1 }}>
@@ -99,15 +98,7 @@ const Dashboard = () => {
                         Centro de control de Maquinaria Amarilla
                     </Typography>
                 </Box>
-                <Button
-                    component={Link}
-                    to="/nueva-orden"
-                    variant="contained"
-                    startIcon={<Add />}
-                    sx={{ fontWeight: 'bold' }}
-                >
-                    Crear Orden
-                </Button>
+
             </Box>
 
             {/* KPIs */}
@@ -145,24 +136,7 @@ const Dashboard = () => {
                         />
                     </Box>
                 </Grid>
-                <Grid item xs={12} sm={6} md={2}>
-                    <KpiCard
-                        icon={<Warning sx={{ fontSize: 32, color: "#ffb74d" }} />} // Orange
-                        title="Pendientes"
-                        value={pendingOrders}
-                        change="Requieren Acción"
-                        loading={loading}
-                    />
-                </Grid>
-                <Grid item xs={12} sm={6} md={3}>
-                    <KpiCard
-                        icon={<CheckCircle sx={{ fontSize: 32, color: "#66bb6a" }} />} // Green
-                        title="Finalizadas"
-                        value={completedOrders}
-                        change="Histórico"
-                        loading={loading}
-                    />
-                </Grid>
+
             </Grid>
 
             {/* Listado de Órdenes */}

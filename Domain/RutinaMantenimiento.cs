@@ -5,7 +5,7 @@ using System.Linq;
 namespace SincoMaquinaria.Domain;
 
 // Eventos
-public record RutinaMigrada(Guid RutinaId, string Descripcion, string Grupo);
+public record RutinaMigrada(Guid RutinaId, string Descripcion, string Grupo, Guid? UsuarioId = null, string? UsuarioNombre = null);
 public record ParteDeRutinaMigrada(Guid ParteId, string Descripcion, Guid RutinaId);
 public record ActividadDeRutinaMigrada(
     Guid ActividadId,
