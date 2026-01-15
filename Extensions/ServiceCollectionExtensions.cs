@@ -2,6 +2,7 @@ using System.Text;
 using FluentValidation;
 using Marten;
 using Marten.Events.Projections;
+using Weasel.Core;
 using JasperFx.Events;
 using JasperFx.Events.Projections;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -44,6 +45,7 @@ public static class ServiceCollectionExtensions
 
             // Use custom JSON serializer that handles enums as strings
             var serializer = new Marten.Services.SystemTextJsonSerializer(jsonOptions);
+            serializer.EnumStorage = EnumStorage.AsString;
             opts.Serializer(serializer);
 
             opts.Projections.Snapshot<OrdenDeTrabajo>(SnapshotLifecycle.Inline);
