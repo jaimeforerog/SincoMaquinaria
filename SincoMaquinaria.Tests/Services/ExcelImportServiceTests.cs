@@ -57,11 +57,11 @@ public class ExcelImportServiceTests : IntegrationContext
                 { "Parte", "Motor" },
                 { "Actividad", "Cambio de Aceite" },
                 { "Clase", "" },
-                { "Frecuencia", "100" },
                 { "Frec UM", "HR" },
+                { "Frecuencia", "100" },
                 { "Alerta", "10" },
-                { "Frecuencia2", "" },
                 { "Frec UM2", "" },
+                { "Frecuencia2", "" },
                 { "Alerta2", "" },
                 { "Insumo", "Aceite" },
                 { "Cantidad", "2" }
@@ -98,11 +98,11 @@ public class ExcelImportServiceTests : IntegrationContext
         {
             new()
             {
-                { "Grupo", "General" }, { "Rutina", "Rutina Dup" }, { "Parte", "P1" }, { "Actividad", "A1" }, { "Clase", "" }, { "Frecuencia", "100" }, { "Frec UM", "HR" }, { "Alerta", "" }, { "Frecuencia2", "" }, { "Frec UM2", "" }, { "Alerta2", "" }, { "Insumo", "" }, { "Cantidad", "" }
+                { "Grupo", "General" }, { "Rutina", "Rutina Dup" }, { "Parte", "P1" }, { "Actividad", "A1" }, { "Clase", "" }, { "Frec UM", "HR" }, { "Frecuencia", "100" }, { "Alerta", "" }, { "Frec UM2", "" }, { "Frecuencia2", "" }, { "Alerta2", "" }, { "Insumo", "" }, { "Cantidad", "" }
             },
             new()
             {
-                { "Grupo", "General" }, { "Rutina", "Rutina Dup" }, { "Parte", "P1" }, { "Actividad", "A1" }, { "Clase", "" }, { "Frecuencia", "100" }, { "Frec UM", "HR" }, { "Alerta", "" }, { "Frecuencia2", "" }, { "Frec UM2", "" }, { "Alerta2", "" }, { "Insumo", "" }, { "Cantidad", "" }
+                { "Grupo", "General" }, { "Rutina", "Rutina Dup" }, { "Parte", "P1" }, { "Actividad", "A1" }, { "Clase", "" }, { "Frec UM", "HR" }, { "Frecuencia", "100" }, { "Alerta", "" }, { "Frec UM2", "" }, { "Frecuencia2", "" }, { "Alerta2", "" }, { "Insumo", "" }, { "Cantidad", "" }
             }
         };
 
@@ -125,8 +125,8 @@ public class ExcelImportServiceTests : IntegrationContext
         // Note: ExcelImportService uses int.TryParse which only accepts integer strings
         var rows = new List<Dictionary<string, object>>
         {
-            new() { { "Grupo", "General" }, { "Rutina", "Rutina Int1" }, { "Parte", "P1" }, { "Actividad", "A1" }, { "Clase", "" }, { "Frecuencia", "100" }, { "Frec UM", "HR" }, { "Alerta", "10" }, { "Frecuencia2", "" }, { "Frec UM2", "" }, { "Alerta2", "" }, { "Insumo", "" }, { "Cantidad", "" } },
-            new() { { "Grupo", "General" }, { "Rutina", "Rutina Int2" }, { "Parte", "P1" }, { "Actividad", "A2" }, { "Clase", "" }, { "Frecuencia", "50" }, { "Frec UM", "HR" }, { "Alerta", "" }, { "Frecuencia2", "" }, { "Frec UM2", "" }, { "Alerta2", "" }, { "Insumo", "" }, { "Cantidad", "" } }
+            new() { { "Grupo", "General" }, { "Rutina", "Rutina Int1" }, { "Parte", "P1" }, { "Actividad", "A1" }, { "Clase", "" }, { "Frec UM", "HR" }, { "Frecuencia", "100" }, { "Alerta", "10" }, { "Frec UM2", "" }, { "Frecuencia2", "" }, { "Alerta2", "" }, { "Insumo", "" }, { "Cantidad", "" } },
+            new() { { "Grupo", "General" }, { "Rutina", "Rutina Int2" }, { "Parte", "P1" }, { "Actividad", "A2" }, { "Clase", "" }, { "Frec UM", "HR" }, { "Frecuencia", "50" }, { "Alerta", "" }, { "Frec UM2", "" }, { "Frecuencia2", "" }, { "Alerta2", "" }, { "Insumo", "" }, { "Cantidad", "" } }
         };
 
         using var stream = ExcelTestHelper.CreateExcelStream("Rutinas", rows);
@@ -152,9 +152,9 @@ public class ExcelImportServiceTests : IntegrationContext
         var rows = new List<Dictionary<string, object>>
         {
             // Invalid Group (not existing)
-            new() { { "Grupo", "GRUPO_INVALIDO" }, { "Rutina", "Rutina Invalid" }, { "Parte", "P1" }, { "Actividad", "A1" }, { "Clase", "" }, { "Frecuencia", "100" }, { "Frec UM", "HR" }, { "Alerta", "" }, { "Frecuencia2", "" }, { "Frec UM2", "" }, { "Alerta2", "" }, { "Insumo", "" }, { "Cantidad", "" } },
+            new() { { "Grupo", "GRUPO_INVALIDO" }, { "Rutina", "Rutina Invalid" }, { "Parte", "P1" }, { "Actividad", "A1" }, { "Clase", "" }, { "Frec UM", "HR" }, { "Frecuencia", "100" }, { "Alerta", "" }, { "Frec UM2", "" }, { "Frecuencia2", "" }, { "Alerta2", "" }, { "Insumo", "" }, { "Cantidad", "" } },
             // Invalid Unit
-            new() { { "Grupo", "General" }, { "Rutina", "Rutina Invalid 3" }, { "Parte", "P1" }, { "Actividad", "A1" }, { "Clase", "" }, { "Frecuencia", "100" }, { "Frec UM", "INVALID" }, { "Alerta", "" }, { "Frecuencia2", "" }, { "Frec UM2", "" }, { "Alerta2", "" }, { "Insumo", "" }, { "Cantidad", "" } }
+            new() { { "Grupo", "General" }, { "Rutina", "Rutina Invalid 3" }, { "Parte", "P1" }, { "Actividad", "A1" }, { "Clase", "" }, { "Frec UM", "INVALID" }, { "Frecuencia", "100" }, { "Alerta", "" }, { "Frec UM2", "" }, { "Frecuencia2", "" }, { "Alerta2", "" }, { "Insumo", "" }, { "Cantidad", "" } }
         };
 
         using var stream = ExcelTestHelper.CreateExcelStream("Rutinas", rows);
@@ -165,5 +165,55 @@ public class ExcelImportServiceTests : IntegrationContext
         // Assert - Service validates Group and Unit existence
         ex.Message.Should().Contain("GRUPO_INVALIDO");
         ex.Message.Should().Contain("INVALID");
+    }
+
+    [Fact]
+    public async Task ImportarRutinas_FullRow_ShouldMapAllFieldsCorrectly()
+    {
+        // Arrange
+        await SetupConfig();
+
+        // User requested order:
+        // Grupo | Rutina | Parte | Actividad | Clase Actividad | Frec UM | Frecuencia | Alerta Faltando | Frec UM II | Frecuencia II | Alerta Faltando II | Insumo | Cantidad
+        var rows = new List<Dictionary<string, object>>
+        {
+            new()
+            {
+                { "Grupo", "General" },
+                { "Rutina", "Rutina Completa" },
+                { "Parte", "Parte A" },
+                { "Actividad", "Actividad Full" },
+                { "Clase", "Mecánica" }, // Clase Actividad
+                { "Frec UM", "HR" },
+                { "Frecuencia", "500" },
+                { "Alerta", "50" },      // Alerta Faltando
+                { "Frec UM II", "HR" },
+                { "Frecuencia2", "1000" }, // Frecuencia II
+                { "Alerta2", "100" },      // Alerta Faltando II
+                { "Insumo", "Filtro" },
+                { "Cantidad", "1" }
+            }
+        };
+
+        using var stream = ExcelTestHelper.CreateExcelStream("Rutinas", rows);
+
+        // Act
+        var result = await Service.ImportarRutinas(stream);
+
+        // Assert
+        result.Should().Be(1);
+
+        var actividades = await CurrentSession.Events.QueryRawEventDataOnly<ActividadDeRutinaMigrada>().ToListAsync();
+        var act = actividades.Should().ContainSingle(a => a.Descripcion == "Actividad Full").Subject;
+
+        act.Clase.Should().Be("Mecánica");
+        act.UnidadMedida.Should().Be("HR");
+        act.Frecuencia.Should().Be(500);
+        act.AlertaFaltando.Should().Be(50);
+        act.UnidadMedida2.Should().Be("HR"); // Frec UM II
+        act.Frecuencia2.Should().Be(1000);   // Frecuencia2
+        act.AlertaFaltando2.Should().Be(100);        // Alerta2
+        act.Insumo.Should().Be("Filtro");
+        act.Cantidad.Should().Be(1);
     }
 }

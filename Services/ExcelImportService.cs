@@ -39,22 +39,23 @@ public class ExcelImportService
         var validationErrors = new List<string>();
 
         // Primera pasada: Validación
+        // Orden columnas: 1:Grupo, 2:Rutina, 3:Parte, 4:Actividad, 5:Clase, 6:FrecUM, 7:Frecuencia, 8:Alerta, 9:FrecUM2, 10:Frecuencia2, 11:Alerta2, 12:Insumo, 13:Cantidad
         for (int row = 2; row <= rowCount; row++)
         {
             var grupo = worksheet.Cells[row, 1].Text?.Trim();
             var rutinaDesc = worksheet.Cells[row, 2].Text?.Trim();
-            
+
             // Si no hay grupo ni descripción, asumimos fin de archivo o fila vacía
-            if (string.IsNullOrEmpty(grupo) && string.IsNullOrEmpty(rutinaDesc)) continue; 
+            if (string.IsNullOrEmpty(grupo) && string.IsNullOrEmpty(rutinaDesc)) continue;
 
             if (!string.IsNullOrEmpty(grupo) && !validGrupos.Contains(grupo))
             {
                 validationErrors.Add($"Fila {row}: El Grupo de Mantenimiento '{grupo}' no existe o no está activo.");
             }
 
-            // Validar unidades (Cols 7 y 10)
-            var unidad1 = worksheet.Cells[row, 7].Text?.Trim();
-            var unidad2 = worksheet.Cells[row, 10].Text?.Trim();
+            // Validar unidades (Cols 6 y 9 - Frec UM y Frec UM II)
+            var unidad1 = worksheet.Cells[row, 6].Text?.Trim();
+            var unidad2 = worksheet.Cells[row, 9].Text?.Trim();
 
             if (!string.IsNullOrEmpty(unidad1) && !validUnidades.Contains(unidad1))
             {
@@ -113,16 +114,17 @@ public class ExcelImportService
             if (string.IsNullOrEmpty(actividadDesc)) continue;
 
             // Leer datos de Actividad
+            // Orden: 5:Clase, 6:FrecUM, 7:Frecuencia, 8:Alerta, 9:FrecUM2, 10:Frecuencia2, 11:Alerta2, 12:Insumo, 13:Cantidad
             var clase = worksheet.Cells[row, 5].Text?.Trim() ?? "";
-            
-            int.TryParse(worksheet.Cells[row, 6].Text, out var freq);
-            var frecUm = worksheet.Cells[row, 7].Text?.Trim() ?? "";
+
+            var frecUm = worksheet.Cells[row, 6].Text?.Trim() ?? "";
+            int.TryParse(worksheet.Cells[row, 7].Text, out var freq);
             int.TryParse(worksheet.Cells[row, 8].Text, out var alerta);
-            
-            int.TryParse(worksheet.Cells[row, 9].Text, out var freq2);
-            var frecUm2 = worksheet.Cells[row, 10].Text?.Trim() ?? "";
+
+            var frecUm2 = worksheet.Cells[row, 9].Text?.Trim() ?? "";
+            int.TryParse(worksheet.Cells[row, 10].Text, out var freq2);
             int.TryParse(worksheet.Cells[row, 11].Text, out var alerta2);
-            
+
             var insumo = worksheet.Cells[row, 12].Text?.Trim();
             double.TryParse(worksheet.Cells[row, 13].Text, out var cantidad);
 
