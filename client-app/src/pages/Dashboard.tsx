@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { LocalShipping, Engineering, Agriculture, Assignment } from '@mui/icons-material';
-import { Link, useNavigate } from 'react-router-dom';
+import { Engineering, Agriculture, Assignment } from '@mui/icons-material';
+import { Link } from 'react-router-dom';
 
-import { OrdenDeTrabajo } from '../types';
 import { useAuthFetch } from '../hooks/useAuthFetch';
 import {
-    Box, Grid, Card, CardContent, Typography, Button,
-    Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Chip, CircularProgress
+    Box, Grid, Card, CardContent, Typography, CircularProgress
 } from '@mui/material';
 
 import { useDashboardSocket } from '../hooks/useDashboardSocket';
@@ -15,56 +13,20 @@ import { useDashboardSocket } from '../hooks/useDashboardSocket';
 
 const Dashboard = () => {
     const authFetch = useAuthFetch();
-    const navigate = useNavigate();
-    const [ordenes, setOrdenes] = useState<OrdenDeTrabajo[]>([]);
-    const [equiposList, setEquiposList] = useState<any[]>([]); // Store full list
+    const [activeOrders, setActiveOrders] = useState(0);
     const [equiposCount, setEquiposCount] = useState(0);
     const [rutinasCount, setRutinasCount] = useState(0);
     const [loading, setLoading] = useState(true);
 
-    // Helper to find equipment details
-    const getEquipoDetails = (id: string) => {
-        // Try finding in fetched list first
-        const eq = equiposList.find((e: any) => e.id === id);
-        if (eq) {
-            return (
-                <span>
-                    <strong>{eq.placa}</strong> - {eq.descripcion}
-                </span>
-            );
-        }
-        return id;
-    };
-
     const fetchData = React.useCallback(async () => {
-        // Don't set loading to true here to avoid flickering on updates
-        // or set it if you want to show progress
         try {
-            // Fetch Ordenes
-            const resOrdenes = await authFetch('/ordenes').catch(() => null);
-            if (resOrdenes && resOrdenes.ok) {
-                const response = await resOrdenes.json();
-                // Handle both paginated and non-paginated responses
-                setOrdenes(response.data || response);
+            const res = await authFetch('/dashboard/stats');
+            if (res.ok) {
+                const stats = await res.json();
+                setEquiposCount(stats.equiposCount);
+                setRutinasCount(stats.rutinasCount);
+                setActiveOrders(stats.ordenesActivasCount);
             }
-
-            // Fetch Equipos
-            const resEquipos = await authFetch('/equipos').catch(() => null);
-            if (resEquipos && resEquipos.ok) {
-                const response = await resEquipos.json();
-                const data = response.data || response;
-                setEquiposList(data);
-                setEquiposCount(response.totalCount ?? data.length);
-            }
-
-            // Fetch Rutinas
-            const resRutinas = await authFetch('/rutinas').catch(() => null);
-            if (resRutinas && resRutinas.ok) {
-                const response = await resRutinas.json();
-                const data = response.data || response;
-                setRutinasCount(response.totalCount ?? data.length);
-            }
-
         } catch (error) {
             console.error("Error fetching dashboard data", error);
         } finally {
@@ -83,7 +45,6 @@ const Dashboard = () => {
         fetchData();
     });
 
-    const activeOrders = ordenes.length;
 
 
     return (
