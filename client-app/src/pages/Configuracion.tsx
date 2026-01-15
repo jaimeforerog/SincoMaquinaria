@@ -80,7 +80,7 @@ const MedidoresPanel = () => {
         <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 3 }}>
             <Paper elevation={3} sx={{ p: 3, borderRadius: 2, bgcolor: 'background.paper' }}>
                 <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Add color="primary" /> Nuevo Tipo
+                    <Add color="primary" /> Nuevo Medidor
                 </Typography>
                 {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
                 <form onSubmit={handleCrear} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -559,7 +559,7 @@ const Configuracion = () => {
             <Box sx={{ width: '100%' }}>
                 <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                     <Tabs value={activeTab} onChange={handleChange} aria-label="config tabs">
-                        <Tab label="Tipos de Medidor" />
+                        <Tab label="Medidores" />
                         <Tab label="Grupos Mantenimiento" />
                         <Tab label="Tipos de Falla" />
                         <Tab label="Causas de Falla" />
