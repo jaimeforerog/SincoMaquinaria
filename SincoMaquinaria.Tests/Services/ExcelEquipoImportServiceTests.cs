@@ -283,4 +283,50 @@ public class ExcelEquipoImportServiceTests : IntegrationContext
         var events = await CurrentSession.Events.QueryAllRawEvents().ToListAsync();
         events.Should().Contain(e => e.EventTypeName == "equipo_migrado");
     }
+
+    [Fact]
+    public async Task ImportarEquipos_UserReproduction_ShouldFailWithValidationErrors()
+    {
+        // Arrange
+        await SetupConfig(); 
+        // Note: We deliberately do NOT create "camioneta suzuki" routine to see if it triggers the error.
+        
+        var rows = new List<Dictionary<string, object>>
+        {
+            new() 
+            { 
+                { "Placa", "KDG 871" }, 
+                { "Descripcion", "Camioneta suzuki vitara" }, 
+                { "Grupo de mtto", "camionetas" }, 
+                { "Rutina", "camioneta suzuki" }, 
+                { "Medidor 1", "KM" },
+                { "Medidor inicial medidor 1", "0" },
+                { "Fecha inicial medidor 1", "02/15/2025" }, // MM/dd/yyyy format per user log
+                { "Medidor 2", "" },
+                { "Medidor inicial medidor 2", "" },
+                { "Fecha inicial medidor 2", "" },
+                { "Fecha ultima OT", "01/12/2025" }
+            }
+        };
+
+        using var stream = ExcelTestHelper.CreateExcelStream("Equipos", rows);
+
+        // Act & Assert
+        var ex = await Assert.ThrowsAsync<Exception>(() => Service.ImportarEquipos(stream));
+        
+        // Output the message to see what we get
+        // Console.WriteLine(ex.Message);
+        
+        ex.Message.Should().Contain("No se procesó ningún equipo");
+        
+        // Check if it failed because Rutina was missing (most likely)
+        // Or because Medidor was invalid 
+        // We accumulate these checks to see which one passes/fails
+        bool missingRutina = ex.Message.Contains("La Rutina asignada 'camioneta suzuki' no existe");
+        bool invalidDate = ex.Message.Contains("formato de fecha inválido");
+        bool invalidMedidor = ex.Message.Contains("Medidor 1 'KM' no válido");
+        
+        // One of these should be true for the test to be useful in diagnosing
+        (missingRutina || invalidDate || invalidMedidor).Should().BeTrue($"Actual error message: {ex.Message}");
+    }
 }

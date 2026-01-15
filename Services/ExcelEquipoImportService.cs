@@ -293,9 +293,9 @@ public class ExcelEquipoImportService
 
             if (validationErrors.Any()) continue;
 
-            // Validar Fechas 
+            // Validar fehcas
             // Validar formato de fecha
-            if (DateTime.TryParse(fechaOTStr, out DateTime fechaOT))
+            if (TryRobustParseDate(fechaOTStr, out DateTime fechaOT))
             {
                  // Relaxting validation as per user request (Reference Step 403)
                  // The user has data where LastOT < InitialMeterDate. 
@@ -349,6 +349,14 @@ public class ExcelEquipoImportService
         {
              var sb = new System.Text.StringBuilder();
              sb.AppendLine($"No se procesó ningún equipo. Verifica que existan datos debajo de la fila de encabezados (detectada en fila {headerRowIndex + 1}).");
+             
+             if (validationErrors.Any())
+             {
+                 sb.AppendLine("\n--- ERRORES DE VALIDACIÓN (RAZÓN POR LA QUE SE SALTARON FILAS) ---");
+                 sb.AppendLine(string.Join("\n", validationErrors.Take(20)));
+                 sb.AppendLine("---------------------------------------------------------------");
+             }
+
              sb.AppendLine($"Total filas leídas: {table.Rows.Count}");
              sb.AppendLine($"Columnas mapeadas: {string.Join(", ", colMap.Keys)}");
              
@@ -366,12 +374,7 @@ public class ExcelEquipoImportService
                  }
              }
 
-             if (validationErrors.Any())
-             {
-                 sb.AppendLine("--- Errores de Validación (razón por la que se saltaron filas) ---");
-                 sb.AppendLine(string.Join("\n", validationErrors.Take(20)));
-             }
-             else
+             if (!validationErrors.Any())
              {
                  sb.AppendLine("--- Depuración de Mapeo ---");
                  if (headerRowIndex + 1 < table.Rows.Count)
@@ -426,11 +429,27 @@ public class ExcelEquipoImportService
         if (decimal.TryParse(valorStr, out decimal valor))
         {
              DateTime fecha = DateTime.Now;
-             if (DateTime.TryParse(fechaStr, out DateTime f)) fecha = f;
+             if (TryRobustParseDate(fechaStr, out DateTime f)) fecha = f;
              
              // Emitir evento de lectura
              _session.Events.Append(equipoId, new MedicionRegistrada(tipoMedidorId, valor, fecha, valor, usuarioId, usuarioNombre));
         }
+    }
+    
+    private bool TryRobustParseDate(string? dateStr, out DateTime date)
+    {
+        date = default;
+        if (string.IsNullOrWhiteSpace(dateStr)) return false;
+        
+        // Try common formats
+        var formats = new[] { 
+            "dd/MM/yyyy", "MM/dd/yyyy", "yyyy-MM-dd", "dd-MM-yyyy", "yyyy/MM/dd", 
+            "dd/MM/yyyy HH:mm:ss", "MM/dd/yyyy HH:mm:ss", "dd/MM/yyyy HH:mm",
+            "M/d/yyyy", "d/M/yyyy" 
+        };
+        
+        return DateTime.TryParseExact(dateStr, formats, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out date)
+               || DateTime.TryParse(dateStr, out date); // Fallback to system culture
     }
 
     // Logic moved inline, removing method to avoid confusion with new signature requirements

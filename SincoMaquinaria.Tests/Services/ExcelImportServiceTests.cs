@@ -216,4 +216,67 @@ public class ExcelImportServiceTests : IntegrationContext
         act.Insumo.Should().Be("Filtro");
         act.Cantidad.Should().Be(1);
     }
+
+    [Fact]
+    public async Task ImportarRutinas_WithHeaderInRow2_ShouldSkipHeaderAndSucceed()
+    {
+        // Arrange
+        await SetupConfig();
+
+        // Simulate a file where Row 1 is Title (skipped by StartRow=2 naturally?) 
+        // OR simply Row 2 contains the Header strings which cause validation errors if processed as data.
+        // User says: "Fila 2: El Grupo de Mantenimiento 'Grupo' no existe..."
+        // This means the code read "Grupo" from the cell.
+        
+        var rows = new List<Dictionary<string, object>>
+        {
+            // Row 2 (effectively, if we treat this list as the rows starting at 2)
+            new()
+            {
+                { "Grupo", "Grupo" }, // Header name as value
+                { "Rutina", "Rutina" },
+                { "Parte", "Parte" },
+                { "Actividad", "Actividad" },
+                { "Clase", "Clase Actividad" },
+                { "Frec UM", "Frec UM" }, // Invokes "Unit 'Frec UM' not found"
+                { "Frecuencia", "Frecuencia" },
+                { "Alerta", "Alerta Faltando" },
+                { "Frec UM II", "Frec UM II" }, // Invokes "Unit 'Frec UM II' not found"
+                { "Frecuencia2", "Frecuencia II" },
+                { "Alerta2", "Alerta Faltando II" },
+                { "Insumo", "Insumo" },
+                { "Cantidad", "Cantidad" }
+            },
+            // Row 3 - Valid Data
+            new()
+            {
+                { "Grupo", "General" },
+                { "Rutina", "Rutina Real" },
+                { "Parte", "Parte A" },
+                { "Actividad", "Actividad Real" },
+                { "Clase", "" },
+                { "Frec UM", "HR" },
+                { "Frecuencia", "100" },
+                { "Alerta", "" },
+                { "Frec UM II", "" },
+                { "Frecuencia2", "" },
+                { "Alerta2", "" },
+                { "Insumo", "" },
+                { "Cantidad", "" }
+            }
+        };
+
+        using var stream = ExcelTestHelper.CreateExcelStream("Rutinas", rows);
+
+        // Act
+        // Current behavior: Should throw InvalidOperationException
+        // Desired behavior: Should skip the header row and import 1 routine.
+        
+        // Let's assert what currently happens to confirm repro (failure) or just fix it.
+        // I'll assume I want to Fix it, so I assert Success(1). If it fails, I know I reproduced it.
+        var result = await Service.ImportarRutinas(stream);
+
+        // Assert
+        result.Should().Be(1);
+    }
 }

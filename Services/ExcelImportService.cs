@@ -48,6 +48,9 @@ public class ExcelImportService
             // Si no hay grupo ni descripción, asumimos fin de archivo o fila vacía
             if (string.IsNullOrEmpty(grupo) && string.IsNullOrEmpty(rutinaDesc)) continue;
 
+            // Ignorar fila si es el encabezado (repetido en fila 2 por ejemplo)
+            if (grupo.Equals("Grupo", StringComparison.OrdinalIgnoreCase)) continue; 
+
             if (!string.IsNullOrEmpty(grupo) && !validGrupos.Contains(grupo))
             {
                 validationErrors.Add($"Fila {row}: El Grupo de Mantenimiento '{grupo}' no existe o no está activo.");
@@ -84,6 +87,9 @@ public class ExcelImportService
             var actividadDesc = worksheet.Cells[row, 4].Text?.Trim();
             
             if (string.IsNullOrEmpty(grupo) || string.IsNullOrEmpty(rutinaDesc)) continue;
+
+            // Ignorar fila si es el encabezado
+            if (grupo.Equals("Grupo", StringComparison.OrdinalIgnoreCase)) continue;
 
             // Identificador único de Rutina (Grupo + Descripción)
             var rutinaKey = $"{grupo}|{rutinaDesc}";
