@@ -32,8 +32,14 @@ public class ExcelImportService
             throw new InvalidOperationException("No se ha inicializado la Configuración Global. Por favor cree unidades y grupos primero.");
 
         var validGrupos = new HashSet<string>(config.GruposMantenimiento.Where(g => g.Activo).Select(g => g.Nombre), StringComparer.OrdinalIgnoreCase);
-        // Validamos por Unidad (Código/Símbolo) que es lo que suele venir en el excel (ej: hr, km)
+        // Validar unidades (Código/Símbolo)
         var validUnidades = new HashSet<string>(config.TiposMedidor.Where(t => t.Activo).Select(t => t.Unidad), StringComparer.OrdinalIgnoreCase);
+
+        // VALIDACIÓN DE UNICIDAD (NUEVO)
+        var existingRutinas = await _session.Query<RutinaMantenimiento>()
+            .Select(r => r.Descripcion)
+            .ToListAsync();
+        var existingRutinasSet = new HashSet<string>(existingRutinas, StringComparer.OrdinalIgnoreCase);
 
         var rowCount = worksheet.Dimension.Rows;
         var validationErrors = new List<string>();
@@ -54,6 +60,12 @@ public class ExcelImportService
             if (!string.IsNullOrEmpty(grupo) && !validGrupos.Contains(grupo))
             {
                 validationErrors.Add($"Fila {row}: El Grupo de Mantenimiento '{grupo}' no existe o no está activo.");
+            }
+
+            // Validar si la rutina ya existe en base de datos
+            if (!string.IsNullOrEmpty(rutinaDesc) && existingRutinasSet.Contains(rutinaDesc))
+            {
+                validationErrors.Add($"Fila {row}: La Rutina '{rutinaDesc}' ya existe en el sistema.");
             }
 
             // Validar unidades (Cols 6 y 9 - Frec UM y Frec UM II)

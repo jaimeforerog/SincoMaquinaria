@@ -172,6 +172,15 @@ public static class RutinasEndpoints
         IDocumentSession session,
         CreateRutinaRequest request)
     {
+        // Validar unicidad
+        var existe = await session.Query<RutinaMantenimiento>()
+            .AnyAsync(r => r.Descripcion.Equals(request.Descripcion, StringComparison.CurrentCultureIgnoreCase));
+
+        if (existe)
+        {
+            return Results.Conflict($"Ya existe una rutina con el nombre '{request.Descripcion}'");
+        }
+
         var nuevaRutina = new RutinaMantenimiento
         {
             Id = Guid.NewGuid(),
@@ -194,6 +203,15 @@ public static class RutinasEndpoints
         var rutina = await session.LoadAsync<RutinaMantenimiento>(id);
         if (rutina == null)
             return Results.NotFound();
+
+        // Validar unicidad (excluyendo la actual)
+        var existe = await session.Query<RutinaMantenimiento>()
+            .AnyAsync(r => r.Id != id && r.Descripcion.Equals(request.Descripcion, StringComparison.CurrentCultureIgnoreCase));
+
+        if (existe)
+        {
+            return Results.Conflict($"Ya existe otra rutina con el nombre '{request.Descripcion}'");
+        }
 
         rutina.Descripcion = request.Descripcion;
         rutina.Grupo = request.Grupo;

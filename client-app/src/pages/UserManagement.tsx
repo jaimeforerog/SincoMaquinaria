@@ -74,10 +74,12 @@ const UserManagement: React.FC = () => {
         const data = await response.json();
         setUsuarios(data);
       } else {
-        console.error('Error al cargar usuarios');
+        const errorText = await response.text();
+        setError(`Error al cargar usuarios: ${response.status} ${response.statusText} - ${errorText}`);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching usuarios:', error);
+      setError('Error de conexión al cargar usuarios');
     } finally {
       setLoading(false);
     }
@@ -214,6 +216,12 @@ const UserManagement: React.FC = () => {
           <Typography variant="h6" gutterBottom>
             Usuarios del Sistema
           </Typography>
+
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {error}
+            </Alert>
+          )}
 
           {loading ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>

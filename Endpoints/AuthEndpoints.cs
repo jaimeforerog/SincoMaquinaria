@@ -185,6 +185,15 @@ public static class AuthEndpoints
              return Results.BadRequest("Rol inválido");
         }
         
+        // Validar unicidad de nombre (excluyendo el usuario actual)
+        var existingUserByName = await session.Query<Usuario>()
+            .AnyAsync(u => u.Id != id && u.Nombre.Equals(req.Nombre, StringComparison.CurrentCultureIgnoreCase) && u.Activo);
+
+        if (existingUserByName)
+        {
+            return Results.Conflict($"Ya existe otro usuario con el nombre '{req.Nombre}'");
+        }
+        
         var currentUser = await session.LoadAsync<Usuario>(currentUserId);
         var currentUserName = currentUser?.Nombre ?? "Unknown";
 

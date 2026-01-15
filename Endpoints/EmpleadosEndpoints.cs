@@ -122,6 +122,16 @@ public static class EmpleadosEndpoints
         [FromBody] CrearEmpleadoRequest req)
     {
         var (userId, userName) = GetUserContext(httpContext);
+        
+        // Validar unicidad de documento
+        var existeDocumento = await session.Query<Empleado>()
+            .AnyAsync(e => e.Identificacion == req.Identificacion);
+
+        if (existeDocumento)
+        {
+            return Results.Conflict($"Ya existe un empleado con el documento '{req.Identificacion}'");
+        }
+
         var empleadoId = Guid.NewGuid();
         session.Events.StartStream<Empleado>(empleadoId, 
             new EmpleadoCreado(empleadoId, req.Nombre, req.Identificacion, 
@@ -170,6 +180,16 @@ public static class EmpleadosEndpoints
         [FromBody] ActualizarEmpleadoRequest req)
     {
         var (userId, userName) = GetUserContext(httpContext);
+        
+        // Validar unicidad de documento (excluyendo el actual)
+        var existeDocumento = await session.Query<Empleado>()
+            .AnyAsync(e => e.Id != id && e.Identificacion == req.Identificacion);
+
+        if (existeDocumento)
+        {
+            return Results.Conflict($"Ya existe otro empleado con el documento '{req.Identificacion}'");
+        }
+
         session.Events.Append(id, 
             new EmpleadoActualizado(id, req.Nombre, req.Identificacion, 
                 req.Cargo, req.Especialidad ?? "", req.ValorHora, req.Estado, userId, userName));
