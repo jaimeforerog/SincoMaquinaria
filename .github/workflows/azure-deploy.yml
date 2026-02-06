@@ -163,14 +163,21 @@ jobs:
 
         echo "Deploying to Web App: ${{ env.AZURE_WEBAPP_NAME }}"
 
-        # Update Web App to use the new container image with ACR credentials
+        # Configure ACR credentials
+        az webapp config appsettings set \
+          --name ${{ env.AZURE_WEBAPP_NAME }} \
+          --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+          --settings \
+            DOCKER_REGISTRY_SERVER_URL=https://$ACR_LOGIN_SERVER \
+            DOCKER_REGISTRY_SERVER_USERNAME=$ACR_USERNAME \
+            DOCKER_REGISTRY_SERVER_PASSWORD=$ACR_PASSWORD
+
+        # Update Web App to use the new container image
         az webapp config container set \
           --name ${{ env.AZURE_WEBAPP_NAME }} \
           --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-          --container-image-name $ACR_LOGIN_SERVER/sincomaquinaria:latest \
-          --container-registry-url https://$ACR_LOGIN_SERVER \
-          --container-registry-user $ACR_USERNAME \
-          --container-registry-password $ACR_PASSWORD
+          --docker-custom-image-name $ACR_LOGIN_SERVER/sincomaquinaria:latest \
+          --docker-registry-server-url https://$ACR_LOGIN_SERVER
 
         # Restart the Web App to apply changes
         az webapp restart \
