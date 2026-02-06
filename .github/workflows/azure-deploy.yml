@@ -58,6 +58,8 @@ jobs:
 
     outputs:
       acr-login-server: ${{ steps.acr.outputs.ACR_LOGIN_SERVER }}
+      acr-username: ${{ steps.acr.outputs.ACR_USERNAME }}
+      acr-password: ${{ steps.acr.outputs.ACR_PASSWORD }}
       container-app-name: ${{ steps.acr.outputs.CONTAINER_APP_NAME }}
 
     steps:
@@ -156,15 +158,19 @@ jobs:
       id: deploy
       run: |
         ACR_LOGIN_SERVER="${{ needs.build-and-push.outputs.acr-login-server }}"
+        ACR_USERNAME="${{ needs.build-and-push.outputs.acr-username }}"
+        ACR_PASSWORD="${{ needs.build-and-push.outputs.acr-password }}"
 
         echo "Deploying to Web App: ${{ env.AZURE_WEBAPP_NAME }}"
 
-        # Update Web App to use the new container image
+        # Update Web App to use the new container image with ACR credentials
         az webapp config container set \
           --name ${{ env.AZURE_WEBAPP_NAME }} \
           --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
           --container-image-name $ACR_LOGIN_SERVER/sincomaquinaria:latest \
-          --container-registry-url https://$ACR_LOGIN_SERVER
+          --container-registry-url https://$ACR_LOGIN_SERVER \
+          --container-registry-user $ACR_USERNAME \
+          --container-registry-password $ACR_PASSWORD
 
         # Restart the Web App to apply changes
         az webapp restart \
