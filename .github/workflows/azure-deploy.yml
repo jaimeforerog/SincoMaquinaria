@@ -163,7 +163,14 @@ jobs:
 
         echo "Deploying to Web App: ${{ env.AZURE_WEBAPP_NAME }}"
 
+        # Disable Managed Identity to use basic auth credentials
+        echo "Disabling Managed Identity..."
+        az webapp identity remove \
+          --name ${{ env.AZURE_WEBAPP_NAME }} \
+          --resource-group ${{ env.AZURE_RESOURCE_GROUP }} || true
+
         # Configure ACR credentials
+        echo "Configuring ACR credentials..."
         az webapp config appsettings set \
           --name ${{ env.AZURE_WEBAPP_NAME }} \
           --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
