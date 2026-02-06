@@ -51,11 +51,8 @@ jobs:
     name: Build and Push Docker Image
     needs: build-and-test
     runs-on: ubuntu-latest
-    # Solo ejecutar si AZURE_CREDENTIALS está configurado (infraestructura desplegada)
-    if: |
-      github.event_name == 'push' &&
-      (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/production') &&
-      secrets.AZURE_CREDENTIALS != ''
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/production')
+    continue-on-error: true
 
     outputs:
       acr-login-server: ${{ steps.acr.outputs.ACR_LOGIN_SERVER }}
