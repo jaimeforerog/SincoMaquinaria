@@ -2,7 +2,12 @@ name: Deploy to Azure
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+      - production
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -10,40 +15,73 @@ permissions:
   id-token: write
   checks: write
   statuses: write
+  pull-requests: write
 
 env:
-  AZURE_WEBAPP_NAME: 'sincomaquinaria-app-1601'
-  AZURE_RESOURCE_GROUP: 'SincoMaquinariaRG'
+  AZURE_RESOURCE_GROUP: 'rg-sincomaquinaria-prod'
+  ENVIRONMENT: 'prod'
+  BASE_NAME: 'sincomaquinaria'
 
 jobs:
-  build-and-deploy:
+  # Job 1: Build and Test
+  build-and-test:
+    name: Build and Test
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    # Login to Azure
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore src/SincoMaquinaria/SincoMaquinaria.csproj
+
+    - name: Build
+      run: dotnet build src/SincoMaquinaria/SincoMaquinaria.csproj --configuration Release --no-restore
+
+    - name: Test
+      run: dotnet test SincoMaquinaria.Tests/SincoMaquinaria.Tests.csproj --configuration Release --no-build --verbosity normal
+
+  # Job 2: Build and Push Docker Image
+  build-and-push:
+    name: Build and Push Docker Image
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/production')
+
+    outputs:
+      acr-login-server: ${{ steps.acr.outputs.ACR_LOGIN_SERVER }}
+      container-app-name: ${{ steps.acr.outputs.CONTAINER_APP_NAME }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
     - name: Azure Login
       uses: azure/login@v2
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    # Get ACR credentials
     - name: Get ACR Info
       id: acr
       run: |
-        # Find ACR in the resource group
         ACR_NAME=$(az acr list --resource-group ${{ env.AZURE_RESOURCE_GROUP }} --query "[0].name" -o tsv)
         ACR_LOGIN_SERVER=$(az acr show --name $ACR_NAME --query "loginServer" -o tsv)
         ACR_USERNAME=$(az acr credential show --name $ACR_NAME --query "username" -o tsv)
         ACR_PASSWORD=$(az acr credential show --name $ACR_NAME --query "passwords[0].value" -o tsv)
+
+        CONTAINER_APP_NAME=$(az containerapp list --resource-group ${{ env.AZURE_RESOURCE_GROUP }} --query "[0].name" -o tsv)
+
         echo "ACR_NAME=$ACR_NAME" >> $GITHUB_OUTPUT
         echo "ACR_LOGIN_SERVER=$ACR_LOGIN_SERVER" >> $GITHUB_OUTPUT
         echo "ACR_USERNAME=$ACR_USERNAME" >> $GITHUB_OUTPUT
         echo "ACR_PASSWORD=$ACR_PASSWORD" >> $GITHUB_OUTPUT
+        echo "CONTAINER_APP_NAME=$CONTAINER_APP_NAME" >> $GITHUB_OUTPUT
 
-    # Login to ACR with Docker
     - name: Login to Azure Container Registry
       uses: docker/login-action@v3
       with:
@@ -51,11 +89,20 @@ jobs:
         username: ${{ steps.acr.outputs.ACR_USERNAME }}
         password: ${{ steps.acr.outputs.ACR_PASSWORD }}
 
-    # Set up Docker Buildx
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
-    # Build and push Docker image
+    - name: Extract version
+      id: version
+      run: |
+        if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+          VERSION=${GITHUB_REF#refs/tags/}
+        else
+          VERSION=$(git rev-parse --short HEAD)
+        fi
+        echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+        echo "Building version: $VERSION"
+
     - name: Build and Push Docker Image
       uses: docker/build-push-action@v5
       with:
@@ -63,25 +110,95 @@ jobs:
         file: ./Dockerfile
         push: true
         tags: |
-          ${{ steps.acr.outputs.ACR_LOGIN_SERVER }}/sincomaquinaria:${{ github.sha }}
+          ${{ steps.acr.outputs.ACR_LOGIN_SERVER }}/sincomaquinaria:${{ steps.version.outputs.VERSION }}
           ${{ steps.acr.outputs.ACR_LOGIN_SERVER }}/sincomaquinaria:latest
         cache-from: type=gha
         cache-to: type=gha,mode=max
-
-    # Update Web App to use new image
-    - name: Update Web App Container
-      run: |
-        az webapp config container set \
-          --name ${{ env.AZURE_WEBAPP_NAME }} \
-          --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
-          --container-image-name ${{ steps.acr.outputs.ACR_LOGIN_SERVER }}/sincomaquinaria:${{ github.sha }}
-
-    # Restart the Web App
-    - name: Restart Web App
-      run: |
-        az webapp restart \
-          --name ${{ env.AZURE_WEBAPP_NAME }} \
-          --resource-group ${{ env.AZURE_RESOURCE_GROUP }}
+        build-args: |
+          BUILDKIT_INLINE_CACHE=1
 
     - name: Azure Logout
+      if: always()
       run: az logout
+
+  # Job 3: Deploy to Azure Container Apps
+  deploy:
+    name: Deploy to Azure
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://${{ steps.deploy.outputs.app-url }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Azure Login
+      uses: azure/login@v2
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Deploy to Azure Container Apps
+      id: deploy
+      run: |
+        ACR_LOGIN_SERVER="${{ needs.build-and-push.outputs.acr-login-server }}"
+        CONTAINER_APP_NAME="${{ needs.build-and-push.outputs.container-app-name }}"
+
+        echo "Deploying to Container App: $CONTAINER_APP_NAME"
+
+        az containerapp update \
+          --name $CONTAINER_APP_NAME \
+          --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+          --image $ACR_LOGIN_SERVER/sincomaquinaria:latest
+
+        APP_URL=$(az containerapp show \
+          --name $CONTAINER_APP_NAME \
+          --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+          --query properties.configuration.ingress.fqdn \
+          -o tsv)
+
+        echo "app-url=$APP_URL" >> $GITHUB_OUTPUT
+        echo "Deployed to: https://$APP_URL"
+
+    - name: Health Check
+      run: |
+        APP_URL="${{ steps.deploy.outputs.app-url }}"
+        echo "Running health check on https://$APP_URL/health"
+
+        # Wait for deployment to complete
+        sleep 30
+
+        # Retry health check up to 5 times
+        for i in {1..5}; do
+          if curl -f -s "https://$APP_URL/health" > /dev/null; then
+            echo "✓ Health check passed!"
+            exit 0
+          fi
+          echo "Health check attempt $i failed, retrying in 10 seconds..."
+          sleep 10
+        done
+
+        echo "✗ Health check failed after 5 attempts"
+        exit 1
+
+    - name: Azure Logout
+      if: always()
+      run: az logout
+
+  # Job 4: Notify
+  notify:
+    name: Notify Deployment Status
+    needs: deploy
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+    - name: Send notification
+      run: |
+        if [ "${{ needs.deploy.result }}" == "success" ]; then
+          echo "✅ Deployment to production succeeded!"
+        else
+          echo "❌ Deployment to production failed!"
+          exit 1
+        fi
