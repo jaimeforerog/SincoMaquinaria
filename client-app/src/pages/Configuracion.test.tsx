@@ -2,16 +2,16 @@ import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import Configuracion from './Configuracion';
 
+// Mock useAuth - debe estar antes que useAuthFetch porque useAuthFetch depende de useAuth
+const mockUser = { user: { rol: 'Admin' } };
+vi.mock('../contexts/AuthContext', () => ({
+    useAuth: () => mockUser
+}));
+
 // Mock useAuthFetch
 const mockAuthFetch = vi.fn();
 vi.mock('../hooks/useAuthFetch', () => ({
     useAuthFetch: () => mockAuthFetch
-}));
-
-// Mock useAuth
-const mockUseAuth = vi.fn();
-vi.mock('../contexts/AuthContext', () => ({
-    useAuth: () => mockUseAuth()
 }));
 
 const mockMedidores = [
@@ -38,7 +38,7 @@ const mockEmpleados = [
 describe('Configuracion Component', () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        mockUseAuth.mockReturnValue({ user: { rol: 'Admin' } });
+        mockUser.user = { rol: 'Admin' };
         mockAuthFetch.mockImplementation((url: string) => {
             if (url.includes('/medidores')) {
                 return Promise.resolve({ ok: true, json: async () => mockMedidores });
@@ -257,7 +257,7 @@ describe('Configuracion Component', () => {
     });
 
     it('shows Usuarios tab for Admin users', async () => {
-        mockUseAuth.mockReturnValue({ user: { rol: 'Admin' } });
+        mockUser.user = { rol: 'Admin' };
         await act(async () => {
             render(<Configuracion />);
         });
@@ -265,7 +265,7 @@ describe('Configuracion Component', () => {
     });
 
     it('hides Usuarios tab for non-Admin users', async () => {
-        mockUseAuth.mockReturnValue({ user: { rol: 'User' } });
+        mockUser.user = { rol: 'User' };
         await act(async () => {
             render(<Configuracion />);
         });
