@@ -51,7 +51,11 @@ jobs:
     name: Build and Push Docker Image
     needs: build-and-test
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/production')
+    # Solo ejecutar si AZURE_CREDENTIALS está configurado (infraestructura desplegada)
+    if: |
+      github.event_name == 'push' &&
+      (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/production') &&
+      secrets.AZURE_CREDENTIALS != ''
 
     outputs:
       acr-login-server: ${{ steps.acr.outputs.ACR_LOGIN_SERVER }}
@@ -66,8 +70,21 @@ jobs:
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
+    - name: Check if Resource Group exists
+      id: check-rg
+      run: |
+        if az group show --name ${{ env.AZURE_RESOURCE_GROUP }} &> /dev/null; then
+          echo "exists=true" >> $GITHUB_OUTPUT
+        else
+          echo "exists=false" >> $GITHUB_OUTPUT
+          echo "⚠️ Resource Group ${{ env.AZURE_RESOURCE_GROUP }} no existe."
+          echo "Por favor ejecuta: cd infrastructure/azure && ./deploy.sh"
+          exit 1
+        fi
+
     - name: Get ACR Info
       id: acr
+      if: steps.check-rg.outputs.exists == 'true'
       run: |
         ACR_NAME=$(az acr list --resource-group ${{ env.AZURE_RESOURCE_GROUP }} --query "[0].name" -o tsv)
         ACR_LOGIN_SERVER=$(az acr show --name $ACR_NAME --query "loginServer" -o tsv)
