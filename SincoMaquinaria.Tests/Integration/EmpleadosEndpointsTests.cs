@@ -3,6 +3,7 @@ using FluentAssertions;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System;
 
@@ -17,105 +18,131 @@ public class EmpleadosEndpointsTests : IClassFixture<CustomWebApplicationFactory
         _client = factory.CreateClient();
     }
 
+    /// <summary>
+    /// Creates an employee via POST and retrieves its server-assigned ID from GET /empleados.
+    /// </summary>
+    private async Task<Guid> CrearEmpleadoYObtenerIdAsync(string nombre, string identificacion,
+        string cargo = "Mecanico", string especialidad = "Motores Diesel", decimal valorHora = 25000m)
+    {
+        var nuevoEmpleado = new
+        {
+            Nombre = nombre,
+            Identificacion = identificacion,
+            Cargo = cargo,
+            Especialidad = especialidad,
+            ValorHora = valorHora,
+            Estado = "Activo"
+        };
+
+        var createResponse = await _client.PostAsJsonAsync("/empleados", nuevoEmpleado);
+        createResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var listResponse = await _client.GetAsync("/empleados");
+        listResponse.EnsureSuccessStatusCode();
+
+        var body = await listResponse.Content.ReadAsStringAsync();
+        var json = JsonSerializer.Deserialize<JsonElement>(body)!;
+
+        foreach (var item in json.GetProperty("data").EnumerateArray())
+        {
+            if (item.GetProperty("identificacion").GetString() == identificacion)
+                return Guid.Parse(item.GetProperty("id").GetString()!);
+        }
+
+        throw new InvalidOperationException($"Empleado con identificacion '{identificacion}' no encontrado en lista");
+    }
 
     [Fact]
     public async Task CrearEmpleado_DebeRetornarOk_ConDatosValidos()
     {
-        // Arrange - Usando cargos válidos del enum CargoEmpleado: Conductor, Operario, Mecanico
+        var uid = Guid.NewGuid().ToString("N")[..8];
         var nuevoEmpleado = new
         {
-            Nombre = "Juan Pérez Test",
-            Identificacion = "1234567890",
+            Nombre = $"Juan Pérez Test {uid}",
+            Identificacion = $"test-create-{uid}",
             Cargo = "Mecanico",
             Especialidad = "Motores Diesel",
             ValorHora = 25000m,
             Estado = "Activo"
         };
 
-        // Act
         var response = await _client.PostAsJsonAsync("/empleados", nuevoEmpleado);
 
-        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     [Fact]
     public async Task ActualizarEmpleado_DebeRetornarOk_ConDatosValidos()
     {
-        // Arrange - Crear empleado primero
-        var nuevoEmpleado = new
-        {
-            Nombre = $"Pedro Gómez Test {Guid.NewGuid().ToString("N").Substring(0, 4)}",
-            Identificacion = "9876543210",
-            Cargo = "Operario",
-            Especialidad = "Hidráulica",
-            ValorHora = 20000m,
-            Estado = "Activo"
-        };
-        var createResponse = await _client.PostAsJsonAsync("/empleados", nuevoEmpleado);
-        createResponse.EnsureSuccessStatusCode();
+        var uid = Guid.NewGuid().ToString("N")[..8];
+        var identificacion = $"test-upd-{uid}";
 
-        // Obtener lista para conseguir el ID (simplemente usar un GUID para el test)
-        var empleadoId = Guid.NewGuid();
+        var empleadoId = await CrearEmpleadoYObtenerIdAsync(
+            nombre: $"Pedro Gómez Test {uid}",
+            identificacion: identificacion,
+            cargo: "Operario",
+            especialidad: "Hidráulica",
+            valorHora: 20000m);
 
         var datosActualizados = new
         {
             Nombre = "Pedro Gómez Actualizado",
-            Identificacion = "9876543210",
+            Identificacion = identificacion,
             Cargo = "Conductor",
             Especialidad = "Sistemas Hidráulicos",
             ValorHora = 30000m,
             Estado = "Activo"
         };
 
-        // Act
         var response = await _client.PutAsJsonAsync($"/empleados/{empleadoId}", datosActualizados);
 
-        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     [Fact]
     public async Task CrearEmpleado_ConValorHoraCero_DebeAceptar()
     {
-        // Arrange
+        var uid = Guid.NewGuid().ToString("N")[..8];
         var nuevoEmpleado = new
         {
-            Nombre = "Practicante Test",
-            Identificacion = "1111111111",
+            Nombre = $"Practicante Test {uid}",
+            Identificacion = $"test-zero-{uid}",
             Cargo = "Operario",
             Especialidad = "",
             ValorHora = 0m,
             Estado = "Activo"
         };
 
-        // Act
         var response = await _client.PostAsJsonAsync("/empleados", nuevoEmpleado);
 
-        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     [Fact]
     public async Task ActualizarEmpleado_CambiarEstadoAInactivo_DebeRetornarOk()
     {
-        // Arrange - Solo probar la actualización con un ID válido
-        var empleadoId = Guid.NewGuid();
+        var uid = Guid.NewGuid().ToString("N")[..8];
+        var identificacion = $"test-inact-{uid}";
+
+        var empleadoId = await CrearEmpleadoYObtenerIdAsync(
+            nombre: $"Ana López Test {uid}",
+            identificacion: identificacion,
+            cargo: "Mecanico",
+            especialidad: "Equipos Pesados",
+            valorHora: 15000m);
 
         var datosActualizados = new
         {
-            Nombre = "Ana López Test",
-            Identificacion = "5555555555",
+            Nombre = "Ana López Inactiva",
+            Identificacion = identificacion,
             Cargo = "Mecanico",
-            Especialidad = "",
+            Especialidad = "Equipos Pesados",
             ValorHora = 15000m,
             Estado = "Inactivo"
         };
 
-        // Act
         var response = await _client.PutAsJsonAsync($"/empleados/{empleadoId}", datosActualizados);
 
-        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 }

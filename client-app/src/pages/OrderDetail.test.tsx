@@ -3,8 +3,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import OrderDetail from './OrderDetail';
 
-// Mock fetch
-global.fetch = vi.fn();
+// Mock useAuthFetch
+const mockAuthFetch = vi.fn();
+vi.mock('../hooks/useAuthFetch', () => ({
+    useAuthFetch: () => mockAuthFetch
+}));
 
 const mockOrder = {
     id: 'order-1',
@@ -45,8 +48,8 @@ const renderWithRouter = (orderId: string = 'order-1') => {
 describe('OrderDetail Component', () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        (global.fetch as any).mockImplementation((url: string) => {
-            if (url.includes('/ordenes/')) {
+        mockAuthFetch.mockImplementation((url: string) => {
+            if (url.includes('/ordenes/') && !url.includes('/historial')) {
                 return Promise.resolve({ ok: true, json: async () => mockOrder });
             }
             if (url.includes('/equipos/')) {
@@ -70,7 +73,7 @@ describe('OrderDetail Component', () => {
             renderWithRouter();
         });
 
-        expect(global.fetch).toHaveBeenCalledWith('/ordenes/order-1');
+        expect(mockAuthFetch).toHaveBeenCalledWith('/ordenes/order-1');
     });
 
     it('renders order number', async () => {
@@ -78,7 +81,7 @@ describe('OrderDetail Component', () => {
             renderWithRouter();
         });
 
-        expect(screen.getByText('OT-2024-001')).toBeInTheDocument();
+        expect(screen.getByText(/OT-2024-001/)).toBeInTheDocument();
     });
 
     it('renders status chip', async () => {

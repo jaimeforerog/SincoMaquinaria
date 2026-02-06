@@ -1,19 +1,23 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowBack, Add } from '@mui/icons-material';
 
 import { OrdenDeTrabajo } from '../types';
 import {
-    Box, Typography, Container, Paper, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Chip, IconButton, Button
+    Box, Typography, Container, Paper, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Chip, IconButton, Button, Pagination
 } from '@mui/material';
 
 import { useAuthFetch } from '../hooks/useAuthFetch';
+
+const PAGE_SIZE = 20;
 
 const History = () => {
     const authFetch = useAuthFetch();
     const [ordenes, setOrdenes] = useState<OrdenDeTrabajo[]>([]);
     const [equiposList, setEquiposList] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [page, setPage] = useState(1);
+    const [totalCount, setTotalCount] = useState(0);
 
     const getEquipoDetails = (id: string) => {
         const eq = equiposList.find((e: any) => e.id === id);
@@ -33,31 +37,41 @@ const History = () => {
         return date.toLocaleDateString();
     };
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const [resOrdenes, resEquipos] = await Promise.all([
-                    authFetch('/ordenes'),
-                    authFetch('/equipos')
-                ]);
+    const fetchOrdenes = useCallback(async () => {
+        setLoading(true);
+        try {
+            const res = await authFetch(`/ordenes?Page=${page}&PageSize=${PAGE_SIZE}`);
+            if (res.ok) {
+                const response = await res.json();
+                setOrdenes(response.data || []);
+                setTotalCount(response.totalCount ?? 0);
+            }
+        } catch (error) {
+            console.error("Error fetching ordenes", error);
+        } finally {
+            setLoading(false);
+        }
+    }, [authFetch, page]);
 
-                if (resOrdenes.ok) {
-                    const response = await resOrdenes.json();
-                    setOrdenes(response.data || response);
-                }
-                if (resEquipos.ok) {
-                    const response = await resEquipos.json();
+    useEffect(() => {
+        const fetchEquipos = async () => {
+            try {
+                const res = await authFetch('/equipos?PageSize=200');
+                if (res.ok) {
+                    const response = await res.json();
                     setEquiposList(response.data || response);
                 }
             } catch (error) {
-                console.error("Error fetching data", error);
-            } finally {
-                setLoading(false);
+                console.error("Error fetching equipos", error);
             }
         };
 
-        fetchData();
+        fetchEquipos();
     }, [authFetch]);
+
+    useEffect(() => {
+        fetchOrdenes();
+    }, [fetchOrdenes]);
 
     return (
         <Container maxWidth="xl">
@@ -145,6 +159,19 @@ const History = () => {
                     </Table>
                 )}
             </TableContainer>
+
+            {totalCount > PAGE_SIZE && (
+                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+                    <Pagination
+                        count={Math.ceil(totalCount / PAGE_SIZE)}
+                        page={page}
+                        onChange={(_e, newPage) => setPage(newPage)}
+                        color="primary"
+                        showFirstButton
+                        showLastButton
+                    />
+                </Box>
+            )}
         </Container>
     );
 };

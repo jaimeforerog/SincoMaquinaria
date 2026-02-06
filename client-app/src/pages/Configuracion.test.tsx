@@ -2,8 +2,17 @@ import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import Configuracion from './Configuracion';
 
-// Mock fetch
-global.fetch = vi.fn();
+// Mock useAuthFetch
+const mockAuthFetch = vi.fn();
+vi.mock('../hooks/useAuthFetch', () => ({
+    useAuthFetch: () => mockAuthFetch
+}));
+
+// Mock useAuth
+const mockUseAuth = vi.fn();
+vi.mock('../contexts/AuthContext', () => ({
+    useAuth: () => mockUseAuth()
+}));
 
 const mockMedidores = [
     { codigo: 'MED1', nombre: 'Horómetro', unidad: 'HR', activo: true },
@@ -29,7 +38,8 @@ const mockEmpleados = [
 describe('Configuracion Component', () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        (global.fetch as any).mockImplementation((url: string) => {
+        mockUseAuth.mockReturnValue({ user: { rol: 'Admin' } });
+        mockAuthFetch.mockImplementation((url: string) => {
             if (url.includes('/medidores')) {
                 return Promise.resolve({ ok: true, json: async () => mockMedidores });
             }
@@ -70,7 +80,7 @@ describe('Configuracion Component', () => {
             render(<Configuracion />);
         });
 
-        expect(screen.getByText('Tipos de Medidor')).toBeInTheDocument();
+        expect(screen.getByText('Medidores')).toBeInTheDocument();
         expect(screen.getByText('Grupos Mantenimiento')).toBeInTheDocument();
         expect(screen.getByText('Tipos de Falla')).toBeInTheDocument();
         expect(screen.getByText('Causas de Falla')).toBeInTheDocument();
@@ -82,7 +92,7 @@ describe('Configuracion Component', () => {
             render(<Configuracion />);
         });
 
-        expect(screen.getByText('Nuevo Tipo')).toBeInTheDocument();
+        expect(screen.getByText('Nuevo Medidor')).toBeInTheDocument();
         expect(screen.getByText('Tipos Existentes')).toBeInTheDocument();
     });
 
@@ -193,7 +203,7 @@ describe('Configuracion Component', () => {
     });
 
     it('shows empty state for medidores', async () => {
-        (global.fetch as any).mockResolvedValue({
+        mockAuthFetch.mockResolvedValue({
             ok: true,
             json: async () => []
         });
@@ -244,5 +254,23 @@ describe('Configuracion Component', () => {
         await waitFor(() => {
             expect(screen.getByText('Crear Causa')).toBeInTheDocument();
         });
+    });
+
+    it('shows Usuarios tab for Admin users', async () => {
+        mockUseAuth.mockReturnValue({ user: { rol: 'Admin' } });
+        await act(async () => {
+            render(<Configuracion />);
+        });
+        expect(screen.getByText('Usuarios')).toBeInTheDocument();
+    });
+
+    it('hides Usuarios tab for non-Admin users', async () => {
+        mockUseAuth.mockReturnValue({ user: { rol: 'User' } });
+        await act(async () => {
+            render(<Configuracion />);
+        });
+        expect(screen.queryByText('Usuarios')).not.toBeInTheDocument();
+        // Empleados should still be visible
+        expect(screen.getByText('Empleados')).toBeInTheDocument();
     });
 });

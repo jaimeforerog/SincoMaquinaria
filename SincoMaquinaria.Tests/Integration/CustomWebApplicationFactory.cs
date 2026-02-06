@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
@@ -18,19 +19,42 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyn
 {
     // Use local PostgreSQL with a dedicated test database
     private const string TestDatabaseName = "SincoMaquinaria_Test";
-    private const string TestConnectionString = 
+    private const string TestConnectionString =
         $"host=localhost;database={TestDatabaseName};password=postgres;username=postgres";
-    private const string PostgresConnectionString = 
+    private const string PostgresConnectionString =
         "host=localhost;database=postgres;password=postgres;username=postgres";
+
+    public CustomWebApplicationFactory()
+    {
+        // Environment variables override appsettings.json and are available when
+        // WebApplication.CreateBuilder reads config (before ConfigureWebHost runs).
+        // This ensures Marten and DatabaseSetup get the test connection string.
+        Environment.SetEnvironmentVariable("ConnectionStrings__DefaultConnection", TestConnectionString);
+        Environment.SetEnvironmentVariable("Jwt__Key", "SUPER-SECRET-TEST-KEY-FOR-INTEGRATION-TESTS-1234567890");
+        Environment.SetEnvironmentVariable("Jwt__Issuer", "SincoMaquinariaTest");
+        Environment.SetEnvironmentVariable("Jwt__Audience", "SincoMaquinariaTestApp");
+    }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        // Fix for content root path after moving to src/ folder
+        var projectDir = AppDomain.CurrentDomain.BaseDirectory;
+        var configPath = Path.Combine(projectDir, "../../../../src/SincoMaquinaria");
+        
+        if (Directory.Exists(configPath))
+        {
+            builder.UseContentRoot(Path.GetFullPath(configPath));
+        }
+
         // Override configuration to use test database
         builder.ConfigureAppConfiguration((context, config) =>
         {
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["ConnectionStrings:DefaultConnection"] = TestConnectionString
+                ["ConnectionStrings:DefaultConnection"] = TestConnectionString,
+                ["Jwt:Key"] = "SUPER-SECRET-TEST-KEY-FOR-INTEGRATION-TESTS-1234567890",
+                ["Jwt:Issuer"] = "SincoMaquinariaTest",
+                ["Jwt:Audience"] = "SincoMaquinariaTestApp"
             });
         });
 
@@ -50,7 +74,37 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyn
                 options.AddPolicy("Admin", policy => 
                     policy.RequireAssertion(_ => true));
             });
+
+            // Inject a fake user for testing to avoid NullReference in Endpoints expecting User claims
+            services.AddTransient<IStartupFilter, FakeUserStartupFilter>();
         });
+    }
+
+    private class FakeUserStartupFilter : IStartupFilter
+    {
+        public Action<IApplicationBuilder> Configure(Action<IApplicationBuilder> next)
+        {
+            return builder =>
+            {
+                builder.Use(async (context, nextMiddleware) =>
+                {
+                    // If no user is present (because we bypassed auth), set a fake one
+                    if (context.User.Identity?.IsAuthenticated != true)
+                    {
+                        var claims = new[]
+                        {
+                            new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.NameIdentifier, Guid.NewGuid().ToString()),
+                            new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Name, "Test User"),
+                            new System.Security.Claims.Claim("role", "Admin")
+                        };
+                        var identity = new System.Security.Claims.ClaimsIdentity(claims, "Test");
+                        context.User = new System.Security.Claims.ClaimsPrincipal(identity);
+                    }
+                    await nextMiddleware();
+                });
+                next(builder);
+            };
+        }
     }
 
     public async Task InitializeAsync()

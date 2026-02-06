@@ -133,3 +133,8 @@ azure-publish-profile.xml
 *.xls
 *.xlsx
 *.csv
+
+# Debug / test log files
+errors.txt
+full_log.txt
+test_errors.txt

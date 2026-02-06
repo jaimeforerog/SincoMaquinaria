@@ -138,7 +138,7 @@ public class OrdenesEndpointsTests : IClassFixture<CustomWebApplicationFactory>
             DetalleId = detalleId,
             Porcentaje = 50,
             Observacion = "Trabajo en progreso",
-            NuevoEstado = "EnProgreso"
+            NuevoEstado = "EnProceso"
         };
 
         // Act

@@ -27,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SincoMaquinaria.csproj" />
+    <ProjectReference Include="..\src\SincoMaquinaria\SincoMaquinaria.csproj" />
   </ItemGroup>
 
 </Project>

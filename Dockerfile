@@ -26,14 +26,14 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS dotnet-build
 WORKDIR /src
 
 # Copy csproj and restore dependencies
-COPY SincoMaquinaria.csproj ./
-RUN dotnet restore
+COPY src/SincoMaquinaria/SincoMaquinaria.csproj ./src/SincoMaquinaria/
+RUN dotnet restore src/SincoMaquinaria/SincoMaquinaria.csproj
 
 # Copy source code (exclude test project)
-COPY . ./
+COPY src/SincoMaquinaria/ ./src/SincoMaquinaria/
 
 # Publish only the main application project
-RUN dotnet publish SincoMaquinaria.csproj -c Release -o /app/publish --no-restore
+RUN dotnet publish src/SincoMaquinaria/SincoMaquinaria.csproj -c Release -o /app/publish --no-restore
 
 # =======================================
 # Stage 3: Runtime
@@ -46,6 +46,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
 # Copy backend binaries from build stage
+# Note: we are already in /app
 COPY --from=dotnet-build /app/publish ./
 
 # Copy frontend static files from node-build stage

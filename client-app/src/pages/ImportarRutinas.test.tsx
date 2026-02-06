@@ -2,13 +2,21 @@ import { render, screen, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import ImportarRutinas from './ImportarRutinas';
 
-// Mock fetch
-global.fetch = vi.fn();
+// Mock useAuthFetch
+const mockAuthFetch = vi.fn();
+vi.mock('../hooks/useAuthFetch', () => ({
+    useAuthFetch: () => mockAuthFetch
+}));
+
+// Mock useAuth for Admin role check
+vi.mock('../contexts/AuthContext', () => ({
+    useAuth: () => ({ user: { rol: 'Admin' } })
+}));
 
 describe('ImportarRutinas Component', () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        (global.fetch as any).mockResolvedValue({
+        mockAuthFetch.mockResolvedValue({
             ok: true,
             json: async () => ({})
         });

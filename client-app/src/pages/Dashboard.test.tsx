@@ -3,34 +3,18 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { BrowserRouter } from 'react-router-dom';
 import Dashboard from './Dashboard';
 
-// Mock fetch
-global.fetch = vi.fn();
+// Mock useAuthFetch
+const mockAuthFetch = vi.fn();
+vi.mock('../hooks/useAuthFetch', () => ({
+    useAuthFetch: () => mockAuthFetch
+}));
 
-const mockOrdenes = [
-    {
-        id: '1',
-        numero: 'OT-2024-001',
-        equipoId: 'eq-1',
-        tipo: 'Correctivo',
-        estado: 'Borrador',
-        fechaCreacion: '2024-01-15T10:30:00Z',
-        porcentajeAvanceGeneral: 25
-    },
-    {
-        id: '2',
-        numero: 'OT-2024-002',
-        equipoId: 'eq-2',
-        tipo: 'Preventivo',
-        estado: 'Finalizada',
-        fechaCreacion: '2024-01-16T14:00:00Z',
-        porcentajeAvanceGeneral: 100
-    }
-];
+// Mock useDashboardSocket
+vi.mock('../hooks/useDashboardSocket', () => ({
+    useDashboardSocket: () => { }
+}));
 
-const mockEquipos = [
-    { id: 'eq-1', placa: 'ABC-123', descripcion: 'Excavadora CAT' },
-    { id: 'eq-2', placa: 'DEF-456', descripcion: 'Retroexcavadora JD' }
-];
+
 
 const renderWithRouter = (component: React.ReactNode) => {
     return render(
@@ -40,12 +24,21 @@ const renderWithRouter = (component: React.ReactNode) => {
     );
 };
 
+const mockStats = {
+    equiposCount: 5,
+    rutinasCount: 3,
+    ordenesActivasCount: 2
+};
+
 describe('Dashboard Component', () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        (global.fetch as any)
-            .mockResolvedValueOnce({ ok: true, json: async () => mockOrdenes })
-            .mockResolvedValueOnce({ ok: true, json: async () => mockEquipos });
+        mockAuthFetch.mockImplementation((url: string) => {
+            if (url.includes('/dashboard/stats')) {
+                return Promise.resolve({ ok: true, json: async () => mockStats });
+            }
+            return Promise.resolve({ ok: true, json: async () => ({}) });
+        });
     });
 
     it('renders dashboard title', async () => {
@@ -53,96 +46,47 @@ describe('Dashboard Component', () => {
             renderWithRouter(<Dashboard />);
         });
 
-        expect(screen.getByText('Dashboard')).toBeInTheDocument();
+        expect(screen.getByText('Dashboard Operativo')).toBeInTheDocument();
+        expect(screen.getByText('Centro de control de Maquinaria Amarilla')).toBeInTheDocument();
     });
 
-    it('fetches ordenes and equipos on mount', async () => {
+    it('fetches stats on mount', async () => {
         await act(async () => {
             renderWithRouter(<Dashboard />);
         });
 
-        expect(global.fetch).toHaveBeenCalledWith('/ordenes');
-        expect(global.fetch).toHaveBeenCalledWith('/equipos');
+        expect(mockAuthFetch).toHaveBeenCalledWith('/dashboard/stats');
     });
 
-    it('displays KPI cards', async () => {
+    it('displays KPI cards with correct values', async () => {
         await act(async () => {
             renderWithRouter(<Dashboard />);
         });
 
         await waitFor(() => {
+            expect(screen.getByText('Equipos')).toBeInTheDocument();
+            expect(screen.getByText('5')).toBeInTheDocument();
+
+            expect(screen.getByText('Rutinas')).toBeInTheDocument();
+            expect(screen.getByText('3')).toBeInTheDocument();
+
             expect(screen.getByText('Órdenes Activas')).toBeInTheDocument();
+            expect(screen.getByText('2')).toBeInTheDocument();
         });
     });
 
-    it('displays total orders count', async () => {
+    it('renders links to management pages', async () => {
         await act(async () => {
             renderWithRouter(<Dashboard />);
         });
 
-        await waitFor(() => {
-            expect(screen.getByText('Total Órdenes')).toBeInTheDocument();
-        });
-    });
+        const equiposLink = screen.getByText('Equipos').closest('a');
+        expect(equiposLink).toHaveAttribute('href', '/gestion-equipos');
 
-    it('displays equipment count', async () => {
-        await act(async () => {
-            renderWithRouter(<Dashboard />);
-        });
+        const rutinasLink = screen.getByText('Rutinas').closest('a');
+        expect(rutinasLink).toHaveAttribute('href', '/editar-rutinas');
 
-        await waitFor(() => {
-            expect(screen.getByText('Equipos Registrados')).toBeInTheDocument();
-        });
-    });
-
-    it('renders recent orders section', async () => {
-        await act(async () => {
-            renderWithRouter(<Dashboard />);
-        });
-
-        await waitFor(() => {
-            expect(screen.getByText('Órdenes Recientes')).toBeInTheDocument();
-        });
-    });
-
-    it('displays order numbers in recent list', async () => {
-        await act(async () => {
-            renderWithRouter(<Dashboard />);
-        });
-
-        await waitFor(() => {
-            expect(screen.getByText('OT-2024-001')).toBeInTheDocument();
-        });
-    });
-
-    it('renders Ver Historial link', async () => {
-        await act(async () => {
-            renderWithRouter(<Dashboard />);
-        });
-
-        await waitFor(() => {
-            expect(screen.getByText('Ver Historial Completo')).toBeInTheDocument();
-        });
-    });
-
-    it('renders Nueva Orden link', async () => {
-        await act(async () => {
-            renderWithRouter(<Dashboard />);
-        });
-
-        await waitFor(() => {
-            expect(screen.getByText('Nueva Orden')).toBeInTheDocument();
-        });
-    });
-
-    it('links to equipment management', async () => {
-        await act(async () => {
-            renderWithRouter(<Dashboard />);
-        });
-
-        await waitFor(() => {
-            const link = screen.getByText('Equipos').closest('a');
-            expect(link).toHaveAttribute('href', '/gestion-equipos');
-        });
+        const historialLink = screen.getByText('Órdenes Activas').closest('a');
+        expect(historialLink).toHaveAttribute('href', '/historial');
     });
 });

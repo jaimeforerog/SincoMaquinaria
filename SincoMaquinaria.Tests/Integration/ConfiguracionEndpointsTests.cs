@@ -164,8 +164,13 @@ public class ConfiguracionEndpointsTests : IClassFixture<CustomWebApplicationFac
         };
         await _client.PostAsJsonAsync("/configuracion/medidores", nuevoTipo);
 
-        // Usar un código de prueba válido
-        var codigo = "TEST001";
+        // Obtener el código real generado por el servidor
+        var listResponse = await _client.GetAsync("/configuracion/medidores");
+        var listJson = await System.Text.Json.JsonDocument.ParseAsync(listResponse.Content.ReadAsStream());
+        var codigo = listJson.RootElement
+            .EnumerateArray()
+            .First(t => t.GetProperty("nombre").GetString() == nuevoTipo.Nombre)
+            .GetProperty("codigo").GetString();
 
         var datosActualizados = new
         {
@@ -177,7 +182,6 @@ public class ConfiguracionEndpointsTests : IClassFixture<CustomWebApplicationFac
         var response = await _client.PutAsJsonAsync($"/configuracion/medidores/{codigo}", datosActualizados);
 
         // Assert
-        // El endpoint siempre retorna OK aunque el código no exista
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
@@ -192,8 +196,13 @@ public class ConfiguracionEndpointsTests : IClassFixture<CustomWebApplicationFac
         };
         await _client.PostAsJsonAsync("/configuracion/medidores", nuevoTipo);
 
-        // Usar código de prueba
-        var codigo = "TEST002";
+        // Obtener el código real generado por el servidor
+        var listResponse = await _client.GetAsync("/configuracion/medidores");
+        var listJson = await System.Text.Json.JsonDocument.ParseAsync(listResponse.Content.ReadAsStream());
+        var codigo = listJson.RootElement
+            .EnumerateArray()
+            .First(t => t.GetProperty("nombre").GetString() == nuevoTipo.Nombre)
+            .GetProperty("codigo").GetString();
 
         var cambioEstado = new
         {

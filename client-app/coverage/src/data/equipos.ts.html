@@ -1,0 +1,355 @@
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Code coverage report for src/data/equipos.ts</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../../prettify.css" />
+    <link rel="stylesheet" href="../../base.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="../../favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+    
+<body>
+<div class='wrapper'>
+    <div class='pad1'>
+        <h1><a href="../../index.html">All files</a> / <a href="index.html">src/data</a> equipos.ts</h1>
+        <div class='clearfix'>
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Statements</span>
+                <span class='fraction'>0/90</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Branches</span>
+                <span class='fraction'>0/1</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Functions</span>
+                <span class='fraction'>0/1</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Lines</span>
+                <span class='fraction'>0/90</span>
+            </div>
+        
+            
+        </div>
+        <p class="quiet">
+            Press <em>n</em> or <em>j</em> to go to the next uncovered block, <em>b</em>, <em>p</em> or <em>k</em> for the previous block.
+        </p>
+        <template id="filterTemplate">
+            <div class="quiet">
+                Filter:
+                <input type="search" id="fileSearch">
+            </div>
+        </template>
+    </div>
+    <div class='status-line low'></div>
+    <pre><table class="coverage">
+<tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
+<a name='L2'></a><a href='#L2'>2</a>
+<a name='L3'></a><a href='#L3'>3</a>
+<a name='L4'></a><a href='#L4'>4</a>
+<a name='L5'></a><a href='#L5'>5</a>
+<a name='L6'></a><a href='#L6'>6</a>
+<a name='L7'></a><a href='#L7'>7</a>
+<a name='L8'></a><a href='#L8'>8</a>
+<a name='L9'></a><a href='#L9'>9</a>
+<a name='L10'></a><a href='#L10'>10</a>
+<a name='L11'></a><a href='#L11'>11</a>
+<a name='L12'></a><a href='#L12'>12</a>
+<a name='L13'></a><a href='#L13'>13</a>
+<a name='L14'></a><a href='#L14'>14</a>
+<a name='L15'></a><a href='#L15'>15</a>
+<a name='L16'></a><a href='#L16'>16</a>
+<a name='L17'></a><a href='#L17'>17</a>
+<a name='L18'></a><a href='#L18'>18</a>
+<a name='L19'></a><a href='#L19'>19</a>
+<a name='L20'></a><a href='#L20'>20</a>
+<a name='L21'></a><a href='#L21'>21</a>
+<a name='L22'></a><a href='#L22'>22</a>
+<a name='L23'></a><a href='#L23'>23</a>
+<a name='L24'></a><a href='#L24'>24</a>
+<a name='L25'></a><a href='#L25'>25</a>
+<a name='L26'></a><a href='#L26'>26</a>
+<a name='L27'></a><a href='#L27'>27</a>
+<a name='L28'></a><a href='#L28'>28</a>
+<a name='L29'></a><a href='#L29'>29</a>
+<a name='L30'></a><a href='#L30'>30</a>
+<a name='L31'></a><a href='#L31'>31</a>
+<a name='L32'></a><a href='#L32'>32</a>
+<a name='L33'></a><a href='#L33'>33</a>
+<a name='L34'></a><a href='#L34'>34</a>
+<a name='L35'></a><a href='#L35'>35</a>
+<a name='L36'></a><a href='#L36'>36</a>
+<a name='L37'></a><a href='#L37'>37</a>
+<a name='L38'></a><a href='#L38'>38</a>
+<a name='L39'></a><a href='#L39'>39</a>
+<a name='L40'></a><a href='#L40'>40</a>
+<a name='L41'></a><a href='#L41'>41</a>
+<a name='L42'></a><a href='#L42'>42</a>
+<a name='L43'></a><a href='#L43'>43</a>
+<a name='L44'></a><a href='#L44'>44</a>
+<a name='L45'></a><a href='#L45'>45</a>
+<a name='L46'></a><a href='#L46'>46</a>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a>
+<a name='L52'></a><a href='#L52'>52</a>
+<a name='L53'></a><a href='#L53'>53</a>
+<a name='L54'></a><a href='#L54'>54</a>
+<a name='L55'></a><a href='#L55'>55</a>
+<a name='L56'></a><a href='#L56'>56</a>
+<a name='L57'></a><a href='#L57'>57</a>
+<a name='L58'></a><a href='#L58'>58</a>
+<a name='L59'></a><a href='#L59'>59</a>
+<a name='L60'></a><a href='#L60'>60</a>
+<a name='L61'></a><a href='#L61'>61</a>
+<a name='L62'></a><a href='#L62'>62</a>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a>
+<a name='L67'></a><a href='#L67'>67</a>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a>
+<a name='L70'></a><a href='#L70'>70</a>
+<a name='L71'></a><a href='#L71'>71</a>
+<a name='L72'></a><a href='#L72'>72</a>
+<a name='L73'></a><a href='#L73'>73</a>
+<a name='L74'></a><a href='#L74'>74</a>
+<a name='L75'></a><a href='#L75'>75</a>
+<a name='L76'></a><a href='#L76'>76</a>
+<a name='L77'></a><a href='#L77'>77</a>
+<a name='L78'></a><a href='#L78'>78</a>
+<a name='L79'></a><a href='#L79'>79</a>
+<a name='L80'></a><a href='#L80'>80</a>
+<a name='L81'></a><a href='#L81'>81</a>
+<a name='L82'></a><a href='#L82'>82</a>
+<a name='L83'></a><a href='#L83'>83</a>
+<a name='L84'></a><a href='#L84'>84</a>
+<a name='L85'></a><a href='#L85'>85</a>
+<a name='L86'></a><a href='#L86'>86</a>
+<a name='L87'></a><a href='#L87'>87</a>
+<a name='L88'></a><a href='#L88'>88</a>
+<a name='L89'></a><a href='#L89'>89</a>
+<a name='L90'></a><a href='#L90'>90</a>
+<a name='L91'></a><a href='#L91'>91</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" >import { Equipo } from '../types';<span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" ></span></span></span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >export const equipos: Equipo[] = [</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1', codigo: 'ACT_SEBAS_SIN_PADRE_1', nombre: 'ACTIVO SEBAS SIN PADRE' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '2', codigo: 'ACT_SEBAS_PADRE', nombre: 'ACTIVO SEBAS PADRE' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '7', codigo: 'VD-Inter-01', nombre: 'Volqueta Dobletroque international XAB-844' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '12', codigo: 'SM002', nombre: 'Retroexcavadora JM' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '13', codigo: 'dce_0001', nombre: 'prbint dce activos' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '15', codigo: 'PRUEBA_SOLO_NIIF', nombre: 'PRUEBA_SOLO_NIIF' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '22', codigo: '201710120928', nombre: '201710120928' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '27', codigo: '99999999', nombre: 'JFV Pruebas' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '51', codigo: '987456', nombre: 'REVALUACIÓN ACTIVOS' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '52', codigo: '1024527998-666', nombre: 'REVALUACIÓN CONTABLE' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '54', codigo: 'EQC00000001', nombre: 'LAPTOP DELL CORE I5' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '55', codigo: 'EQC00000002', nombre: 'LAPTOP DELL CORE I5' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '56', codigo: '010203', nombre: 'PRB BSA' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '58', codigo: '201807091621', nombre: '201807091621 prueba datos adicionales' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '59', codigo: '', nombre: 'PRUEBAS YRR - ITEMS DE FACTURACION' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '60', codigo: 'A_YRR_01', nombre: 'PRUEBAS ITEMS DE MANTENIMIENTO' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '61', codigo: 'AHR01', nombre: 'IMPRESORA MULTIFUNCIONAL' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '64', codigo: 'AHR04', nombre: 'IMPRESORA MULTIFUNCIONAL' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '68', codigo: 'VOL502', nombre: 'VOLQUETA DOBLE TROQUE' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '69', codigo: 'CC0000001001', nombre: 'Computador 14"' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '70', codigo: 'RT-01', nombre: 'RETROCARGADOR' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '71', codigo: 'MT-01', nombre: 'MOTONIVELADORA' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '72', codigo: 'VT-01', nombre: 'VOLQUETA DOBLE TROQUE' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '73', codigo: 'GR-01', nombre: 'GRUA 45M' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '74', codigo: 'CM-01', nombre: 'CAMIONETA DOBLECABINA' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '75', codigo: 'MC-01', nombre: 'MOTOCICLETA' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '78', codigo: 'CM-02', nombre: 'CAMIONETA DOBLECABINA' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1079', codigo: '6790', nombre: 'Transporte Cs2' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1080', codigo: 'BPG582', nombre: 'Automovil Symbol' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1081', codigo: 'CAG 100', nombre: 'Volqueta 2ejes' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1082', codigo: 'ICC 409', nombre: 'Volqueta 3 ejes' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1086', codigo: '0BPG582', nombre: 'volqueta int' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1090', codigo: '2426', nombre: 'Aplanadora' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1091', codigo: 'JFE 023', nombre: 'PRUEBA REGISTRO DE BAJA' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1092', codigo: 'JFE 024', nombre: 'PRUEBA REGISTRO DE BAJA' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1096', codigo: '01PADRE', nombre: 'PRUEBA JAO' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1100', codigo: 'Deterioro Norma Local JFE', nombre: 'Deterioro Metodo Costo' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1101', codigo: 'Activo Metodo Revaluación JFE-', nombre: 'Activo Metodo Revaluación' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1102', codigo: 'Deterioro Metodo Costo JFE', nombre: 'Deterioro Metodo Costo' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1103', codigo: '131390', nombre: 'HD 131390' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1105', codigo: 'CB20200306', nombre: 'Activo Metodo Revaluación' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1108', codigo: 'AHR07', nombre: 'CAMIONETA DOBLECABINA' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1109', codigo: 'AHR08', nombre: 'CAMIONETA DOBLECABINA' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1111', codigo: 'AHR10', nombre: 'MOTOCICLETA' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1112', codigo: 'AHR011', nombre: 'RETROEXCAVADORAS CASE 580N 05' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1119', codigo: 'JFE 028 AJUSTE NORMA LOCAL', nombre: '201710120922' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1126', codigo: 'ACTIVO_PADRE_2020', nombre: 'ACTIVO_PADRE_2020' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1130', codigo: '023MYE', nombre: 'Activo Maquinaria y Equipo' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1135', codigo: 'MJ-021', nombre: 'Minijumbo' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1144', codigo: 'AHR0111', nombre: 'COMPUTADOR' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1147', codigo: 'VT000024', nombre: 'Vehiculo Automivil Corsa Deluxe' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1148', codigo: 'MA000026', nombre: 'Volqueta internation WTY426' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1149', codigo: '1026284906_ACTUVO_REVALUO', nombre: 'Activo Revaluación' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1151', codigo: 'AHR014', nombre: 'IMPRESORA MULTIFUNCIONAL' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1157', codigo: 'TR00000069', nombre: 'TRACTOMULA SUPER BRIGADIER SYL679' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1158', codigo: 'PE0000011', nombre: 'PLANTA ELECTRICA YAMAHA 50KVA' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1159', codigo: 'HM0000024', nombre: 'Taladro percutor Makita 750' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1160', codigo: 'SP00000099', nombre: 'Super Auto Renault symbol' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1161', codigo: 'VHN000000345', nombre: 'MOTONIVELADORA CAT' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1163', codigo: '101802', nombre: 'OFICINA 401 CALLE 82 UND PQ 5 Y 6' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1173', codigo: 'Prueba stelea', nombre: 'carro' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1182', codigo: 'ahr239i958', nombre: 'PRUEBA JAO' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1184', codigo: 'CPZ_0002', nombre: 'Activo 2 de Cristian Perez' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1202', codigo: 'KAL01', nombre: 'MOTO' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1212', codigo: '1805 ', nombre: 'GRUA' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1214', codigo: '1807', nombre: 'GRUA' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1217', codigo: '1805 PORTATIL 1 ', nombre: 'PORTATIL' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1221', codigo: '1809 PORTATIL 5', nombre: 'PORTATIL CONS 2' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1226', codigo: '2323', nombre: 'PRUEBA V2 2022' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1227', codigo: 'QWEZ', nombre: 'Retroexcavadora' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1228', codigo: 'retroexcavadora2023', nombre: 'retroexcavadora2023' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1233', codigo: 'YRR-0002', nombre: 'PRUEBAS YRR' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1235', codigo: 'YRR', nombre: 'Retroexcavadora' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1237', codigo: '34-QWED2', nombre: 'Retroexcavadora' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1238', codigo: 'YRR-1105202301', nombre: 'PRUEBAS YRR 2' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1262', codigo: '2023PREOP', nombre: 'PreOperacional' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1263', codigo: 'KAL02 MOTO', nombre: 'MOTO' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1264', codigo: 'EST-OPR-001', nombre: 'Activo Estado Operativo' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1265', codigo: 'EST-OPR-002', nombre: 'Activo estado operativo normal' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1266', codigo: 'EST-OPR-003', nombre: 'Activo estado operativo totalmente depreciado' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1267', codigo: 'EST-OPR-004', nombre: 'Activo estado operativo totalmente depreciado' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1268', codigo: 'EST-OPR-005', nombre: 'Activo estado operativo dado de baja' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1269', codigo: 'EST-OPR-006', nombre: 'Activo estado operativo dado de baja' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1271', codigo: 'RE2023', nombre: 'RETROEXCAVADORA ORUGA' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1287', codigo: 'NAT2024', nombre: 'volqueta ficha' },</span>
+<span class="cstat-no" title="statement not covered" >    { id: '1294', codigo: '2025', nombre: 'Aplanadora' },</span>
+<span class="cstat-no" title="statement not covered" >];</span>
+&nbsp;</pre></td></tr></table></pre>
+
+                <div class='push'></div><!-- for sticky footer -->
+            </div><!-- /wrapper -->
+            <div class='footer quiet pad2 space-top1 center small'>
+                Code coverage generated by
+                <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
+                at 2026-01-15T20:26:54.255Z
+            </div>
+        <script src="../../prettify.js"></script>
+        <script>
+            window.onload = function () {
+                prettyPrint();
+            };
+        </script>
+        <script src="../../sorter.js"></script>
+        <script src="../../block-navigation.js"></script>
+    </body>
+</html>
+    

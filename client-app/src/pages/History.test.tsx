@@ -3,8 +3,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { BrowserRouter } from 'react-router-dom';
 import History from './History';
 
-// Mock fetch
-global.fetch = vi.fn();
+// Mock useAuthFetch
+const mockAuthFetch = vi.fn();
+vi.mock('../hooks/useAuthFetch', () => ({
+    useAuthFetch: () => mockAuthFetch
+}));
 
 const mockOrdenes = [
     {
@@ -44,7 +47,7 @@ describe('History Component', () => {
     });
 
     it('renders the title', async () => {
-        (global.fetch as any).mockResolvedValue({
+        mockAuthFetch.mockResolvedValue({
             ok: true,
             json: async () => []
         });
@@ -57,7 +60,7 @@ describe('History Component', () => {
     });
 
     it('renders subtitle', async () => {
-        (global.fetch as any).mockResolvedValue({
+        mockAuthFetch.mockResolvedValue({
             ok: true,
             json: async () => []
         });
@@ -70,7 +73,7 @@ describe('History Component', () => {
     });
 
     it('renders Nueva Orden button', async () => {
-        (global.fetch as any).mockResolvedValue({
+        mockAuthFetch.mockResolvedValue({
             ok: true,
             json: async () => []
         });
@@ -83,7 +86,7 @@ describe('History Component', () => {
     });
 
     it('fetches ordenes and equipos on mount', async () => {
-        (global.fetch as any)
+        mockAuthFetch
             .mockResolvedValueOnce({ ok: true, json: async () => mockOrdenes })
             .mockResolvedValueOnce({ ok: true, json: async () => mockEquipos });
 
@@ -91,12 +94,12 @@ describe('History Component', () => {
             renderWithRouter(<History />);
         });
 
-        expect(global.fetch).toHaveBeenCalledWith('/ordenes');
-        expect(global.fetch).toHaveBeenCalledWith('/equipos');
+        expect(mockAuthFetch).toHaveBeenCalledWith('/ordenes');
+        expect(mockAuthFetch).toHaveBeenCalledWith('/equipos');
     });
 
     it('renders empty state when no orders', async () => {
-        (global.fetch as any).mockResolvedValue({
+        mockAuthFetch.mockResolvedValue({
             ok: true,
             json: async () => []
         });
@@ -111,7 +114,7 @@ describe('History Component', () => {
     });
 
     it('renders orders when data is loaded', async () => {
-        (global.fetch as any)
+        mockAuthFetch
             .mockResolvedValueOnce({ ok: true, json: async () => mockOrdenes })
             .mockResolvedValueOnce({ ok: true, json: async () => mockEquipos });
 
@@ -126,7 +129,7 @@ describe('History Component', () => {
     });
 
     it('displays equipment placa', async () => {
-        (global.fetch as any)
+        mockAuthFetch
             .mockResolvedValueOnce({ ok: true, json: async () => mockOrdenes })
             .mockResolvedValueOnce({ ok: true, json: async () => mockEquipos });
 
@@ -140,7 +143,7 @@ describe('History Component', () => {
     });
 
     it('displays order type', async () => {
-        (global.fetch as any)
+        mockAuthFetch
             .mockResolvedValueOnce({ ok: true, json: async () => mockOrdenes })
             .mockResolvedValueOnce({ ok: true, json: async () => mockEquipos });
 
@@ -155,7 +158,7 @@ describe('History Component', () => {
     });
 
     it('displays order status chips', async () => {
-        (global.fetch as any)
+        mockAuthFetch
             .mockResolvedValueOnce({ ok: true, json: async () => mockOrdenes })
             .mockResolvedValueOnce({ ok: true, json: async () => mockEquipos });
 
@@ -170,9 +173,9 @@ describe('History Component', () => {
     });
 
     it('renders table headers', async () => {
-        (global.fetch as any).mockResolvedValue({
+        mockAuthFetch.mockResolvedValue({
             ok: true,
-            json: async () => []
+            json: async () => ({ data: mockOrdenes })
         });
 
         await act(async () => {
@@ -187,7 +190,7 @@ describe('History Component', () => {
     });
 
     it('renders Ver Detalle links', async () => {
-        (global.fetch as any)
+        mockAuthFetch
             .mockResolvedValueOnce({ ok: true, json: async () => mockOrdenes })
             .mockResolvedValueOnce({ ok: true, json: async () => mockEquipos });
 

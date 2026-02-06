@@ -1,20 +1,48 @@
 services:
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: sincomaquinaria-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
   # Backend + Frontend
   backend:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: sincomaquinaria-backend
+    depends_on:
+      redis:
+        condition: service_healthy
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
       - ASPNETCORE_URLS=${ASPNETCORE_URLS:-http://+:5000}
       # Database Configuration - Usando host.docker.internal para conectar al host desde el contenedor
       - ConnectionStrings__DefaultConnection=host=host.docker.internal;port=5432;database=SincoMaquinaria;username=postgres;password=postgres
+      - ConnectionStrings__Redis=redis:6379,abortConnect=false
+      # Caching Configuration
+      - Caching__Enabled=true
+      # Hangfire Configuration
+      - Hangfire__DashboardEnabled=true
+      - Hangfire__DashboardPath=/hangfire
+      - Hangfire__ServerName=SincoMaquinaria-Worker
+      - Hangfire__WorkerCount=5
       # JWT Configuration (REQUIRED - must be set in .env file)
       - Jwt__Key=${Jwt__Key}
       - Jwt__Issuer=${Jwt__Issuer:-SincoMaquinaria}
       - Jwt__Audience=${Jwt__Audience:-SincoMaquinariaApp}
-      - Jwt__ExpirationMinutes=${Jwt__ExpirationMinutes:-480}
+      - Jwt__ExpirationMinutes=${Jwt__ExpirationMinutes:-15}
+      - Jwt__RefreshTokenExpirationDays=${Jwt__RefreshTokenExpirationDays:-7}
       # Security Configuration
       - Security__MaxFileUploadSizeMB=${Security__MaxFileUploadSizeMB:-10}
       - Security__EnableAdminEndpoints=${Security__EnableAdminEndpoints:-false}
@@ -35,3 +63,6 @@ services:
       retries: 3
       start_period: 40s
     restart: unless-stopped
+
+volumes:
+  redis-data:

@@ -2,8 +2,11 @@ import { render, screen, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import EmployeeConfig from './EmployeeConfig';
 
-// Mock fetch
-global.fetch = vi.fn();
+// Mock useAuthFetch
+const mockAuthFetch = vi.fn();
+vi.mock('../hooks/useAuthFetch', () => ({
+    useAuthFetch: () => mockAuthFetch
+}));
 
 const mockEmployees = [
     {
@@ -18,7 +21,7 @@ const mockEmployees = [
 describe('EmployeeConfig Component', () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        (global.fetch as any).mockResolvedValue({
+        mockAuthFetch.mockResolvedValue({
             ok: true,
             json: async () => mockEmployees
         });
@@ -37,7 +40,7 @@ describe('EmployeeConfig Component', () => {
             render(<EmployeeConfig />);
         });
 
-        expect(global.fetch).toHaveBeenCalledWith('/empleados');
+        expect(mockAuthFetch).toHaveBeenCalledWith('/empleados');
     });
 
     it('renders Nuevo Empleado button', async () => {

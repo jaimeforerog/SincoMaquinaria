@@ -7,18 +7,11 @@ global.fetch = vi.fn();
 
 const mockLogs = [
     {
-        id: '1',
-        fecha: '2024-01-15T10:30:00Z',
-        path: '/api/ordenes',
-        message: 'Error de conexión',
-        stackTrace: 'at OrderService.Create()'
-    },
-    {
-        id: '2',
-        fecha: '2024-01-16T14:00:00Z',
-        path: '/api/equipos',
-        message: 'Equipo no encontrado',
-        stackTrace: null
+        id: "1",
+        fecha: "2024-01-15T10:00:00Z",
+        path: "/api/test",
+        message: "Error de conexión",
+        stackTrace: "System.Exception: Timeout"
     }
 ];
 
@@ -69,6 +62,12 @@ describe('LogsErrores Component', () => {
     });
 
     it('renders table headers', async () => {
+        // Need to ensure logs are returned so headers are rendered
+        (global.fetch as any).mockResolvedValue({
+            ok: true,
+            json: async () => mockLogs
+        });
+
         await act(async () => {
             render(<LogsErrores />);
         });

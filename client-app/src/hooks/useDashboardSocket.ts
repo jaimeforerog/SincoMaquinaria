@@ -7,7 +7,7 @@ export const useDashboardSocket = (onUpdate: (type: string) => void) => {
     useEffect(() => {
         // Build connection
         const newConnection = new signalR.HubConnectionBuilder()
-            .withUrl("http://localhost:5000/hubs/dashboard")
+            .withUrl("/hubs/dashboard")
             .withAutomaticReconnect()
             .build();
 
@@ -15,17 +15,18 @@ export const useDashboardSocket = (onUpdate: (type: string) => void) => {
     }, []);
 
     useEffect(() => {
-        if (connection) {
-            connection.start()
-                .then(() => {
-                    console.log('SignalR Connected!');
+        if (!connection) return;
 
-                    connection.on('DashboardUpdate', (message: string) => {
-                        console.log('DashboardUpdate received:', message);
-                        onUpdate(message);
-                    });
-                })
-                .catch(e => console.log('Connection failed: ', e));
-        }
+        connection.start()
+            .then(() => {
+                connection.on('DashboardUpdate', (message: string) => {
+                    onUpdate(message);
+                });
+            })
+            .catch(e => console.error('SignalR connection failed:', e));
+
+        return () => {
+            connection.stop();
+        };
     }, [connection, onUpdate]);
 };

@@ -1,10 +1,13 @@
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import { render, screen, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { BrowserRouter } from 'react-router-dom';
 import CreateOrder from './CreateOrder';
 
-// Mock fetch
-global.fetch = vi.fn();
+// Mock useAuthFetch
+const mockAuthFetch = vi.fn();
+vi.mock('../hooks/useAuthFetch', () => ({
+    useAuthFetch: () => mockAuthFetch
+}));
 
 const mockEquipos = [
     { id: 'eq-1', placa: 'ABC-123', descripcion: 'Excavadora CAT' },
@@ -38,7 +41,7 @@ const renderComponent = () => {
 describe('CreateOrder Component', () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        (global.fetch as any)
+        mockAuthFetch
             .mockResolvedValueOnce({ ok: true, json: async () => mockRutinas })
             .mockResolvedValueOnce({ ok: true, json: async () => mockEquipos });
     });
@@ -100,7 +103,8 @@ describe('CreateOrder Component', () => {
         });
 
         // Type selector is visible
-        expect(screen.getByText('Tipo de Orden')).toBeInTheDocument();
+        // MUI select renders the label as a legend or input label, use getByLabelText
+        expect(screen.getByLabelText('Tipo de Orden')).toBeInTheDocument();
     });
 
     it('shows equipment search input', async () => {
@@ -117,8 +121,8 @@ describe('CreateOrder Component', () => {
             renderComponent();
         });
 
-        expect(global.fetch).toHaveBeenCalledWith('/rutinas');
-        expect(global.fetch).toHaveBeenCalledWith('/equipos');
+        expect(mockAuthFetch).toHaveBeenCalledWith('/rutinas');
+        expect(mockAuthFetch).toHaveBeenCalledWith('/equipos');
     });
 
     it('shows Crear Orden button', async () => {
