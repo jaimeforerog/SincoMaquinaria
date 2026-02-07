@@ -66,7 +66,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  // Verify token with backend on mount
+  // Verify token with backend on mount (NON-BLOCKING)
   useEffect(() => {
     const initAuth = async () => {
       const storedToken = localStorage.getItem('authToken');
@@ -74,8 +74,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const storedUser = localStorage.getItem('authUser');
 
       if (storedToken && storedRefreshToken && storedUser) {
+        // ✅ OPTIMIZACIÓN: Establecer usuario INMEDIATAMENTE (UX rápida)
+        // No esperar validación del backend - confiar en localStorage primero
+        const userData = JSON.parse(storedUser);
+        setUser(userData);
+        setToken(storedToken);
+        setRefreshToken(storedRefreshToken);
+        setIsLoading(false); // ← Liberar UI INMEDIATAMENTE
+
+        // ✅ Validar token en BACKGROUND (no bloqueante)
         try {
-          // Validate token with backend
           const response = await fetch('/auth/me', {
             headers: {
               'Authorization': `Bearer ${storedToken}`
@@ -83,20 +91,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           });
 
           if (response.ok) {
+            // Token válido - actualizar con datos frescos del servidor
             const verifiedUser = await response.json();
-            setToken(storedToken);
-            setRefreshToken(storedRefreshToken);
             setUser(verifiedUser);
           } else if (response.status === 401) {
-            // Token expired, try to refresh
+            // Token expirado - intentar refresh
             console.log('Access token expired, attempting refresh...');
             const refreshed = await refreshAccessToken();
 
-            if (refreshed && storedUser) {
-              const userData = JSON.parse(storedUser);
-              setUser(userData);
-            } else {
-              // Refresh failed, logout
+            if (!refreshed) {
+              // Refresh falló - hacer logout
               console.warn('Token refresh failed, logging out');
               localStorage.removeItem('authToken');
               localStorage.removeItem('refreshToken');
@@ -106,6 +110,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               setUser(null);
             }
           } else {
+            // Error inesperado - hacer logout
             console.warn('Token verification failed, logging out');
             localStorage.removeItem('authToken');
             localStorage.removeItem('refreshToken');
@@ -115,16 +120,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             setUser(null);
           }
         } catch (error) {
-          console.error('Error verifying token:', error);
-          localStorage.removeItem('authToken');
-          localStorage.removeItem('refreshToken');
-          localStorage.removeItem('authUser');
-          setToken(null);
-          setRefreshToken(null);
-          setUser(null);
+          // Error de red - NO hacer logout automático
+          // El usuario puede estar offline, mantener sesión local
+          console.error('Error verifying token (network issue?):', error);
         }
+      } else {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
 
     initAuth();
