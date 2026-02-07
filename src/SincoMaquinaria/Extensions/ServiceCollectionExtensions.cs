@@ -21,6 +21,7 @@ using Hangfire;
 using Hangfire.PostgreSql;
 using Microsoft.AspNetCore.ResponseCompression;
 using System.IO.Compression;
+using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 
 namespace SincoMaquinaria.Extensions;
 
@@ -210,6 +211,10 @@ public static class ServiceCollectionExtensions
                     return HealthCheckResult.Unhealthy("PostgreSQL no disponible.", ex);
                 }
             });
+
+        // Application Insights (Azure Monitoring)
+        // Connection string configured via APPLICATIONINSIGHTS_CONNECTION_STRING environment variable
+        services.AddApplicationInsightsTelemetry();
 
         // Swagger (configuración básica - compatible con todas las versiones)
         services.AddEndpointsApiExplorer();
