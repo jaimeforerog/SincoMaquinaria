@@ -15,6 +15,23 @@ services:
       retries: 5
     restart: unless-stopped
 
+  # Seq - Log Aggregation and Search (FREE up to 1GB/day)
+  seq:
+    image: datalust/seq:latest
+    container_name: sincomaquinaria-seq
+    ports:
+      - "5341:80"
+    environment:
+      - ACCEPT_EULA=Y
+    volumes:
+      - seq-data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
   # Backend + Frontend
   backend:
     build:
@@ -24,6 +41,8 @@ services:
     depends_on:
       redis:
         condition: service_healthy
+      seq:
+        condition: service_started
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
       - ASPNETCORE_URLS=${ASPNETCORE_URLS:-http://+:5000}
@@ -48,6 +67,8 @@ services:
       - Security__EnableAdminEndpoints=${Security__EnableAdminEndpoints:-false}
       - Security__AllowedOrigins__0=${Security__AllowedOrigins__0:-http://localhost:3000}
       - Security__AllowedOrigins__1=${Security__AllowedOrigins__1:-http://localhost:5173}
+      # Logging Configuration
+      - Seq__ServerUrl=${Seq__ServerUrl:-http://seq:5341}
     ports:
       - "5000:5000"
       - "5001:5001" # HTTPS port
@@ -66,3 +87,4 @@ services:
 
 volumes:
   redis-data:
+  seq-data:

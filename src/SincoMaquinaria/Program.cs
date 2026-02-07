@@ -6,7 +6,7 @@ using SincoMaquinaria.Endpoints;
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
     .WriteTo.Console()
-    .WriteTo.File("logs/sinco-.log", 
+    .WriteTo.File("logs/sinco-.log",
         rollingInterval: RollingInterval.Day,
         retainedFileCountLimit: 30)
     .Enrich.FromLogContext()
@@ -17,7 +17,21 @@ try
     Log.Information("Iniciando SincoMaquinaria API...");
 
     var builder = WebApplication.CreateBuilder(args);
-    builder.Host.UseSerilog();
+
+    // Configure Serilog with Seq integration
+    builder.Host.UseSerilog((context, services, configuration) => configuration
+        .MinimumLevel.Information()
+        .WriteTo.Console()
+        .WriteTo.File("logs/sinco-.log",
+            rollingInterval: RollingInterval.Day,
+            retainedFileCountLimit: 30)
+        .WriteTo.Seq(
+            context.Configuration["Seq:ServerUrl"] ?? "http://localhost:5341",
+            apiKey: context.Configuration["Seq:ApiKey"] // Optional: for authentication
+        )
+        .Enrich.FromLogContext()
+        .Enrich.WithProperty("Application", "SincoMaquinaria")
+        .Enrich.WithProperty("Environment", context.HostingEnvironment.EnvironmentName));
 
     // --- CONFIGURACIÓN DE SERVICIOS ---
     builder.Services.AddApplicationServices(builder.Configuration);
