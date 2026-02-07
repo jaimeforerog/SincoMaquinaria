@@ -19,6 +19,8 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Caching.Memory;
 using Hangfire;
 using Hangfire.PostgreSql;
+using Microsoft.AspNetCore.ResponseCompression;
+using System.IO.Compression;
 
 namespace SincoMaquinaria.Extensions;
 
@@ -56,6 +58,13 @@ public static class ServiceCollectionExtensions
             opts.Projections.Snapshot<RutinaMantenimiento>(SnapshotLifecycle.Inline);
             opts.Projections.Snapshot<Empleado>(SnapshotLifecycle.Inline);
             opts.Projections.Snapshot<Usuario>(SnapshotLifecycle.Inline);
+
+            // Índices únicos para prevenir duplicados
+            opts.Schema.For<Equipo>().Index(x => x.Placa, x =>
+            {
+                x.IsUnique = true;
+                x.Name = "idx_equipo_placa_unique";
+            });
 
             // Proyecciones
             opts.Projections.Add(new SincoMaquinaria.Domain.Projections.AuditoriaProjection(), ProjectionLifecycle.Inline);
@@ -149,6 +158,38 @@ public static class ServiceCollectionExtensions
             options.Preload = true;
             options.IncludeSubDomains = true;
             options.MaxAge = TimeSpan.FromDays(365);
+        });
+
+        // Response Compression (Brotli + Gzip)
+        services.AddResponseCompression(options =>
+        {
+            options.EnableForHttps = true;
+            options.Providers.Add<BrotliCompressionProvider>();
+            options.Providers.Add<GzipCompressionProvider>();
+
+            // Comprimir todos los tipos MIME comunes
+            options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[]
+            {
+                "application/javascript",
+                "application/json",
+                "application/xml",
+                "text/css",
+                "text/html",
+                "text/plain",
+                "text/xml",
+                "image/svg+xml"
+            });
+        });
+
+        // Configurar niveles de compresión
+        services.Configure<BrotliCompressionProviderOptions>(options =>
+        {
+            options.Level = CompressionLevel.Fastest; // Fastest para mejor performance CPU
+        });
+
+        services.Configure<GzipCompressionProviderOptions>(options =>
+        {
+            options.Level = CompressionLevel.Optimal; // Optimal para buen balance
         });
 
         // Health Checks

@@ -7,6 +7,9 @@ public static class WebApplicationExtensions
 {
     public static WebApplication ConfigureMiddleware(this WebApplication app)
     {
+        // Response Compression (debe estar primero para comprimir todo)
+        app.UseResponseCompression();
+
         // HTTPS Redirection (forzar HTTPS en producción)
         if (!app.Environment.IsDevelopment())
         {
