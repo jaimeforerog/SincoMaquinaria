@@ -1,5 +1,21 @@
-import { Box, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Typography, Divider, Button, Avatar } from '@mui/material';
-import { Dashboard, CloudUpload, ErrorOutline, Settings, Logout, History } from '@mui/icons-material';
+// Tree-shaking optimized imports
+import Box from '@mui/material/Box';
+import Drawer from '@mui/material/Drawer';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemButton from '@mui/material/ListItemButton';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
+import Typography from '@mui/material/Typography';
+import Divider from '@mui/material/Divider';
+import Button from '@mui/material/Button';
+import Avatar from '@mui/material/Avatar';
+import Dashboard from '@mui/icons-material/Dashboard';
+import CloudUpload from '@mui/icons-material/CloudUpload';
+import ErrorOutline from '@mui/icons-material/ErrorOutline';
+import Settings from '@mui/icons-material/Settings';
+import Logout from '@mui/icons-material/Logout';
+import History from '@mui/icons-material/History';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 

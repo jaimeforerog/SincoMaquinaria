@@ -1,12 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { Engineering, Agriculture, Assignment } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
-
+// Tree-shaking optimized imports
+import Box from '@mui/material/Box';
+import Grid from '@mui/material/Grid';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import Typography from '@mui/material/Typography';
+import CircularProgress from '@mui/material/CircularProgress';
+import Engineering from '@mui/icons-material/Engineering';
+import Agriculture from '@mui/icons-material/Agriculture';
+import Assignment from '@mui/icons-material/Assignment';
 import { useAuthFetch } from '../hooks/useAuthFetch';
-import {
-    Box, Grid, Card, CardContent, Typography, CircularProgress
-} from '@mui/material';
-
 import { useDashboardSocket } from '../hooks/useDashboardSocket';
 
 // ... imports ...
