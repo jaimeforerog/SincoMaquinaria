@@ -182,6 +182,8 @@ jobs:
       Jwt__Issuer: "SincoMaquinaria"
       Jwt__Audience: "SincoMaquinariaApp"
       ASPNETCORE_ENVIRONMENT: "Development"
+      Seq__ServerUrl: "http://localhost:5341"  # Seq no disponible en CI (ok)
+      ASPNETCORE_URLS: "http://localhost:5000"
 
     steps:
     - name: Checkout code
@@ -205,14 +207,25 @@ jobs:
 
     - name: Start backend server
       run: |
+        echo "Starting backend server..."
         nohup dotnet run --project src/SincoMaquinaria/SincoMaquinaria.csproj --urls http://localhost:5000 > backend.log 2>&1 &
-        echo "Waiting for backend to start..."
-        sleep 30
-        echo "Backend should be ready now"
-        if ! curl -s http://localhost:5000 > /dev/null 2>&1; then
-          echo "Backend may not be responding, but continuing anyway"
-          cat backend.log || true
-        fi
+        BACKEND_PID=$!
+        echo "Backend PID: $BACKEND_PID"
+
+        echo "Waiting for backend to be ready (checking /health endpoint)..."
+        for i in {1..60}; do
+          if curl -s http://localhost:5000/health > /dev/null 2>&1; then
+            echo "✅ Backend is ready after $i seconds!"
+            exit 0
+          fi
+          echo "Attempt $i/60: Backend not ready yet..."
+          sleep 1
+        done
+
+        echo "❌ Backend did not start within 60 seconds"
+        echo "Backend logs:"
+        cat backend.log
+        exit 1
       env:
         ASPNETCORE_URLS: http://localhost:5000
 
