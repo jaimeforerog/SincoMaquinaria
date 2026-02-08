@@ -59,6 +59,7 @@ public static class ServiceCollectionExtensions
             opts.Projections.Snapshot<RutinaMantenimiento>(SnapshotLifecycle.Inline);
             opts.Projections.Snapshot<Empleado>(SnapshotLifecycle.Inline);
             opts.Projections.Snapshot<Usuario>(SnapshotLifecycle.Inline);
+            opts.Projections.Snapshot<ErrorLog>(SnapshotLifecycle.Inline);
 
             // Índices únicos para prevenir duplicados
             opts.Schema.For<Equipo>().Index(x => x.Placa, x =>
