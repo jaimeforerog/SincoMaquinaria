@@ -12,9 +12,38 @@ import { testData } from '../fixtures/test-data';
  */
 
 /**
+ * Ensure test admin user exists
+ */
+export async function ensureTestAdminExists(page: Page) {
+  try {
+    // Try to setup admin user (only works if no users exist)
+    const response = await page.request.post('/api/auth/setup', {
+      headers: { 'Content-Type': 'application/json' },
+      data: {
+        email: testData.users.admin.email,
+        nombre: testData.users.admin.nombre,
+        password: testData.users.admin.password,
+      },
+    });
+
+    if (response.ok()) {
+      console.log('✅ Test admin user created');
+    } else if (response.status() === 400) {
+      // User already exists, that's fine
+      console.log('✅ Test admin user already exists');
+    }
+  } catch (error) {
+    console.log('⚠️ Could not setup admin user, assuming it exists:', error);
+  }
+}
+
+/**
  * Login as admin user
  */
 export async function loginAsAdmin(page: Page) {
+  // Ensure test admin exists first
+  await ensureTestAdminExists(page);
+
   await page.goto('/login');
 
   // Fill credentials

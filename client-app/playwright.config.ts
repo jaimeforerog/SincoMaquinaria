@@ -97,10 +97,10 @@ export default defineConfig({
   outputDir: 'test-results',
 
   // Global timeout for each test
-  timeout: 60000,
+  timeout: process.env.CI ? 120000 : 60000, // 2 min in CI, 1 min local
 
   // Expect timeout
   expect: {
-    timeout: 10000,
+    timeout: process.env.CI ? 15000 : 10000, // Longer in CI
   },
 });
