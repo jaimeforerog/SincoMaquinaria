@@ -5,23 +5,30 @@ import {
     Button, IconButton, Collapse, Alert
 } from '@mui/material';
 import { Refresh, KeyboardArrowDown, KeyboardArrowUp } from '@mui/icons-material';
+import { useAuthFetch } from '../hooks/useAuthFetch';
 
 const LogsErrores = () => {
+    const authFetch = useAuthFetch();
     const [logs, setLogs] = useState<ErrorLog[]>([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     const fetchLogs = async () => {
         setLoading(true);
+        setError(null);
         try {
-            const response = await fetch('/admin/logs');
+            const response = await authFetch('/admin/logs');
             if (response.ok) {
                 const data = await response.json();
                 setLogs(data);
+            } else if (response.status === 403) {
+                setError("No tienes permisos para ver los logs. Requiere rol de Admin.");
             } else {
-                console.error("Failed to fetch logs");
+                setError("Error al cargar los logs. Intenta de nuevo.");
             }
         } catch (error) {
             console.error("Error fetching logs:", error);
+            setError("Error de conexión al cargar los logs.");
         } finally {
             setLoading(false);
         }
@@ -42,6 +49,12 @@ const LogsErrores = () => {
                 </Button>
             </Box>
 
+            {error && (
+                <Alert severity="error" sx={{ mb: 3 }}>
+                    {error}
+                </Alert>
+            )}
+
             <TableContainer component={Paper} elevation={3} sx={{ borderRadius: 2 }}>
                 {loading ? (
                     <Box sx={{ p: 4, textAlign: 'center' }}>
@@ -49,7 +62,9 @@ const LogsErrores = () => {
                     </Box>
                 ) : logs.length === 0 ? (
                     <Box sx={{ p: 4, textAlign: 'center' }}>
-                        <Typography color="text.secondary">No hay errores registrados.</Typography>
+                        <Typography color="text.secondary">
+                            {error ? "No se pudieron cargar los logs." : "✅ No hay errores registrados. ¡Todo funciona correctamente!"}
+                        </Typography>
                     </Box>
                 ) : (
                     <Table aria-label="logs table">
