@@ -1,0 +1,106 @@
+import { defineConfig, devices } from '@playwright/test';
+
+/**
+ * Playwright configuration for E2E testing
+ *
+ * This configuration sets up:
+ * - Test directory: ./e2e
+ * - Parallel execution
+ * - Retries in CI
+ * - Multiple reporters (HTML, JUnit, JSON)
+ * - Multi-browser testing (Chromium, Firefox)
+ * - Auto-start web server
+ */
+export default defineConfig({
+  testDir: './e2e',
+
+  // Run tests in parallel
+  fullyParallel: true,
+
+  // Fail the build on CI if you accidentally left test.only in the source code
+  forbidOnly: !!process.env.CI,
+
+  // Retry on CI only
+  retries: process.env.CI ? 2 : 0,
+
+  // Limit workers in CI to avoid resource contention
+  workers: process.env.CI ? 1 : undefined,
+
+  // Reporter configuration
+  reporter: [
+    ['html', { outputFolder: 'playwright-report' }],
+    ['junit', { outputFile: 'test-results/junit.xml' }],
+    ['json', { outputFile: 'test-results/results.json' }],
+    ['list'], // Console output
+  ],
+
+  // Shared settings for all the projects below
+  use: {
+    // Base URL for navigation
+    baseURL: 'http://localhost:5173',
+
+    // Collect trace when retrying the failed test
+    trace: 'on-first-retry',
+
+    // Screenshot on failure
+    screenshot: 'only-on-failure',
+
+    // Video on failure
+    video: 'retain-on-failure',
+
+    // Maximum time each action such as `click()` can take
+    actionTimeout: 10000,
+
+    // Maximum time each navigation can take
+    navigationTimeout: 30000,
+  },
+
+  // Configure projects for major browsers
+  projects: [
+    {
+      name: 'chromium',
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 1280, height: 720 },
+      },
+    },
+
+    {
+      name: 'firefox',
+      use: {
+        ...devices['Desktop Firefox'],
+        viewport: { width: 1280, height: 720 },
+      },
+    },
+
+    // Uncomment for WebKit testing (Safari)
+    // {
+    //   name: 'webkit',
+    //   use: {
+    //     ...devices['Desktop Safari'],
+    //     viewport: { width: 1280, height: 720 },
+    //   },
+    // },
+  ],
+
+  // Run your local dev server before starting the tests
+  webServer: {
+    command: 'npm run dev',
+    url: 'http://localhost:5173',
+    reuseExistingServer: !process.env.CI,
+    timeout: 120000,
+    stdout: 'ignore',
+    stderr: 'pipe',
+  },
+
+  // Test output directories
+  outputDir: 'test-results',
+
+  // Global timeout for each test
+  timeout: 60000,
+
+  // Expect timeout
+  expect: {
+    timeout: 10000,
+  },
+});

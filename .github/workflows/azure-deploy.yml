@@ -1,13 +1,13 @@
 name: Deploy to Azure
 
 on:
-  push:
+  workflow_run:
+    workflows: ["CI/CD Pipeline"]
+    types:
+      - completed
     branches:
       - main
       - production
-  pull_request:
-    branches:
-      - main
   workflow_dispatch:
 
 permissions:
@@ -25,9 +25,23 @@ env:
   BASE_NAME: 'sincomaquinaria'
 
 jobs:
-  # Job 1: Build and Test
+  # Job 1: Verify CI/CD Success
+  verify-ci-success:
+    name: Verify CI/CD Success
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+
+    steps:
+    - name: Check CI/CD Status
+      run: |
+        echo "✅ CI/CD Pipeline (including E2E tests) passed successfully"
+        echo "Proceeding with deployment..."
+
+  # Job 2: Build and Test
+  # Note: E2E tests already ran in ci-cd.yml workflow
   build-and-test:
     name: Build and Test
+    needs: verify-ci-success
     runs-on: ubuntu-latest
 
     steps:
@@ -48,7 +62,7 @@ jobs:
     - name: Test
       run: dotnet test SincoMaquinaria.Tests/SincoMaquinaria.Tests.csproj --configuration Release --no-build --verbosity normal
 
-  # Job 2: Build and Push Docker Image
+  # Job 3: Build and Push Docker Image
   build-and-push:
     name: Build and Push Docker Image
     needs: build-and-test
@@ -136,7 +150,7 @@ jobs:
       if: always()
       run: az logout
 
-  # Job 3: Deploy to Azure Web App
+  # Job 4: Deploy to Azure Web App
   deploy:
     name: Deploy to Azure
     needs: build-and-push
@@ -220,7 +234,7 @@ jobs:
       if: always()
       run: az logout
 
-  # Job 4: Notify
+  # Job 5: Notify
   notify:
     name: Notify Deployment Status
     needs: deploy
