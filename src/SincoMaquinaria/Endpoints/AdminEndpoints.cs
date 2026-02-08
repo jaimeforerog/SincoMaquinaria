@@ -25,6 +25,7 @@ public static class AdminEndpoints
             adminGroup.MapPost("/reset-db", ResetDatabase);
             adminGroup.MapGet("/diagnostics", DiagnosticosEventos);
             adminGroup.MapPost("/rebuild-projections", ReconstruirProyecciones);
+            adminGroup.MapGet("/check-duplicates", VerificarDuplicados);
         }
 
         return app;
@@ -187,6 +188,41 @@ public static class AdminEndpoints
             Message = $"Proyecciones reconstruidas exitosamente. {reconstruidos} agregados procesados.",
             AgreGadosReconstruidos = reconstruidos,
             TotalStreams = allStreams.Count
+        });
+    }
+
+    private static async Task<IResult> VerificarDuplicados(IQuerySession session)
+    {
+        // Obtener todos los equipos
+        var equipos = await session.Query<Equipo>().ToListAsync();
+
+        // Agrupar por placa y encontrar duplicados
+        var duplicados = equipos
+            .GroupBy(e => e.Placa)
+            .Where(g => g.Count() > 1)
+            .Select(g => new
+            {
+                Placa = g.Key,
+                Cantidad = g.Count(),
+                Equipos = g.Select(e => new
+                {
+                    e.Id,
+                    e.Placa,
+                    e.Descripcion,
+                    e.Marca,
+                    e.Modelo
+                }).ToList()
+            })
+            .ToList();
+
+        return Results.Ok(new
+        {
+            TotalEquipos = equipos.Count,
+            PlacasDuplicadas = duplicados.Count,
+            Duplicados = duplicados,
+            Mensaje = duplicados.Count == 0
+                ? "✅ No hay placas duplicadas. Puedes re-habilitar el índice único."
+                : $"⚠️ Encontradas {duplicados.Count} placas duplicadas. Debes limpiarlas antes de re-habilitar el índice."
         });
     }
 
