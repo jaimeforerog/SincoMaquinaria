@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react';
+import { Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 // Tree-shaking optimized imports
 import { ThemeProvider, createTheme } from '@mui/material/styles';
@@ -10,20 +10,21 @@ import ProtectedRoute from './components/ProtectedRoute';
 import ErrorBoundary from './components/ErrorBoundary';
 import Login from './pages/Login';
 import MainLayout from './layouts/MainLayout';
+import { lazyWithRetry } from './utils/lazyWithRetry';
 
-// Lazy load de todas las páginas (excepto Login que es crítico)
-const Dashboard = lazy(() => import('./pages/Dashboard'));
-const OrderDetail = lazy(() => import('./pages/OrderDetail'));
-const CreateOrder = lazy(() => import('./pages/CreateOrder'));
-const History = lazy(() => import('./pages/History'));
-const ImportarRutinas = lazy(() => import('./pages/ImportarRutinas'));
-const EditarRutinas = lazy(() => import('./pages/EditarRutinas'));
-const EquipmentConfig = lazy(() => import('./pages/EquipmentConfig'));
-const EmployeeConfig = lazy(() => import('./pages/EmployeeConfig'));
-const Configuracion = lazy(() => import('./pages/Configuracion'));
-const LogsErrores = lazy(() => import('./pages/LogsErrores'));
-const UserManagement = lazy(() => import('./pages/UserManagement'));
-const Auditoria = lazy(() => import('./pages/Auditoria'));
+// Lazy load con retry mechanism (previene errores de cache en production)
+const Dashboard = lazyWithRetry(() => import('./pages/Dashboard'));
+const OrderDetail = lazyWithRetry(() => import('./pages/OrderDetail'));
+const CreateOrder = lazyWithRetry(() => import('./pages/CreateOrder'));
+const History = lazyWithRetry(() => import('./pages/History'));
+const ImportarRutinas = lazyWithRetry(() => import('./pages/ImportarRutinas'));
+const EditarRutinas = lazyWithRetry(() => import('./pages/EditarRutinas'));
+const EquipmentConfig = lazyWithRetry(() => import('./pages/EquipmentConfig'));
+const EmployeeConfig = lazyWithRetry(() => import('./pages/EmployeeConfig'));
+const Configuracion = lazyWithRetry(() => import('./pages/Configuracion'));
+const LogsErrores = lazyWithRetry(() => import('./pages/LogsErrores'));
+const UserManagement = lazyWithRetry(() => import('./pages/UserManagement'));
+const Auditoria = lazyWithRetry(() => import('./pages/Auditoria'));
 
 const darkTheme = createTheme({
   palette: {
