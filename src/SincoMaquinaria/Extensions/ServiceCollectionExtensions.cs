@@ -61,11 +61,13 @@ public static class ServiceCollectionExtensions
             opts.Projections.Snapshot<Usuario>(SnapshotLifecycle.Inline);
 
             // Índices únicos para prevenir duplicados
-            opts.Schema.For<Equipo>().Index(x => x.Placa, x =>
-            {
-                x.IsUnique = true;
-                x.Name = "idx_equipo_placa_unique";
-            });
+            // TEMPORALMENTE DESHABILITADO para permitir reconstrucción de proyecciones
+            // TODO: Re-habilitar después de limpiar duplicados
+            // opts.Schema.For<Equipo>().Index(x => x.Placa, x =>
+            // {
+            //     x.IsUnique = true;
+            //     x.Name = "idx_equipo_placa_unique";
+            // });
 
             // Proyecciones
             opts.Projections.Add(new SincoMaquinaria.Domain.Projections.AuditoriaProjection(), ProjectionLifecycle.Inline);
