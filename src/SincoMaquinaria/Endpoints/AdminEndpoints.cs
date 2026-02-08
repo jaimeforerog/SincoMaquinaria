@@ -26,6 +26,7 @@ public static class AdminEndpoints
             adminGroup.MapGet("/diagnostics", DiagnosticosEventos);
             adminGroup.MapPost("/rebuild-projections", ReconstruirProyecciones);
             adminGroup.MapGet("/check-duplicates", VerificarDuplicados);
+            adminGroup.MapPost("/fix-duplicates", CorregirDuplicados);
         }
 
         return app;
@@ -223,6 +224,93 @@ public static class AdminEndpoints
             Mensaje = duplicados.Count == 0
                 ? "✅ No hay placas duplicadas. Puedes re-habilitar el índice único."
                 : $"⚠️ Encontradas {duplicados.Count} placas duplicadas. Debes limpiarlas antes de re-habilitar el índice."
+        });
+    }
+
+    private static async Task<IResult> CorregirDuplicados(IDocumentSession session)
+    {
+        // Obtener todos los equipos y órdenes
+        var equipos = await session.Query<Equipo>().ToListAsync();
+        var ordenes = await session.Query<OrdenDeTrabajo>().ToListAsync();
+
+        // Encontrar duplicados
+        var duplicados = equipos
+            .GroupBy(e => e.Placa)
+            .Where(g => g.Count() > 1)
+            .ToList();
+
+        var eliminados = new List<object>();
+        var noEliminados = new List<object>();
+
+        foreach (var grupo in duplicados)
+        {
+            var equiposGrupo = grupo.ToList();
+
+            // Para cada equipo, verificar si tiene órdenes de trabajo
+            var equiposConOrdenes = equiposGrupo
+                .Select(e => new
+                {
+                    Equipo = e,
+                    TieneOrdenes = ordenes.Any(o => o.EquipoId == e.Id.ToString())
+                })
+                .ToList();
+
+            // Solo eliminar si hay al menos uno SIN órdenes
+            var sinOrdenes = equiposConOrdenes.Where(x => !x.TieneOrdenes).ToList();
+
+            if (sinOrdenes.Any())
+            {
+                // Eliminar todos los duplicados que NO tienen órdenes (excepto uno)
+                // Mantener el primero sin órdenes, eliminar el resto
+                foreach (var dup in sinOrdenes.Skip(1))
+                {
+                    session.Delete(dup.Equipo);
+                    eliminados.Add(new
+                    {
+                        Id = dup.Equipo.Id,
+                        Placa = dup.Equipo.Placa,
+                        Descripcion = dup.Equipo.Descripcion,
+                        Razon = "Duplicado sin órdenes de trabajo"
+                    });
+                }
+
+                // Si hay duplicados CON órdenes y solo queda uno sin órdenes, eliminar el sin órdenes
+                var conOrdenes = equiposConOrdenes.Where(x => x.TieneOrdenes).ToList();
+                if (conOrdenes.Any() && sinOrdenes.Count == 1)
+                {
+                    session.Delete(sinOrdenes.First().Equipo);
+                    eliminados.Add(new
+                    {
+                        Id = sinOrdenes.First().Equipo.Id,
+                        Placa = sinOrdenes.First().Equipo.Placa,
+                        Descripcion = sinOrdenes.First().Equipo.Descripcion,
+                        Razon = "Duplicado sin órdenes (se mantiene el que tiene órdenes)"
+                    });
+                }
+            }
+            else
+            {
+                // Todos tienen órdenes - NO eliminar ninguno
+                noEliminados.Add(new
+                {
+                    Placa = grupo.Key,
+                    Cantidad = equiposGrupo.Count,
+                    Razon = "Todos los duplicados tienen órdenes de trabajo. Requiere intervención manual."
+                });
+            }
+        }
+
+        await session.SaveChangesAsync();
+
+        return Results.Ok(new
+        {
+            Eliminados = eliminados.Count,
+            DetalleEliminados = eliminados,
+            NoEliminados = noEliminados.Count,
+            DetalleNoEliminados = noEliminados,
+            Mensaje = eliminados.Count > 0
+                ? $"✅ Se eliminaron {eliminados.Count} duplicados sin órdenes de trabajo."
+                : "⚠️ No se eliminó ningún duplicado. Revisa los detalles."
         });
     }
 
