@@ -139,21 +139,21 @@ public static class EquiposEndpoints
         [FromBody] CrearEquipoRequest req)
     {
         var (userId, userName) = httpContext.GetUserContext();
-        
+
         // Validar campos obligatorios
         if (string.IsNullOrEmpty(req.Grupo) || string.IsNullOrEmpty(req.Rutina))
             return Results.BadRequest("El Grupo de Mantenimiento y la Rutina Asignada son obligatorios.");
 
-        // Verificar si ya existe un equipo con la misma placa (opcional pero recomendado)
+        // Verificar si ya existe un equipo con la misma placa (primera línea de defensa)
         var existe = await session.Query<Equipo>().AnyAsync(e => e.Placa == req.Placa);
         if (existe)
             return Results.Conflict($"Ya existe un equipo con la placa {req.Placa}");
 
         var id = Guid.NewGuid();
-        
-        session.Events.StartStream<Equipo>(id, 
-            new EquipoCreado(id, req.Placa, req.Descripcion, req.Marca, req.Modelo, 
-                req.Serie, req.Codigo, req.TipoMedidorId, req.TipoMedidorId2, 
+
+        session.Events.StartStream<Equipo>(id,
+            new EquipoCreado(id, req.Placa, req.Descripcion, req.Marca, req.Modelo,
+                req.Serie, req.Codigo, req.TipoMedidorId, req.TipoMedidorId2,
                 req.Grupo, req.Rutina, userId, userName, DateTimeOffset.Now));
 
         // Registrar lecturas iniciales
@@ -169,9 +169,17 @@ public static class EquiposEndpoints
             var fecha = req.FechaInicial2 ?? DateTime.Now;
             session.Events.Append(id, new MedicionRegistrada(req.TipoMedidorId2, req.LecturaInicial2.Value, fecha, req.LecturaInicial2.Value, userId, userName));
         }
-        
-        await session.SaveChangesAsync();
-        return Results.Created($"/equipos/{id}", new { Id = id });
+
+        try
+        {
+            await session.SaveChangesAsync();
+            return Results.Created($"/equipos/{id}", new { Id = id });
+        }
+        catch (Npgsql.PostgresException ex) when (ex.SqlState == "23505") // Unique violation
+        {
+            // Segunda línea de defensa: índice único en base de datos
+            return Results.Conflict($"Ya existe un equipo con la placa {req.Placa}");
+        }
     }
 
     private static async Task<IResult> ActualizarEquipo(

@@ -28,21 +28,35 @@ test.describe('Smoke Tests - Critical Path', () => {
     expect(page.url()).toMatch(/\/$|\/dashboard$/);
   });
 
-  test('should navigate to main pages', async ({ page }) => {
+  test('should navigate to main pages', async ({ page, browserName }) => {
     const loginPage = new LoginPage(page);
 
     // Login
     await loginPage.goto();
     await loginPage.login(testData.users.admin.email, testData.users.admin.password);
 
+    // Helper function for robust navigation (especially for Firefox)
+    const navigateRobustly = async (url: string) => {
+      try {
+        await page.goto(url, { waitUntil: 'commit', timeout: 10000 });
+        await page.waitForLoadState('domcontentloaded');
+        // Extra wait for Firefox to ensure page is stable
+        if (browserName === 'firefox') {
+          await page.waitForTimeout(1000);
+        }
+      } catch (error) {
+        // If navigation fails, try one more time
+        console.log(`Navigation to ${url} failed, retrying...`);
+        await page.waitForTimeout(1000);
+        await page.goto(url, { waitUntil: 'domcontentloaded' });
+      }
+    };
+
     // Test navigation
-    await page.goto('/gestion-equipos', { waitUntil: 'domcontentloaded' });
+    await navigateRobustly('/gestion-equipos');
     expect(page.url()).toContain('/gestion-equipos');
 
-    // Small delay to avoid Firefox NS_BINDING_ABORTED error
-    await page.waitForTimeout(500);
-
-    await page.goto('/historial', { waitUntil: 'domcontentloaded' });
+    await navigateRobustly('/historial');
     expect(page.url()).toContain('/historial');
   });
 });

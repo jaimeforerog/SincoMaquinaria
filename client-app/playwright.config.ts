@@ -70,15 +70,13 @@ export default defineConfig({
       },
     },
 
-    // Firefox disabled temporarily due to navigation flakiness
-    // TODO: Re-enable and fix NS_BINDING_ABORTED error
-    // {
-    //   name: 'firefox',
-    //   use: {
-    //     ...devices['Desktop Firefox'],
-    //     viewport: { width: 1280, height: 720 },
-    //   },
-    // },
+    {
+      name: 'firefox',
+      use: {
+        ...devices['Desktop Firefox'],
+        viewport: { width: 1280, height: 720 },
+      },
+    },
 
     // Uncomment for WebKit testing (Safari)
     // {

@@ -28,6 +28,7 @@ const EquipmentConfig = () => {
     const [loading, setLoading] = useState(true);
     const [openEdit, setOpenEdit] = useState(false);
     const [openCreate, setOpenCreate] = useState(false);
+    const [saving, setSaving] = useState(false);
     const [currentEquipo, setCurrentEquipo] = useState<Equipo | null>(null);
     const [newEquipo, setNewEquipo] = useState<any>({
         id: '',
@@ -113,15 +114,16 @@ const EquipmentConfig = () => {
     };
 
     const handleSave = async () => {
-        if (!currentEquipo) return;
+        if (!currentEquipo || saving) return;
 
         if (!currentEquipo.grupo || !currentEquipo.rutina) {
             alert("Grupo de Mantenimiento y Rutina son obligatorios");
             return;
         }
 
+        setSaving(true);
         try {
-            // Note: Sending 'Marca' and 'Modelo' as empty or existing values if needed by backend, 
+            // Note: Sending 'Marca' and 'Modelo' as empty or existing values if needed by backend,
             // but for now ignoring them in the UI as requested.
             const res = await authFetch(`/equipos/${currentEquipo.id}`, {
                 method: 'PUT',
@@ -149,6 +151,8 @@ const EquipmentConfig = () => {
         } catch (error) {
             console.error("Error saving equipment", error);
             alert("Error de conexión");
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -178,6 +182,8 @@ const EquipmentConfig = () => {
     };
 
     const handleCreate = async () => {
+        if (saving) return; // Prevenir doble clic
+
         if (!newEquipo.placa || !newEquipo.descripcion) {
             alert("Placa y Descripción son obligatorios");
             return;
@@ -188,6 +194,7 @@ const EquipmentConfig = () => {
             return;
         }
 
+        setSaving(true);
         try {
             const res = await authFetch('/equipos', {
                 method: 'POST',
@@ -219,6 +226,8 @@ const EquipmentConfig = () => {
         } catch (error) {
             console.error("Error creating equipment", error);
             alert("Error de conexión");
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -405,8 +414,16 @@ const EquipmentConfig = () => {
                     )}
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleCloseEdit} color="inherit">Cancelar</Button>
-                    <Button onClick={handleSave} variant="contained" color="primary">Guardar</Button>
+                    <Button onClick={handleCloseEdit} color="inherit" disabled={saving}>Cancelar</Button>
+                    <Button
+                        onClick={handleSave}
+                        variant="contained"
+                        color="primary"
+                        disabled={saving}
+                        startIcon={saving ? <CircularProgress size={20} /> : null}
+                    >
+                        {saving ? 'Guardando...' : 'Guardar'}
+                    </Button>
                 </DialogActions>
             </Dialog>
 
@@ -578,8 +595,16 @@ const EquipmentConfig = () => {
                     </Grid>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleCloseCreate} color="inherit">Cancelar</Button>
-                    <Button onClick={handleCreate} variant="contained" color="primary">Crear</Button>
+                    <Button onClick={handleCloseCreate} color="inherit" disabled={saving}>Cancelar</Button>
+                    <Button
+                        onClick={handleCreate}
+                        variant="contained"
+                        color="primary"
+                        disabled={saving}
+                        startIcon={saving ? <CircularProgress size={20} /> : null}
+                    >
+                        {saving ? 'Creando...' : 'Crear'}
+                    </Button>
                 </DialogActions>
             </Dialog>
 

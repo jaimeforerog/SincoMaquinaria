@@ -1,0 +1,14 @@
+<testsuites id="" name="" tests="4" failures="0" skipped="0" errors="0" time="65.218157">
+<testsuite name="tests\smoke.spec.ts" timestamp="2026-02-09T01:59:16.239Z" hostname="chromium" tests="2" failures="0" skipped="0" time="13.087" errors="0">
+<testcase name="Smoke Tests - Critical Path › should login and load dashboard" classname="tests\smoke.spec.ts" time="4.384">
+</testcase>
+<testcase name="Smoke Tests - Critical Path › should navigate to main pages" classname="tests\smoke.spec.ts" time="8.703">
+</testcase>
+</testsuite>
+<testsuite name="tests\smoke.spec.ts" timestamp="2026-02-09T01:59:16.239Z" hostname="firefox" tests="2" failures="0" skipped="0" time="45.304" errors="0">
+<testcase name="Smoke Tests - Critical Path › should login and load dashboard" classname="tests\smoke.spec.ts" time="12.609">
+</testcase>
+<testcase name="Smoke Tests - Critical Path › should navigate to main pages" classname="tests\smoke.spec.ts" time="32.695">
+</testcase>
+</testsuite>
+</testsuites>
