@@ -56,7 +56,10 @@ try
     // --- ENDPOINTS (API) ---
     // Auth endpoints (sin protección - público)
     app.MapAuthEndpoints();
-    
+
+    // Test endpoints (solo en Development)
+    app.MapTestEndpoints();
+
     // Endpoints protegidos (la autorización se configura en cada grupo)
     app.MapOrdenesEndpoints();
     app.MapEquiposEndpoints(maxFileUploadSizeMB);

@@ -15,26 +15,11 @@ import { testData } from '../fixtures/test-data';
  * Ensure test admin user exists
  */
 export async function ensureTestAdminExists(page: Page) {
-  try {
-    // Try to setup admin user (only works if no users exist)
-    const response = await page.request.post('/api/auth/setup', {
-      headers: { 'Content-Type': 'application/json' },
-      data: {
-        email: testData.users.admin.email,
-        nombre: testData.users.admin.nombre,
-        password: testData.users.admin.password,
-      },
-    });
-
-    if (response.ok()) {
-      console.log('✅ Test admin user created');
-    } else if (response.status() === 400) {
-      // User already exists, that's fine
-      console.log('✅ Test admin user already exists');
-    }
-  } catch (error) {
-    console.log('⚠️ Could not setup admin user, assuming it exists:', error);
-  }
+  // Note: /auth/setup only works if NO users exist in database
+  // For E2E tests to work reliably, you may need to:
+  // 1. Clear the database before running tests, OR
+  // 2. Manually create the test user once with the credentials in test-data.ts
+  console.log('ℹ️ Assuming test admin user exists. Email:', testData.users.admin.email);
 }
 
 /**
@@ -130,7 +115,7 @@ export async function isAuthenticated(page: Page): Promise<boolean> {
 export async function createTestEquipo(page: Page, equipoData: any): Promise<string> {
   const token = await getAuthToken(page);
 
-  const response = await page.request.post('/api/equipos', {
+  const response = await page.request.post('/equipos', {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
@@ -152,7 +137,7 @@ export async function createTestEquipo(page: Page, equipoData: any): Promise<str
 export async function createTestRutina(page: Page, rutinaData: any): Promise<string> {
   const token = await getAuthToken(page);
 
-  const response = await page.request.post('/api/rutinas', {
+  const response = await page.request.post('/rutinas', {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
@@ -174,7 +159,7 @@ export async function createTestRutina(page: Page, rutinaData: any): Promise<str
 export async function createTestOrder(page: Page, orderData: any): Promise<string> {
   const token = await getAuthToken(page);
 
-  const response = await page.request.post('/api/ordenes', {
+  const response = await page.request.post('/ordenes', {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
@@ -196,7 +181,7 @@ export async function createTestOrder(page: Page, orderData: any): Promise<strin
 export async function deleteTestEquipo(page: Page, equipoId: string) {
   const token = await getAuthToken(page);
 
-  await page.request.delete(`/api/equipos/${equipoId}`, {
+  await page.request.delete(`/equipos/${equipoId}`, {
     headers: {
       'Authorization': `Bearer ${token}`,
     },
@@ -209,7 +194,7 @@ export async function deleteTestEquipo(page: Page, equipoId: string) {
 export async function deleteTestRutina(page: Page, rutinaId: string) {
   const token = await getAuthToken(page);
 
-  await page.request.delete(`/api/rutinas/${rutinaId}`, {
+  await page.request.delete(`/rutinas/${rutinaId}`, {
     headers: {
       'Authorization': `Bearer ${token}`,
     },
@@ -222,7 +207,7 @@ export async function deleteTestRutina(page: Page, rutinaId: string) {
 export async function deleteTestOrder(page: Page, ordenId: string) {
   const token = await getAuthToken(page);
 
-  await page.request.delete(`/api/ordenes/${ordenId}`, {
+  await page.request.delete(`/ordenes/${ordenId}`, {
     headers: {
       'Authorization': `Bearer ${token}`,
     },
@@ -242,7 +227,7 @@ export async function cleanupTestData(page: Page) {
 
   try {
     // Get all equipos
-    const equiposResponse = await page.request.get('/api/equipos', {
+    const equiposResponse = await page.request.get('/equipos', {
       headers: { 'Authorization': `Bearer ${token}` },
     });
 
@@ -259,7 +244,7 @@ export async function cleanupTestData(page: Page) {
     }
 
     // Get all rutinas
-    const rutinasResponse = await page.request.get('/api/rutinas', {
+    const rutinasResponse = await page.request.get('/rutinas', {
       headers: { 'Authorization': `Bearer ${token}` },
     });
 

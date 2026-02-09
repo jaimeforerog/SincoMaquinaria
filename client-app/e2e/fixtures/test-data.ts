@@ -14,9 +14,9 @@ export const testData = {
   // Test users
   users: {
     admin: {
-      email: 'admin@test.com',
-      password: 'Admin123!',
-      nombre: 'Admin Test User',
+      email: 'e2e-test@sinco.com',
+      password: 'TestPassword123',
+      nombre: 'E2E Test Admin',
     },
     // Add more test users as needed
     mechanic: {
