@@ -134,7 +134,7 @@ public static class TestEndpoints
                 var passwordHash = JwtService.HashPassword("TestPassword123");
 
                 adminSession.Events.StartStream<Usuario>(usuarioId,
-                    new Domain.Events.UsuarioCreado(
+                    new UsuarioCreado(
                         usuarioId,
                         "e2e-test@sinco.com",
                         passwordHash,

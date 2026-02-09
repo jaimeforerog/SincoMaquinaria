@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
+import { URLS, TIMEOUTS } from './e2e/e2e.config';
 
 /**
  * Playwright configuration for E2E testing
@@ -37,7 +38,7 @@ export default defineConfig({
   // Shared settings for all the projects below
   use: {
     // Base URL for navigation
-    baseURL: 'http://localhost:5173',
+    baseURL: URLS.frontend,
 
     // Collect trace when retrying the failed test
     trace: 'on-first-retry',
@@ -49,10 +50,10 @@ export default defineConfig({
     video: 'retain-on-failure',
 
     // Maximum time each action such as `click()` can take
-    actionTimeout: 10000,
+    actionTimeout: TIMEOUTS.pageLoad,
 
     // Maximum time each navigation can take
-    navigationTimeout: 30000,
+    navigationTimeout: TIMEOUTS.apiResponse,
 
     // Route API calls directly to backend (bypass Vite proxy for E2E tests)
     extraHTTPHeaders: {
@@ -91,7 +92,7 @@ export default defineConfig({
   // Run your local dev server before starting the tests
   webServer: {
     command: 'npm run dev',
-    url: 'http://localhost:5173',
+    url: URLS.frontend,
     reuseExistingServer: !process.env.CI,
     timeout: 120000,
     stdout: 'ignore',
@@ -106,6 +107,6 @@ export default defineConfig({
 
   // Expect timeout
   expect: {
-    timeout: process.env.CI ? 15000 : 10000, // Longer in CI
+    timeout: process.env.CI ? TIMEOUTS.navigation : TIMEOUTS.pageLoad,
   },
 });

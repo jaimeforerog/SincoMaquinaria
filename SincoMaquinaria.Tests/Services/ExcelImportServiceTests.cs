@@ -6,6 +6,7 @@ using FluentAssertions;
 using Marten;
 using SincoMaquinaria.Domain;
 using SincoMaquinaria.Domain.Events;
+using SincoMaquinaria.Domain.Events.ConfiguracionGlobal;
 using SincoMaquinaria.Services;
 using SincoMaquinaria.Tests.Helpers;
 using Xunit;

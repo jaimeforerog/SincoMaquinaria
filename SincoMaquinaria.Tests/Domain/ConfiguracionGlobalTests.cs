@@ -1,6 +1,7 @@
 using Xunit;
 using SincoMaquinaria.Domain;
 using SincoMaquinaria.Domain.Events;
+using SincoMaquinaria.Domain.Events.ConfiguracionGlobal;
 
 namespace SincoMaquinaria.Tests.Domain;
 

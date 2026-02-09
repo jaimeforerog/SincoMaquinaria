@@ -2,6 +2,7 @@ using Xunit;
 using FluentAssertions;
 using SincoMaquinaria.Domain;
 using SincoMaquinaria.Domain.Events;
+using SincoMaquinaria.Domain.Events.Equipo;
 using System;
 
 namespace SincoMaquinaria.Tests.Domain;

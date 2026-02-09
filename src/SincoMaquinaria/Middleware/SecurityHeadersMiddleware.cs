@@ -41,6 +41,9 @@ public class SecurityHeadersMiddleware
 
         context.Response.Headers.Append("Content-Security-Policy", csp);
 
+        // HSTS se maneja via app.UseHsts() en WebApplicationExtensions.cs
+        // (Configurado en ServiceCollectionExtensions: Preload, IncludeSubDomains, MaxAge=365 days)
+
         // Remove server header para ocultar información del servidor
         context.Response.Headers.Remove("Server");
         context.Response.Headers.Remove("X-Powered-By");

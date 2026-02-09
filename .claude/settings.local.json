@@ -46,7 +46,8 @@
       "Bash(do echo \"Attempt $i/10...\")",
       "Bash(exit:*)",
       "Bash(npm run test:e2e:*)",
-      "Bash(git reset:*)"
+      "Bash(git reset:*)",
+      "Bash(timeout:*)"
     ]
   }
 }
