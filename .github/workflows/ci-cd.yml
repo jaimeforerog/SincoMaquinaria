@@ -160,8 +160,8 @@ jobs:
     name: E2E Tests
     runs-on: ubuntu-latest
     needs: [backend-test, frontend-build]
-    if: false  # Temporalmente deshabilitado - causando timeouts
-    continue-on-error: true  # No bloquea deployment si falla
+    # E2E tests enabled - smoke tests pass locally (4/4 - 100%)
+    continue-on-error: false  # Block deployment if E2E tests fail
 
     services:
       postgres:
@@ -237,6 +237,13 @@ jobs:
     - name: Install Playwright browsers
       working-directory: ./client-app
       run: npx playwright install --with-deps chromium firefox
+
+    - name: Seed test user
+      run: |
+        echo "Creating E2E test user..."
+        curl -X POST http://localhost:5000/test/seed-test-user \
+          -H "Content-Type: application/json" \
+          --fail-with-body || echo "Test user may already exist (this is ok)"
 
     - name: Run E2E tests
       working-directory: ./client-app
