@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import { LoginPage } from '../pages/LoginPage';
 import { DashboardPage } from '../pages/DashboardPage';
 import { testData } from '../fixtures/test-data';
+import { TIMEOUTS } from '../e2e.config';
 
 /**
  * Smoke Tests - Fast critical path tests for CI
@@ -38,16 +39,16 @@ test.describe('Smoke Tests - Critical Path', () => {
     // Helper function for robust navigation (especially for Firefox)
     const navigateRobustly = async (url: string) => {
       try {
-        await page.goto(url, { waitUntil: 'commit', timeout: 10000 });
+        await page.goto(url, { waitUntil: 'commit', timeout: TIMEOUTS.pageLoad });
         await page.waitForLoadState('domcontentloaded');
         // Extra wait for Firefox to ensure page is stable
         if (browserName === 'firefox') {
-          await page.waitForTimeout(1000);
+          await page.waitForTimeout(TIMEOUTS.firefoxStabilization);
         }
       } catch (error) {
         // If navigation fails, try one more time
         console.log(`Navigation to ${url} failed, retrying...`);
-        await page.waitForTimeout(1000);
+        await page.waitForTimeout(TIMEOUTS.firefoxStabilization);
         await page.goto(url, { waitUntil: 'domcontentloaded' });
       }
     };

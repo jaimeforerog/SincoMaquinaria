@@ -13,10 +13,19 @@ import { getAuthToken } from '../utils/helpers';
  * Setup basic test data (admin user, sample equipos, rutinas)
  */
 export async function setupBasicTestData(page: Page) {
-  const token = await getAuthToken(page);
+  // Wait for token to be available with retry
+  let token = await getAuthToken(page);
+  let retries = 0;
+  const maxRetries = 5;
+
+  while (!token && retries < maxRetries) {
+    await page.waitForTimeout(500);
+    token = await getAuthToken(page);
+    retries++;
+  }
 
   if (!token) {
-    throw new Error('Must be authenticated to setup test data');
+    throw new Error('Must be authenticated to setup test data. Token not found after ' + (maxRetries * 500) + 'ms');
   }
 
   const createdIds: {
@@ -57,7 +66,7 @@ export async function setupBasicTestData(page: Page) {
  * Create a single equipo
  */
 async function createEquipo(page: Page, equipoData: any, token: string): Promise<string> {
-  const response = await page.request.post('/api/equipos', {
+  const response = await page.request.post('/equipos', {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
@@ -86,7 +95,7 @@ async function createEquipo(page: Page, equipoData: any, token: string): Promise
  * Create a single rutina with activities
  */
 async function createRutina(page: Page, rutinaData: any, token: string): Promise<string> {
-  const response = await page.request.post('/api/rutinas', {
+  const response = await page.request.post('/rutinas', {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
@@ -94,6 +103,7 @@ async function createRutina(page: Page, rutinaData: any, token: string): Promise
     data: {
       Nombre: rutinaData.nombre,
       Descripcion: rutinaData.descripcion,
+      Grupo: rutinaData.grupo || 'General',
       Partes: rutinaData.actividades ? [
         {
           Nombre: 'Parte Principal',
@@ -143,7 +153,7 @@ export async function createTestOrder(
     orderData.FrecuenciaPreventiva = 30; // Monthly
   }
 
-  const response = await page.request.post('/api/ordenes', {
+  const response = await page.request.post('/ordenes', {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
@@ -171,7 +181,7 @@ async function cleanupTestData(
   // Delete in reverse order to avoid foreign key issues
   for (const orderId of ids.orders) {
     try {
-      await page.request.delete(`/api/ordenes/${orderId}`, {
+      await page.request.delete(`/ordenes/${orderId}`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
     } catch (error) {
@@ -181,7 +191,7 @@ async function cleanupTestData(
 
   for (const equipoId of ids.equipos) {
     try {
-      await page.request.delete(`/api/equipos/${equipoId}`, {
+      await page.request.delete(`/equipos/${equipoId}`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
     } catch (error) {
@@ -191,7 +201,7 @@ async function cleanupTestData(
 
   for (const rutinaId of ids.rutinas) {
     try {
-      await page.request.delete(`/api/rutinas/${rutinaId}`, {
+      await page.request.delete(`/rutinas/${rutinaId}`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
     } catch (error) {
@@ -213,7 +223,7 @@ export async function cleanupAllTestData(page: Page) {
 
   try {
     // Get and delete test equipos
-    const equiposResponse = await page.request.get('/api/equipos', {
+    const equiposResponse = await page.request.get('/equipos', {
       headers: { 'Authorization': `Bearer ${token}` },
     });
 
@@ -224,7 +234,7 @@ export async function cleanupAllTestData(page: Page) {
       for (const equipo of data) {
         if (equipo.placa.startsWith('E2E-') || equipo.placa.startsWith('TEST-')) {
           try {
-            await page.request.delete(`/api/equipos/${equipo.id}`, {
+            await page.request.delete(`/equipos/${equipo.id}`, {
               headers: { 'Authorization': `Bearer ${token}` },
             });
           } catch (error) {
@@ -235,7 +245,7 @@ export async function cleanupAllTestData(page: Page) {
     }
 
     // Get and delete test rutinas
-    const rutinasResponse = await page.request.get('/api/rutinas', {
+    const rutinasResponse = await page.request.get('/rutinas', {
       headers: { 'Authorization': `Bearer ${token}` },
     });
 
@@ -246,7 +256,7 @@ export async function cleanupAllTestData(page: Page) {
       for (const rutina of data) {
         if (rutina.nombre.includes('E2E') || rutina.nombre.includes('Test')) {
           try {
-            await page.request.delete(`/api/rutinas/${rutina.id}`, {
+            await page.request.delete(`/rutinas/${rutina.id}`, {
               headers: { 'Authorization': `Bearer ${token}` },
             });
           } catch (error) {

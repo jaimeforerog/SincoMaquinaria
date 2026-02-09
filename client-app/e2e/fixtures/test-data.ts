@@ -10,13 +10,15 @@
  * Use unique prefixes (E2E-, TEST-) to avoid conflicts with real data
  */
 
+import { TEST_USER, TEST_PREFIXES } from '../e2e.config';
+
 export const testData = {
   // Test users
   users: {
     admin: {
-      email: 'e2e-test@sinco.com',
-      password: 'TestPassword123',
-      nombre: 'E2E Test Admin',
+      email: TEST_USER.email,
+      password: TEST_USER.password,
+      nombre: TEST_USER.nombre,
     },
     // Add more test users as needed
     mechanic: {
@@ -29,32 +31,32 @@ export const testData = {
   // Test equipos (equipment)
   equipos: [
     {
-      placa: 'E2E-001',
+      placa: `${TEST_PREFIXES.equipo}001`,
       descripcion: 'Excavadora Test E2E',
       tipo: 'Excavadora',
       marca: 'CAT',
       modelo: '320D',
-      serie: 'SER-E2E-001',
+      serie: `SER-${TEST_PREFIXES.equipo}001`,
       año: 2023,
       horasUso: 1000,
     },
     {
-      placa: 'E2E-002',
+      placa: `${TEST_PREFIXES.equipo}002`,
       descripcion: 'Bulldozer Test E2E',
       tipo: 'Bulldozer',
       marca: 'Komatsu',
       modelo: 'D65PX',
-      serie: 'SER-E2E-002',
+      serie: `SER-${TEST_PREFIXES.equipo}002`,
       año: 2022,
       horasUso: 1500,
     },
     {
-      placa: 'TEST-003',
+      placa: `${TEST_PREFIXES.equipo}003`,
       descripcion: 'Grúa Test E2E',
       tipo: 'Grúa',
       marca: 'Liebherr',
       modelo: 'LTM 1100',
-      serie: 'SER-TEST-003',
+      serie: `SER-${TEST_PREFIXES.equipo}003`,
       año: 2024,
       horasUso: 500,
     },
@@ -63,8 +65,9 @@ export const testData = {
   // Test rutinas (maintenance routines)
   rutinas: [
     {
-      nombre: 'Mantenimiento Preventivo E2E',
+      nombre: `${TEST_PREFIXES.rutina}Preventivo`,
       descripcion: 'Rutina de prueba para E2E testing',
+      grupo: 'Mantenimiento Preventivo',
       actividades: [
         {
           nombre: 'Cambio de aceite motor',
@@ -81,8 +84,9 @@ export const testData = {
       ],
     },
     {
-      nombre: 'Inspección Diaria E2E',
+      nombre: `${TEST_PREFIXES.rutina}Diario`,
       descripcion: 'Inspección diaria de rutina',
+      grupo: 'Inspección Diaria',
       actividades: [
         {
           nombre: 'Revisión de niveles',
@@ -99,15 +103,15 @@ export const testData = {
   // Test empleados (employees)
   empleados: [
     {
-      nombre: 'Juan Pérez E2E',
-      cedula: 'E2E-123456',
+      nombre: `${TEST_PREFIXES.empleado}Juan Pérez`,
+      cedula: `${TEST_PREFIXES.empleado}123456`,
       cargo: 'Mecánico',
       email: 'juan.perez.e2e@test.com',
       telefono: '3001234567',
     },
     {
-      nombre: 'María González E2E',
-      cedula: 'E2E-789012',
+      nombre: `${TEST_PREFIXES.empleado}María González`,
+      cedula: `${TEST_PREFIXES.empleado}789012`,
       cargo: 'Supervisor',
       email: 'maria.gonzalez.e2e@test.com',
       telefono: '3007890123',

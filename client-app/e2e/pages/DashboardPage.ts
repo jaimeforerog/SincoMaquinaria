@@ -1,5 +1,6 @@
 import { Page } from '@playwright/test';
 import { BasePage } from './BasePage';
+import { TIMEOUTS } from '../e2e.config';
 
 /**
  * Page Object Model for Dashboard page
@@ -85,8 +86,8 @@ export class DashboardPage extends BasePage {
     const spinner = this.page.locator(this.loadingSpinner);
     // Wait for the spinner to appear and then disappear
     try {
-      await spinner.waitFor({ state: 'visible', timeout: 1000 });
-      await spinner.waitFor({ state: 'hidden', timeout: 10000 });
+      await spinner.waitFor({ state: 'visible', timeout: TIMEOUTS.short });
+      await spinner.waitFor({ state: 'hidden', timeout: TIMEOUTS.pageLoad });
     } catch {
       // Spinner might not appear if data loads quickly
     }
@@ -163,7 +164,7 @@ export class DashboardPage extends BasePage {
         return true;
       }
 
-      await this.wait(500); // Wait 500ms before checking again
+      await this.wait(TIMEOUTS.short / 4); // Wait before checking again
     }
 
     throw new Error(`KPI ${kpi} did not update to ${expectedValue} within ${timeout}ms`);

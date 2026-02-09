@@ -15,11 +15,31 @@ import { testData } from '../fixtures/test-data';
  * Ensure test admin user exists
  */
 export async function ensureTestAdminExists(page: Page) {
-  // Note: /auth/setup only works if NO users exist in database
-  // For E2E tests to work reliably, you may need to:
-  // 1. Clear the database before running tests, OR
-  // 2. Manually create the test user once with the credentials in test-data.ts
-  console.log('ℹ️ Assuming test admin user exists. Email:', testData.users.admin.email);
+  // Try to create the test admin user using /auth/setup endpoint
+  // This only works if NO users exist in the database
+  try {
+    const response = await page.request.post('/auth/setup', {
+      data: {
+        Nombre: testData.users.admin.nombre,
+        Email: testData.users.admin.email,
+        Password: testData.users.admin.password,
+      },
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      failOnStatusCode: false, // Don't throw on error
+    });
+
+    if (response.ok()) {
+      console.log('✅ Test admin user created successfully');
+    } else {
+      // User likely already exists or database is not empty - that's OK
+      console.log('ℹ️ Assuming test admin user already exists. Email:', testData.users.admin.email);
+    }
+  } catch (error) {
+    // If setup fails for any reason, assume user exists and continue
+    console.log('ℹ️ Could not setup admin, assuming user exists. Email:', testData.users.admin.email);
+  }
 }
 
 /**
@@ -35,11 +55,29 @@ export async function loginAsAdmin(page: Page) {
   await page.locator('input[autocomplete="username"]').first().fill(testData.users.admin.email);
   await page.locator('input[autocomplete="current-password"]').first().fill(testData.users.admin.password);
 
+  // Wait for login API response
+  const responsePromise = page.waitForResponse(
+    response => response.url().includes('/auth/login') && response.status() === 200,
+    { timeout: 30000 }
+  );
+
   // Submit form
   await page.locator('button[type="submit"]').first().click();
 
+  // Wait for successful login response
+  const response = await responsePromise;
+
+  // Verify response contains token
+  const responseBody = await response.json();
+  if (!responseBody.token) {
+    throw new Error('Login response did not contain a token');
+  }
+
   // Wait for redirect to dashboard
-  await page.waitForURL(/^.*\/$|^.*\/dashboard$/);
+  await page.waitForURL(/^.*\/$|^.*\/dashboard$/, { timeout: 10000 });
+
+  // Give the frontend time to store the token in localStorage
+  await page.waitForTimeout(500);
 }
 
 /**
@@ -51,10 +89,28 @@ export async function login(page: Page, email: string, password: string) {
   await page.locator('input[autocomplete="username"]').first().fill(email);
   await page.locator('input[autocomplete="current-password"]').first().fill(password);
 
+  // Wait for login API response
+  const responsePromise = page.waitForResponse(
+    response => response.url().includes('/auth/login') && response.status() === 200,
+    { timeout: 30000 }
+  );
+
   await page.locator('button[type="submit"]').first().click();
 
+  // Wait for successful login response
+  const response = await responsePromise;
+
+  // Verify response contains token
+  const responseBody = await response.json();
+  if (!responseBody.token) {
+    throw new Error('Login response did not contain a token');
+  }
+
   // Wait for redirect
-  await page.waitForURL(/^.*\/$|^.*\/dashboard$/);
+  await page.waitForURL(/^.*\/$|^.*\/dashboard$/, { timeout: 10000 });
+
+  // Give the frontend time to store the token in localStorage
+  await page.waitForTimeout(500);
 }
 
 /**
@@ -74,7 +130,7 @@ export async function logout(page: Page) {
  * Get authentication token from localStorage
  */
 export async function getAuthToken(page: Page): Promise<string | null> {
-  return await page.evaluate(() => localStorage.getItem('token'));
+  return await page.evaluate(() => localStorage.getItem('authToken'));
 }
 
 /**
@@ -88,7 +144,7 @@ export async function getRefreshToken(page: Page): Promise<string | null> {
  * Set authentication token in localStorage
  */
 export async function setAuthToken(page: Page, token: string) {
-  await page.evaluate((t) => localStorage.setItem('token', t), token);
+  await page.evaluate((t) => localStorage.setItem('authToken', t), token);
 }
 
 /**
@@ -96,8 +152,9 @@ export async function setAuthToken(page: Page, token: string) {
  */
 export async function clearAuthTokens(page: Page) {
   await page.evaluate(() => {
-    localStorage.removeItem('token');
+    localStorage.removeItem('authToken');
     localStorage.removeItem('refreshToken');
+    localStorage.removeItem('authUser');
   });
 }
 

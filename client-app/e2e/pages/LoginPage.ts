@@ -1,5 +1,6 @@
 import { Page } from '@playwright/test';
 import { BasePage } from './BasePage';
+import { TIMEOUTS } from '../e2e.config';
 
 /**
  * Page Object Model for Login page
@@ -64,7 +65,7 @@ export class LoginPage extends BasePage {
     // Wait for the response before clicking (to see network traffic)
     const responsePromise = this.page.waitForResponse(
       response => response.url().includes('/auth/login') && response.status() === 200,
-      { timeout: 30000 }
+      { timeout: TIMEOUTS.apiResponse }
     );
 
     await this.clickSubmit();
@@ -73,7 +74,7 @@ export class LoginPage extends BasePage {
     await responsePromise;
 
     // Wait for navigation to dashboard after successful login
-    await this.page.waitForURL(/^.*\/$|^.*\/dashboard$/, { timeout: 15000 });
+    await this.page.waitForURL(/^.*\/$|^.*\/dashboard$/, { timeout: TIMEOUTS.navigation });
   }
 
   /**

@@ -1,5 +1,6 @@
 import { Page } from '@playwright/test';
 import { BasePage } from './BasePage';
+import { TIMEOUTS } from '../e2e.config';
 
 /**
  * Page Object Model for Create Order page
@@ -14,14 +15,10 @@ import { BasePage } from './BasePage';
 export class CreateOrderPage extends BasePage {
   // Selectors
   private readonly pageHeading = 'text=Nueva Orden de Trabajo';
-  private readonly equipoAutocomplete = '#equipoId-autocomplete, [role="combobox"]';
-  private readonly tipoSelect = '#tipo, select[name="tipo"]';
-  private readonly rutinaSelect = '#rutinaId, select[name="rutinaId"]';
-  private readonly frecuenciaSelect = '#frecuencia, select[name="frecuencia"]';
-  private readonly numeroInput = 'input[name="numero"]';
-  private readonly submitButton = 'button[type="submit"], button:has-text("Guardar")';
+  private readonly equipoAutocomplete = 'input[aria-label="Buscar equipo por placa o descripción..."]';
+  private readonly submitButton = 'button:has-text("Crear Orden")';
+  private readonly loadingButton = 'button:has-text("Guardando...")';
   private readonly loadingSpinner = '[role="progressbar"]';
-  private readonly successMessage = '[role="alert"]';
 
   constructor(page: Page) {
     super(page);
@@ -32,140 +29,138 @@ export class CreateOrderPage extends BasePage {
    */
   async goto() {
     await super.goto('/nueva-orden');
-    await this.waitForPageLoad();
-  }
-
-  /**
-   * Wait for page to load
-   */
-  async waitForPageLoad() {
-    // Wait for either the heading or the form elements to be visible
-    await this.page.waitForLoadState('networkidle');
+    await this.waitForElement(this.pageHeading);
   }
 
   /**
    * Select equipment from autocomplete
    */
-  async selectEquipo(placa: string) {
-    // Click on the autocomplete input
-    const autocomplete = this.page.locator('input').filter({ hasText: '' }).or(
-      this.page.locator('input[placeholder*="equipo"], input[placeholder*="Equipo"]')
-    ).first();
+  async selectEquipo(placaOrDesc: string) {
+    // Click autocomplete to open it
+    await this.page.click(this.equipoAutocomplete);
 
-    await autocomplete.click();
-    await autocomplete.fill(placa);
+    // Type to search
+    await this.page.fill(this.equipoAutocomplete, placaOrDesc);
 
-    // Wait for dropdown options to appear
-    await this.wait(500);
+    // Wait for dropdown to appear
+    await this.wait(TIMEOUTS.short);
 
-    // Click on the option that matches the placa
-    await this.page.locator(`[role="option"]:has-text("${placa}")`).first().click();
+    // Click the option that contains the text
+    await this.page.click(`li:has-text("${placaOrDesc}")`);
+
+    // Wait for autocomplete to close
+    await this.wait(TIMEOUTS.short / 2);
   }
 
   /**
-   * Select order type (Preventivo or Correctivo)
+   * Select order type (Correctivo or Preventivo)
    */
-  async selectOrderType(tipo: 'Preventivo' | 'Correctivo') {
-    const select = this.page.locator(this.tipoSelect).first();
-    await select.selectOption(tipo);
+  async selectOrderType(tipo: 'Correctivo' | 'Preventivo') {
+    // Open the select (Material-UI)
+    await this.page.click('label:has-text("Tipo de Orden") + div');
+
+    // Wait for dropdown
+    await this.wait(TIMEOUTS.short / 2);
+
+    // Click the option
+    await this.page.click(`li[role="option"]:has-text("${tipo}")`);
   }
 
   /**
-   * Select rutina for preventive maintenance
+   * Select maintenance routine (only for Preventivo orders)
    */
-  async selectRutina(rutinaName: string) {
-    const select = this.page.locator(this.rutinaSelect).first();
+  async selectRutina(rutinaDesc: string) {
+    // Open the select
+    await this.page.click('label:has-text("Rutina Sugerida") + div');
 
-    // Wait for rutinas to load
-    await this.wait(500);
+    // Wait for dropdown
+    await this.wait(TIMEOUTS.short / 2);
 
-    // Select by visible text
-    await select.selectOption({ label: rutinaName });
+    // Click the option that contains the description
+    await this.page.click(`li[role="option"]:has-text("${rutinaDesc}")`);
   }
 
   /**
-   * Select frequency for preventive maintenance
+   * Select frequency (only for Preventivo orders)
    */
-  async selectFrequency(frecuencia: string) {
-    const select = this.page.locator(this.frecuenciaSelect).first();
-    await select.selectOption(frecuencia);
+  async selectFrecuencia(frecuenciaHoras: number) {
+    // Open the select
+    await this.page.click('label:has-text("Frecuencia Mantenimiento") + div');
+
+    // Wait for dropdown
+    await this.wait(TIMEOUTS.short / 2);
+
+    // Click the option with the frequency
+    await this.page.click(`li[role="option"]:has-text("${frecuenciaHoras} horas")`);
   }
 
   /**
-   * Fill order number
+   * Set order date
    */
-  async fillNumero(numero: string) {
-    const input = this.page.locator(this.numeroInput).first();
-    await input.clear();
-    await input.fill(numero);
+  async setFecha(fecha: string) {
+    await this.page.fill('input[type="date"]', fecha);
   }
 
   /**
-   * Submit the order form
+   * Click submit button to create order
    */
   async submit() {
-    const button = this.page.locator(this.submitButton).first();
-    await button.click();
+    // Wait for the POST /ordenes request
+    const responsePromise = this.page.waitForResponse(
+      response => response.url().includes('/ordenes') && response.request().method() === 'POST',
+      { timeout: TIMEOUTS.apiResponse }
+    );
+
+    await this.clickElement(this.submitButton);
+
+    // Wait for response
+    const response = await responsePromise;
+
+    return response;
   }
 
   /**
-   * Create a preventive maintenance order (full flow)
+   * Complete flow: Create preventive maintenance order
    */
-  async createPreventiveOrder(
-    placa: string,
-    rutinaName: string,
-    frecuencia: string
-  ) {
-    await this.selectEquipo(placa);
+  async createPreventiveOrder(params: {
+    equipo: string;
+    rutina?: string;
+    frecuencia?: number;
+    fecha?: string;
+  }) {
+    await this.selectEquipo(params.equipo);
     await this.selectOrderType('Preventivo');
-    await this.selectRutina(rutinaName);
-    await this.selectFrequency(frecuencia);
-    await this.submit();
+
+    if (params.rutina) {
+      await this.selectRutina(params.rutina);
+    }
+
+    if (params.frecuencia) {
+      await this.selectFrecuencia(params.frecuencia);
+    }
+
+    if (params.fecha) {
+      await this.setFecha(params.fecha);
+    }
+
+    return await this.submit();
   }
 
   /**
-   * Create a corrective maintenance order (full flow)
+   * Complete flow: Create corrective maintenance order
    */
-  async createCorrectiveOrder(placa: string) {
-    await this.selectEquipo(placa);
+  async createCorrectiveOrder(params: {
+    equipo: string;
+    fecha?: string;
+  }) {
+    await this.selectEquipo(params.equipo);
     await this.selectOrderType('Correctivo');
-    await this.submit();
-  }
 
-  /**
-   * Wait for success message
-   */
-  async waitForSuccessMessage() {
-    await this.waitForElement(this.successMessage);
-  }
-
-  /**
-   * Get success message text
-   */
-  async getSuccessMessage(): Promise<string | null> {
-    const message = this.page.locator(this.successMessage).first();
-    if (await message.isVisible()) {
-      return await message.textContent();
-    }
-    return null;
-  }
-
-  /**
-   * Get validation errors
-   */
-  async getValidationErrors(): Promise<string[]> {
-    const errors = this.page.locator('[role="alert"], .error-message, .MuiFormHelperText-root.Mui-error');
-    const count = await errors.count();
-    const errorTexts: string[] = [];
-
-    for (let i = 0; i < count; i++) {
-      const text = await errors.nth(i).textContent();
-      if (text) {
-        errorTexts.push(text.trim());
-      }
+    if (params.fecha) {
+      await this.setFecha(params.fecha);
     }
 
-    return errorTexts;
+    return await this.submit();
   }
 
   /**
@@ -185,42 +180,58 @@ export class CreateOrderPage extends BasePage {
   }
 
   /**
-   * Check if loading spinner is visible
+   * Check if loading
    */
   async isLoading(): Promise<boolean> {
-    const spinner = this.page.locator(this.loadingSpinner);
-    return await spinner.isVisible();
+    return await this.isVisible(this.loadingButton);
   }
 
   /**
-   * Wait for loading to complete
+   * Wait for redirect to order detail page
    */
-  async waitForLoadingComplete() {
-    const spinner = this.page.locator(this.loadingSpinner);
-    if (await spinner.isVisible()) {
-      await spinner.waitFor({ state: 'hidden', timeout: 10000 });
-    }
+  async waitForRedirectToOrderDetail() {
+    await this.page.waitForURL(/\/ordenes\/[a-f0-9-]+/, { timeout: TIMEOUTS.navigation });
   }
 
   /**
-   * Get current order number value
+   * Get created order ID from URL after redirect
    */
-  async getNumeroValue(): Promise<string> {
-    const input = this.page.locator(this.numeroInput).first();
-    return await input.inputValue();
+  async getCreatedOrderId(): Promise<string> {
+    const url = this.page.url();
+    const match = url.match(/\/ordenes\/([a-f0-9-]+)/);
+    return match ? match[1] : '';
   }
 
   /**
    * Check if rutina select is visible (only for Preventivo)
    */
   async isRutinaSelectVisible(): Promise<boolean> {
-    return await this.isVisible(this.rutinaSelect);
+    return await this.isVisible('label:has-text("Rutina Sugerida")');
   }
 
   /**
-   * Check if frequency select is visible (only for Preventivo)
+   * Check if frecuencia select is visible (only for Preventivo)
    */
   async isFrecuenciaSelectVisible(): Promise<boolean> {
-    return await this.isVisible(this.frecuenciaSelect);
+    return await this.isVisible('label:has-text("Frecuencia Mantenimiento")');
+  }
+
+  /**
+   * Check if rutina select is disabled
+   */
+  async isRutinaSelectDisabled(): Promise<boolean> {
+    const select = this.page.locator('label:has-text("Rutina Sugerida") + div input');
+    return await select.isDisabled();
+  }
+
+  /**
+   * Get helper text from a field
+   */
+  async getHelperText(fieldLabel: string): Promise<string | null> {
+    const helperText = this.page.locator(`label:has-text("${fieldLabel}") ~ p`);
+    if (await helperText.isVisible()) {
+      return await helperText.textContent();
+    }
+    return null;
   }
 }

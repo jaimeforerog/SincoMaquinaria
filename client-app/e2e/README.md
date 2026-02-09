@@ -1,436 +1,696 @@
-# E2E Testing Documentation - SincoMaquinaria
+# E2E Testing con Playwright - SincoMaquinaria
 
-## Overview
+## 📋 Tabla de Contenidos
 
-This directory contains end-to-end (E2E) tests for the SincoMaquinaria application using Playwright. E2E tests verify critical user workflows from the browser perspective, ensuring the entire application works correctly from frontend to backend.
+- [Visión General](#visión-general)
+- [Arquitectura](#arquitectura)
+- [Instalación y Setup](#instalación-y-setup)
+- [Ejecutar Tests](#ejecutar-tests)
+- [Escribir Nuevos Tests](#escribir-nuevos-tests)
+- [Debugging](#debugging)
+- [CI/CD Integration](#cicd-integration)
+- [Troubleshooting](#troubleshooting)
+- [Best Practices](#best-practices)
 
-## Why E2E Testing?
+---
 
-E2E tests provide the highest confidence that the application works correctly:
-- **Catch integration issues** between frontend and backend
-- **Verify real user workflows** end-to-end
-- **Prevent deployment failures** by testing in production-like environment
-- **Complement unit tests** by testing the full stack together
+## 🎯 Visión General
 
-## Test Coverage
+Este proyecto utiliza **Playwright** para tests end-to-end (E2E) que validan flujos críticos del sistema desde la perspectiva del usuario. Los tests E2E complementan los tests unitarios y de integración, proporcionando la máxima confianza en que la aplicación funciona correctamente en producción.
 
-### 5 Critical User Flows (38+ Tests)
+### ¿Por qué E2E Testing?
 
-1. **Authentication Flow** (`tests/auth.spec.ts`) - 12 tests
-   - Login with valid/invalid credentials
-   - Logout and session management
-   - Token refresh on 401
-   - Protected route access
-   - Form validation
+- ✅ **Prevenir deployment failures**: Detecta problemas de integración antes de producción
+- ✅ **Verificar flujos completos**: Valida workflows desde login hasta completar tareas
+- ✅ **Multi-browser testing**: Asegura compatibilidad en Chromium y Firefox
+- ✅ **CI/CD Integration**: Los tests bloquean deployment si fallan
 
-2. **Order Creation & Management** (`tests/order-creation.spec.ts`) - 10 tests
-   - Create preventive/corrective orders
-   - Form validation
-   - Activity progress tracking
-   - Order deletion
+### Cobertura Actual
 
-3. **Equipment Management** (`tests/equipment.spec.ts`) - 8 tests
-   - CRUD operations on equipment
-   - Search and filtering
-   - Form validation
-   - Duplicate prevention
+| Flujo | Tests | Estado |
+|-------|-------|--------|
+| **Authentication** | 2/8 | 🟡 En progreso |
+| **Order Creation** | 0/10 | ⏳ Pendiente |
+| **Equipment Management** | 0/8 | ⏳ Pendiente |
+| **Excel Import** | 0/6 | ⏳ Pendiente |
+| **Dashboard** | 0/6 | ⏳ Pendiente |
+| **TOTAL** | **2/38** | **5%** |
 
-4. **Excel Import** (`tests/excel-import.spec.ts`) - 6 tests
-   - Import rutinas/equipos from Excel
-   - Validation of file formats
-   - Error handling
+---
 
-5. **Dashboard** (`tests/dashboard.spec.ts`) - 5 tests
-   - KPI display
-   - Real-time updates via WebSocket
-   - Navigation to different sections
+## 🏗️ Arquitectura
 
-## Project Structure
+### Estructura de Directorios
 
 ```
-e2e/
-├── fixtures/               # Test data and setup utilities
-│   ├── test-data.ts       # Reusable test data (users, equipos, rutinas)
-│   └── setup-test-data.ts # Database population scripts
-├── pages/                 # Page Object Models (POM)
-│   ├── BasePage.ts       # Base class with common functionality
-│   ├── LoginPage.ts      # Login page interactions
-│   ├── DashboardPage.ts  # Dashboard page interactions
-│   ├── CreateOrderPage.ts
-│   ├── EquipmentConfigPage.ts
-│   └── ImportPage.ts
-├── tests/                 # Test specifications
-│   ├── auth.spec.ts
-│   ├── order-creation.spec.ts
-│   ├── equipment.spec.ts
-│   ├── excel-import.spec.ts
-│   └── dashboard.spec.ts
-├── utils/                 # Helper utilities
-│   └── helpers.ts        # Login, logout, cleanup, etc.
-└── README.md             # This file
+client-app/e2e/
+├── e2e.config.ts              # Configuración centralizada (timeouts, URLs, credentials)
+├── README.md                  # Esta documentación
+│
+├── fixtures/
+│   └── test-data.ts           # Datos de prueba (usuarios, equipos, rutinas)
+│
+├── pages/                     # Page Object Models (POM)
+│   ├── BasePage.ts            # Clase base con métodos comunes
+│   ├── LoginPage.ts           # POM para la página de login
+│   ├── DashboardPage.ts       # POM para el dashboard
+│   ├── CreateOrderPage.ts     # POM para crear órdenes (pendiente)
+│   ├── EquipmentConfigPage.ts # POM para gestión de equipos (pendiente)
+│   └── ImportPage.ts          # POM para importación Excel (pendiente)
+│
+├── tests/                     # Test specs
+│   ├── smoke.spec.ts          # Smoke tests (login + navegación básica)
+│   ├── auth.spec.ts           # Tests de autenticación (pendiente)
+│   ├── order-creation.spec.ts # Tests de creación de órdenes (pendiente)
+│   ├── equipment.spec.ts      # Tests de gestión de equipos (pendiente)
+│   ├── excel-import.spec.ts   # Tests de importación Excel (pendiente)
+│   └── dashboard.spec.ts      # Tests de dashboard (pendiente)
+│
+└── utils/
+    └── helpers.ts             # Funciones helper (login, cleanup, etc.)
 ```
 
-## Running Tests
+### Page Object Model (POM)
 
-### Prerequisites
+Los tests usan el patrón **Page Object Model** para:
+- Encapsular lógica de interacción con páginas
+- Reutilizar selectores y métodos
+- Facilitar mantenimiento cuando cambia la UI
+- Hacer tests más legibles
 
-1. **Install dependencies:**
-   ```bash
-   cd client-app
-   npm install
-   ```
+**Ejemplo:**
+```typescript
+// ❌ Sin POM (acoplado a selectores)
+await page.locator('input[name="email"]').fill('admin@test.com');
+await page.locator('input[name="password"]').fill('Admin123!');
+await page.locator('button[type="submit"]').click();
 
-2. **Install Playwright browsers:**
-   ```bash
-   npx playwright install chromium firefox
-   ```
-
-3. **Start the backend server:**
-   ```bash
-   # In a separate terminal
-   cd ..
-   dotnet run --project src/SincoMaquinaria/SincoMaquinaria.csproj
-   ```
-
-### Run Tests
-
-```bash
-# Run all E2E tests (headless)
-npm run test:e2e
-
-# Run tests in headed mode (see browser)
-npm run test:e2e:headed
-
-# Run tests with UI mode (interactive)
-npm run test:e2e:ui
-
-# Run tests in debug mode
-npm run test:e2e:debug
-
-# Run specific test file
-npx playwright test tests/auth.spec.ts
-
-# Run tests in specific browser
-npx playwright test --project=chromium
-npx playwright test --project=firefox
-
-# Run tests with specific tag
-npx playwright test --grep @critical
+// ✅ Con POM (abstracción clara)
+const loginPage = new LoginPage(page);
+await loginPage.login(testData.users.admin.email, testData.users.admin.password);
 ```
 
-### View Test Results
+### Configuración Centralizada
 
-```bash
-# Open HTML report
-npx playwright show-report
-
-# The report includes:
-# - Test results with pass/fail status
-# - Screenshots on failure
-# - Videos of failed tests
-# - Trace viewer for debugging
-```
-
-## Writing Tests
-
-### Page Object Model (POM) Pattern
-
-We use the Page Object Model pattern to keep tests maintainable:
+El archivo `e2e.config.ts` centraliza toda la configuración:
 
 ```typescript
-// Good - Using POM
-test('should login successfully', async ({ page }) => {
-  const loginPage = new LoginPage(page);
-  await loginPage.goto();
-  await loginPage.login('user@test.com', 'password');
-  await loginPage.waitForDashboard();
-});
+import { TIMEOUTS, URLS, TEST_USER, TEST_PREFIXES } from './e2e.config';
 
-// Bad - Direct selectors in test
-test('should login successfully', async ({ page }) => {
-  await page.goto('/login');
-  await page.fill('input[name="email"]', 'user@test.com');
-  await page.fill('input[name="password"]', 'password');
-  await page.click('button[type="submit"]');
-});
+// Usar en vez de hardcodear valores
+await page.waitForResponse(url, { timeout: TIMEOUTS.apiResponse }); // ✅
+await page.waitForResponse(url, { timeout: 30000 }); // ❌
 ```
 
-### Test Data Management
+**Beneficios:**
+- ✅ Un solo lugar para ajustar timeouts globalmente
+- ✅ No más "números mágicos" en el código
+- ✅ Fácil configurar para diferentes entornos (CI vs local)
 
-Use fixtures for reusable test data:
+---
 
-```typescript
-import { testData, generateUniqueEquipo } from '../fixtures/test-data';
+## 🚀 Instalación y Setup
 
-test('should create equipment', async ({ page }) => {
-  const uniqueEquipo = generateUniqueEquipo(testData.equipos[0]);
-  // Use uniqueEquipo.placa, uniqueEquipo.descripcion, etc.
-});
-```
-
-### Authentication Helper
-
-Use the helper function for authentication:
-
-```typescript
-import { loginAsAdmin } from '../utils/helpers';
-
-test.beforeEach(async ({ page }) => {
-  await loginAsAdmin(page);
-  // Now you're authenticated and can access protected routes
-});
-```
-
-### Cleanup
-
-Always cleanup test data after tests:
-
-```typescript
-test.afterAll(async ({ browser }) => {
-  const context = await browser.newContext();
-  const page = await context.newPage();
-  await loginAsAdmin(page);
-  await cleanupAllTestData(page);
-  await context.close();
-});
-```
-
-## Debugging Tests
-
-### 1. Use Headed Mode
+### 1. Instalar Dependencias
 
 ```bash
-npm run test:e2e:headed
+cd client-app
+npm install
 ```
 
-This shows the browser so you can see what's happening.
+Esto instalará Playwright automáticamente desde `package.json`.
 
-### 2. Use Debug Mode
+### 2. Instalar Navegadores
 
-```bash
-npm run test:e2e:debug
-```
-
-This opens Playwright Inspector for step-by-step debugging.
-
-### 3. Use UI Mode
-
-```bash
-npm run test:e2e:ui
-```
-
-This opens Playwright's interactive UI for running and debugging tests.
-
-### 4. Add Screenshots
-
-```typescript
-await page.screenshot({ path: 'debug-screenshot.png' });
-```
-
-### 5. Add Console Logs
-
-```typescript
-console.log('Current URL:', page.url());
-console.log('Token:', await getAuthToken(page));
-```
-
-### 6. Use Trace Viewer
-
-When a test fails, Playwright automatically generates a trace. View it with:
-
-```bash
-npx playwright show-trace test-results/.../trace.zip
-```
-
-## CI/CD Integration
-
-E2E tests run automatically in GitHub Actions on every push:
-
-1. **Backend tests** run first
-2. **Frontend tests** run in parallel
-3. **E2E tests** run after both pass
-4. **Deploy** only happens if all tests pass
-
-### GitHub Actions Workflow
-
-The E2E tests job:
-- Starts PostgreSQL database
-- Builds and runs the backend
-- Installs Playwright browsers
-- Runs E2E tests
-- Uploads test results and videos as artifacts
-
-### Viewing Results in CI
-
-- Go to GitHub Actions tab
-- Click on the workflow run
-- Download "playwright-report" artifact
-- Open `index.html` to view the report
-
-## Best Practices
-
-### ✅ DO
-
-- Use Page Object Models for maintainability
-- Use unique test data (E2E- prefix) to avoid conflicts
-- Cleanup test data after tests
-- Use `loginAsAdmin()` helper for authentication
-- Use `generateUniqueEquipo()` for unique test data
-- Wait for elements with Playwright's auto-waiting
-- Take screenshots on failure (automatic)
-- Use descriptive test names
-
-### ❌ DON'T
-
-- Hardcode timeouts (use `waitForElement` instead)
-- Use `page.waitForTimeout()` unless absolutely necessary
-- Create test data without cleanup
-- Use production data in tests
-- Share state between tests
-- Test implementation details (test user workflows)
-- Skip tests without good reason
-
-## Troubleshooting
-
-### Tests fail with "Timeout waiting for element"
-
-**Cause:** Element selector is wrong or page is slow to load
-
-**Solution:**
-1. Check the selector in browser DevTools
-2. Increase timeout if page is legitimately slow
-3. Wait for network requests to complete
-4. Use Playwright Inspector to debug
-
-### Tests fail with "Authentication failed"
-
-**Cause:** Test user doesn't exist or credentials are wrong
-
-**Solution:**
-1. Verify test user exists in database
-2. Check `testData.users.admin` credentials
-3. Ensure backend is running
-4. Check API endpoints are accessible
-
-### Tests are flaky (sometimes pass, sometimes fail)
-
-**Cause:** Race conditions or timing issues
-
-**Solution:**
-1. Use Playwright's auto-waiting (don't add manual waits)
-2. Wait for API responses with `waitForResponse()`
-3. Enable retries in CI (already configured)
-4. Check for real race conditions in application code
-
-### Backend is not running
-
-**Cause:** Backend server is not started before tests
-
-**Solution:**
-1. Start backend manually: `dotnet run --project src/SincoMaquinaria/SincoMaquinaria.csproj`
-2. Or configure `webServer.command` in `playwright.config.ts`
-
-### Browsers not installed
-
-**Cause:** Playwright browsers not installed
-
-**Solution:**
 ```bash
 npx playwright install chromium firefox
 ```
 
-## Configuration
-
-### Playwright Config (`playwright.config.ts`)
-
-Key settings:
-- **baseURL**: `http://localhost:5173` (Vite dev server)
-- **testDir**: `./e2e`
-- **retries**: 2 in CI, 0 locally
-- **workers**: 1 in CI, unlimited locally
-- **timeout**: 60 seconds per test
-- **browsers**: Chromium, Firefox (WebKit optional)
-
-### Environment Variables
-
-Set these in `.env` or GitHub Secrets:
-
+**Nota:** WebKit (Safari) está deshabilitado por defecto. Para habilitarlo:
 ```bash
-# Backend URL
-API_URL=http://localhost:5000
-
-# Frontend URL
-BASE_URL=http://localhost:5173
-
-# Test user credentials
-TEST_ADMIN_EMAIL=admin@test.com
-TEST_ADMIN_PASSWORD=Admin123!
+npx playwright install webkit
 ```
 
-## Adding New Tests
+### 3. Configurar Backend para Tests
 
-### 1. Create Page Object Model (if needed)
+Los tests E2E requieren que el backend esté corriendo con endpoints de prueba habilitados.
+
+**Opción A: Usar backend en Development**
+```bash
+# Terminal 1 - Backend
+dotnet run --project src/SincoMaquinaria/SincoMaquinaria.csproj
+
+# Terminal 2 - Frontend (Playwright lo inicia automáticamente)
+cd client-app
+npm run test:e2e
+```
+
+**Opción B: Configurar usuario de prueba manualmente**
+```bash
+# Crear usuario de prueba vía API
+curl -X POST http://localhost:5000/test/seed-test-user \
+  -H "Content-Type: application/json"
+
+# O usando PowerShell
+Invoke-WebRequest -Uri http://localhost:5000/test/seed-test-user -Method POST
+```
+
+### 4. Verificar Setup
+
+```bash
+npm run test:e2e
+```
+
+Deberías ver algo como:
+```
+Running 4 tests using 1 worker
+  ✓ smoke.spec.ts:18:3 › should login and load dashboard (chromium)
+  ✓ smoke.spec.ts:18:3 › should login and load dashboard (firefox)
+  ✓ smoke.spec.ts:31:3 › should navigate to main pages (chromium)
+  ✓ smoke.spec.ts:31:3 › should navigate to main pages (firefox)
+
+  4 passed (15s)
+```
+
+---
+
+## 🧪 Ejecutar Tests
+
+### Scripts Disponibles
+
+```bash
+# Ejecutar todos los tests E2E
+npm run test:e2e
+
+# Ejecutar tests con UI interactiva (recomendado para desarrollo)
+npm run test:e2e:ui
+
+# Ejecutar tests con navegador visible
+npm run test:e2e:headed
+
+# Ejecutar tests en modo debug (pausa en cada paso)
+npm run test:e2e:debug
+
+# Ejecutar un test específico
+npx playwright test smoke.spec.ts
+
+# Ejecutar solo tests de un navegador
+npx playwright test --project=chromium
+npx playwright test --project=firefox
+```
+
+### Modo UI (Recomendado)
+
+El modo UI de Playwright es ideal para desarrollo:
+
+```bash
+npm run test:e2e:ui
+```
+
+**Características:**
+- ✅ Interfaz visual para seleccionar tests
+- ✅ Ver ejecución en tiempo real
+- ✅ Time-travel debugging (avanzar/retroceder en pasos)
+- ✅ Inspeccionar selectores
+- ✅ Ver network traffic
+
+### Ver Reportes
+
+Después de ejecutar tests, ver el reporte HTML:
+
+```bash
+npx playwright show-report
+```
+
+El reporte incluye:
+- ✅ Screenshots de fallos
+- ✅ Videos de tests fallidos
+- ✅ Traces para debugging
+- ✅ Logs de consola y network
+
+---
+
+## ✍️ Escribir Nuevos Tests
+
+### 1. Crear un Test Básico
+
+**Archivo:** `e2e/tests/example.spec.ts`
 
 ```typescript
-// e2e/pages/MyNewPage.ts
+import { test, expect } from '@playwright/test';
+import { LoginPage } from '../pages/LoginPage';
+import { testData } from '../fixtures/test-data';
+
+test.describe('Example Feature', () => {
+  test('should do something', async ({ page }) => {
+    // Arrange - Setup
+    const loginPage = new LoginPage(page);
+    await loginPage.goto();
+
+    // Act - Perform action
+    await loginPage.login(
+      testData.users.admin.email,
+      testData.users.admin.password
+    );
+
+    // Assert - Verify result
+    expect(page.url()).toMatch(/\/$|\/dashboard$/);
+  });
+});
+```
+
+### 2. Crear un Page Object
+
+**Archivo:** `e2e/pages/ExamplePage.ts`
+
+```typescript
 import { Page } from '@playwright/test';
 import { BasePage } from './BasePage';
+import { TIMEOUTS } from '../e2e.config';
 
-export class MyNewPage extends BasePage {
-  private readonly selector = 'button.my-button';
+export class ExamplePage extends BasePage {
+  // Selectores privados
+  private readonly submitButton = 'button[type="submit"]';
+  private readonly statusMessage = '[role="alert"]';
 
   constructor(page: Page) {
     super(page);
   }
 
-  async clickButton() {
-    await this.page.click(this.selector);
+  /**
+   * Navigate to the page
+   */
+  async goto() {
+    await super.goto('/example');
+    await this.waitForElement(this.submitButton);
+  }
+
+  /**
+   * Submit the form
+   */
+  async submit() {
+    const responsePromise = this.page.waitForResponse(
+      response => response.url().includes('/api/example'),
+      { timeout: TIMEOUTS.apiResponse }
+    );
+
+    await this.clickElement(this.submitButton);
+    await responsePromise;
+  }
+
+  /**
+   * Get status message
+   */
+  async getStatus(): Promise<string | null> {
+    return await this.getTextContent(this.statusMessage);
   }
 }
 ```
 
-### 2. Create Test Spec
+### 3. Agregar Test Data
+
+**Archivo:** `e2e/fixtures/test-data.ts`
 
 ```typescript
-// e2e/tests/my-new-feature.spec.ts
-import { test, expect } from '@playwright/test';
-import { MyNewPage } from '../pages/MyNewPage';
-import { loginAsAdmin } from '../utils/helpers';
+import { TEST_PREFIXES } from '../e2e.config';
 
-test.describe('My New Feature', () => {
-  test('should do something', async ({ page }) => {
-    await loginAsAdmin(page);
-    const myPage = new MyNewPage(page);
-    await myPage.clickButton();
-    expect(page.url()).toContain('/expected-url');
+export const testData = {
+  // ... existing data ...
+
+  newFeature: {
+    testCase1: {
+      id: `${TEST_PREFIXES.order}NEW-001`,
+      description: 'Test case description',
+    },
+  },
+};
+```
+
+### 4. Best Practices para Tests
+
+✅ **DO:**
+- Usar Page Object Models para todas las interacciones
+- Importar timeouts de `e2e.config.ts`
+- Usar `waitForResponse()` para operaciones asíncronas
+- Agregar comentarios descriptivos (Arrange, Act, Assert)
+- Usar `test.describe()` para agrupar tests relacionados
+- Limpiar datos de prueba en `test.afterEach()`
+
+❌ **DON'T:**
+- Hardcodear timeouts (usar `TIMEOUTS` del config)
+- Usar `page.waitForTimeout()` (preferir `waitForElement()`)
+- Duplicar selectores (usar Page Objects)
+- Crear dependencias entre tests (deben ser independientes)
+- Usar datos de producción (usar `TEST_PREFIXES`)
+
+---
+
+## 🐛 Debugging
+
+### 1. Debugging Local con UI Mode
+
+```bash
+npm run test:e2e:ui
+```
+
+1. Selecciona el test que falla
+2. Haz clic en "Watch" para ver ejecución en tiempo real
+3. Usa los controles de time-travel para ver cada paso
+4. Inspecciona selectores con la herramienta "Pick locator"
+
+### 2. Debugging con VS Code
+
+1. Agregar breakpoint en el código del test
+2. Ejecutar con debugger:
+
+```bash
+npm run test:e2e:debug
+```
+
+3. Alternativamente, usar la extensión de Playwright para VS Code
+
+### 3. Ver Traces de Tests Fallidos
+
+Cuando un test falla en CI o localmente:
+
+```bash
+npx playwright show-trace test-results/.../trace.zip
+```
+
+El trace viewer muestra:
+- ✅ Cada acción ejecutada
+- ✅ Screenshots en cada paso
+- ✅ Network requests
+- ✅ Console logs
+- ✅ DOM snapshots
+
+### 4. Screenshots y Videos
+
+Playwright captura automáticamente:
+- **Screenshots**: Solo en fallos (`screenshot: 'only-on-failure'`)
+- **Videos**: Solo en fallos (`video: 'retain-on-failure'`)
+- **Traces**: En primer retry (`trace: 'on-first-retry'`)
+
+Ubicación: `client-app/test-results/`
+
+### 5. Debugging de Selectores
+
+Si un selector no funciona:
+
+```bash
+# Modo interactivo para probar selectores
+npx playwright codegen http://localhost:5173
+```
+
+Esto abre un navegador donde puedes:
+- Hacer clic en elementos para ver sus selectores
+- Probar selectores en tiempo real
+- Generar código Playwright automáticamente
+
+---
+
+## 🔄 CI/CD Integration
+
+### GitHub Actions Workflow
+
+Los E2E tests corren automáticamente en GitHub Actions en cada push a `main` o `develop`.
+
+**Archivo:** `.github/workflows/ci-cd.yml`
+
+```yaml
+e2e-tests:
+  name: E2E Tests
+  runs-on: ubuntu-latest
+  needs: [backend-test, frontend-build]
+  continue-on-error: false  # Block deployment if E2E fails
+
+  steps:
+    - name: Checkout code
+    - name: Setup .NET
+    - name: Setup Node.js
+    - name: Start backend server
+    - name: Install Playwright browsers
+    - name: Seed test user
+    - name: Run E2E tests
+    - name: Upload test results
+```
+
+### Ver Resultados en GitHub
+
+1. Ve a la pestaña **Actions** en GitHub
+2. Selecciona el workflow run
+3. Busca el job "E2E Tests"
+4. Descarga el artifact "playwright-report" para ver el reporte completo
+
+### Configuración de Timeouts en CI
+
+Los timeouts en CI son más largos que en local:
+
+```typescript
+// playwright.config.ts
+timeout: process.env.CI ? 120000 : 60000, // 2 min in CI, 1 min local
+```
+
+### Retry Strategy
+
+En CI, los tests se reintentan automáticamente en caso de fallo:
+
+```typescript
+retries: process.env.CI ? 2 : 0,
+```
+
+---
+
+## 🔧 Troubleshooting
+
+### Problema: "Test timeout exceeded"
+
+**Síntoma:** Test falla con `Test timeout of 60000ms exceeded`
+
+**Solución:**
+1. Verificar que el backend esté corriendo
+2. Verificar que el frontend esté corriendo (`http://localhost:5173`)
+3. Aumentar timeout en `playwright.config.ts` si la operación es lenta
+
+```typescript
+test('slow operation', async ({ page }) => {
+  test.setTimeout(120000); // 2 minutes for this specific test
+  // ... rest of test
+});
+```
+
+### Problema: "Waiting for selector timed out"
+
+**Síntoma:** `page.waitForSelector('...') timed out`
+
+**Solución:**
+1. Verificar que el selector es correcto:
+   ```bash
+   npx playwright codegen http://localhost:5173
+   ```
+
+2. Esperar que el elemento esté visible:
+   ```typescript
+   await page.waitForSelector('button[type="submit"]', { state: 'visible' });
+   ```
+
+3. Usar selectores más robustos:
+   ```typescript
+   // ❌ Frágil
+   await page.locator('div > button').click();
+
+   // ✅ Robusto
+   await page.getByRole('button', { name: 'Submit' }).click();
+   ```
+
+### Problema: "Navigation failed" en Firefox
+
+**Síntoma:** `NS_BINDING_ABORTED` error en Firefox
+
+**Solución:** Usar el helper `navigateRobustly` del smoke test:
+
+```typescript
+const navigateRobustly = async (url: string) => {
+  try {
+    await page.goto(url, { waitUntil: 'commit', timeout: TIMEOUTS.pageLoad });
+    await page.waitForLoadState('domcontentloaded');
+    if (browserName === 'firefox') {
+      await page.waitForTimeout(TIMEOUTS.firefoxStabilization);
+    }
+  } catch (error) {
+    console.log(`Navigation to ${url} failed, retrying...`);
+    await page.waitForTimeout(TIMEOUTS.firefoxStabilization);
+    await page.goto(url, { waitUntil: 'domcontentloaded' });
+  }
+};
+```
+
+### Problema: Tests fallan en CI pero pasan localmente
+
+**Posibles causas:**
+1. **Race conditions**: Tests corren en paralelo en local pero secuencialmente en CI
+   - **Solución:** Configurar `workers: 1` en `playwright.config.ts`
+
+2. **Datos de base de datos**: CI usa base de datos limpia, local puede tener datos antiguos
+   - **Solución:** Usar `test.beforeEach()` para limpiar datos
+
+3. **Timeouts más estrictos**: CI puede ser más lento
+   - **Solución:** Aumentar timeouts para CI en config
+
+### Problema: "Usuario de prueba no existe"
+
+**Síntoma:** Login falla con "Invalid credentials"
+
+**Solución:**
+```bash
+# Crear usuario de prueba manualmente
+curl -X POST http://localhost:5000/test/seed-test-user \
+  -H "Content-Type: application/json"
+
+# O usando PowerShell
+Invoke-WebRequest -Uri http://localhost:5000/test/seed-test-user -Method POST
+```
+
+### Problema: Tests fallan en paralelo
+
+**Síntoma:** Tests pasan individualmente pero fallan cuando se ejecutan todos
+
+**Solución:** Los tests E2E comparten la misma base de datos. Configurar ejecución secuencial:
+
+```typescript
+// playwright.config.ts
+export default defineConfig({
+  fullyParallel: false,
+  workers: 1, // Always sequential
+  // ...
+});
+```
+
+---
+
+## 📚 Best Practices
+
+### 1. Esperar Correctamente
+
+```typescript
+// ❌ Evitar delays arbitrarios
+await page.waitForTimeout(3000);
+
+// ✅ Esperar por condiciones específicas
+await page.waitForSelector('button[type="submit"]');
+await page.waitForResponse(response => response.url().includes('/api/'));
+await page.waitForLoadState('domcontentloaded');
+```
+
+### 2. Selectores Robustos
+
+```typescript
+// ❌ Selectores frágiles (dependen de estructura HTML)
+await page.locator('div > div > button:nth-child(3)').click();
+
+// ✅ Selectores semánticos (basados en roles y labels)
+await page.getByRole('button', { name: 'Submit' }).click();
+await page.getByLabel('Email').fill('test@test.com');
+await page.getByText('Welcome').isVisible();
+```
+
+### 3. Datos de Prueba Únicos
+
+```typescript
+// ❌ Datos hardcodeados (pueden causar conflictos)
+const placa = 'TEST-001';
+
+// ✅ Datos únicos con timestamp
+import { generateUniqueEquipo } from '../fixtures/test-data';
+const equipo = generateUniqueEquipo(testData.equipos[0]);
+```
+
+### 4. Limpiar Después de Tests
+
+```typescript
+test.describe('Equipment Tests', () => {
+  let createdEquipoId: string;
+
+  test.afterEach(async ({ page }) => {
+    // Cleanup - delete test data
+    if (createdEquipoId) {
+      await deleteEquipo(page, createdEquipoId);
+    }
+  });
+
+  test('create equipment', async ({ page }) => {
+    // ... test implementation
   });
 });
 ```
 
-### 3. Run New Tests
+### 5. Independencia de Tests
 
-```bash
-npx playwright test tests/my-new-feature.spec.ts
+```typescript
+// ❌ Tests dependientes (test 2 depende de test 1)
+test('create order', async ({ page }) => {
+  // Creates order with ID 123
+});
+
+test('edit order', async ({ page }) => {
+  // Expects order 123 to exist (fails if test 1 no corrió)
+});
+
+// ✅ Tests independientes
+test('edit order', async ({ page }) => {
+  // Create order first
+  const orderId = await createTestOrder(page);
+
+  // Now edit it
+  await editOrder(page, orderId);
+});
 ```
 
-## Resources
+### 6. Organizar Tests con describe()
 
-- [Playwright Documentation](https://playwright.dev/)
-- [Playwright Best Practices](https://playwright.dev/docs/best-practices)
-- [Page Object Model Pattern](https://playwright.dev/docs/pom)
-- [Playwright Test Generator](https://playwright.dev/docs/codegen)
+```typescript
+test.describe('Authentication Flow', () => {
+  test.describe('Login', () => {
+    test('valid credentials', async ({ page }) => { });
+    test('invalid credentials', async ({ page }) => { });
+  });
 
-## Support
-
-For questions or issues:
-1. Check this README
-2. Check Playwright documentation
-3. Run tests with `--debug` flag
-4. Create an issue in the repository
+  test.describe('Logout', () => {
+    test('clears session', async ({ page }) => { });
+  });
+});
+```
 
 ---
 
-**Last Updated:** 2026-02-07
-**Test Count:** 38+ E2E tests
-**Coverage:** 5 critical user flows
-**Framework:** Playwright v1.49+
+## 📖 Recursos Adicionales
+
+- **Documentación Oficial:** https://playwright.dev/
+- **Best Practices:** https://playwright.dev/docs/best-practices
+- **Debugging Guide:** https://playwright.dev/docs/debug
+- **CI/CD Guide:** https://playwright.dev/docs/ci
+
+---
+
+## 🎯 Roadmap
+
+### Corto Plazo (1-2 semanas)
+- [ ] Implementar 10 tests de creación de órdenes
+- [ ] Completar 8 tests de autenticación
+- [ ] Agregar tests de gestión de equipos
+
+### Mediano Plazo (1 mes)
+- [ ] Tests de importación Excel (6 tests)
+- [ ] Tests de dashboard en tiempo real (6 tests)
+- [ ] Llegar a 60%+ de cobertura de flujos críticos
+
+### Largo Plazo (3 meses)
+- [ ] Visual regression testing
+- [ ] Performance testing
+- [ ] Tests de accesibilidad (a11y)
+- [ ] Tests de diferentes roles de usuario
+
+---
+
+**Última actualización:** 2026-02-08
+**Mantenido por:** Equipo de Desarrollo SincoMaquinaria
