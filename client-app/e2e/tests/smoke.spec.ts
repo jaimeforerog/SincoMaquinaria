@@ -36,12 +36,13 @@ test.describe('Smoke Tests - Critical Path', () => {
     await loginPage.login(testData.users.admin.email, testData.users.admin.password);
 
     // Test navigation
-    await page.goto('/gestion-equipos');
-    await page.waitForLoadState('networkidle');
+    await page.goto('/gestion-equipos', { waitUntil: 'domcontentloaded' });
     expect(page.url()).toContain('/gestion-equipos');
 
-    await page.goto('/historial');
-    await page.waitForLoadState('networkidle');
+    // Small delay to avoid Firefox NS_BINDING_ABORTED error
+    await page.waitForTimeout(500);
+
+    await page.goto('/historial', { waitUntil: 'domcontentloaded' });
     expect(page.url()).toContain('/historial');
   });
 });

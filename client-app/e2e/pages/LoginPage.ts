@@ -60,7 +60,20 @@ export class LoginPage extends BasePage {
   async login(email: string, password: string) {
     await this.fillEmail(email);
     await this.fillPassword(password);
+
+    // Wait for the response before clicking (to see network traffic)
+    const responsePromise = this.page.waitForResponse(
+      response => response.url().includes('/auth/login') && response.status() === 200,
+      { timeout: 30000 }
+    );
+
     await this.clickSubmit();
+
+    // Wait for successful login response
+    await responsePromise;
+
+    // Wait for navigation to dashboard after successful login
+    await this.page.waitForURL(/^.*\/$|^.*\/dashboard$/, { timeout: 15000 });
   }
 
   /**
