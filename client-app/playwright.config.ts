@@ -15,6 +15,9 @@ import { URLS, TIMEOUTS } from './e2e/e2e.config';
 export default defineConfig({
   testDir: './e2e',
 
+  // Global setup to create admin user before all tests
+  globalSetup: './e2e/global-setup.ts',
+
   // Run tests sequentially to avoid database conflicts
   fullyParallel: false,
 

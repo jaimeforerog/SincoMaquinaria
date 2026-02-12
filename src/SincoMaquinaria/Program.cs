@@ -34,7 +34,7 @@ try
         .Enrich.WithProperty("Environment", context.HostingEnvironment.EnvironmentName));
 
     // --- CONFIGURACIÓN DE SERVICIOS ---
-    builder.Services.AddApplicationServices(builder.Configuration);
+    builder.Services.AddApplicationServices(builder.Configuration, builder.Environment);
 
     var app = builder.Build();
 
@@ -42,6 +42,14 @@ try
     var dbConnectionString = app.Configuration.GetConnectionString("DefaultConnection")
         ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
     SincoMaquinaria.Infrastructure.DatabaseSetup.EnsureDatabaseExists(dbConnectionString);
+
+    // Inicializar esquema de Marten (crear tablas si no existen)
+    using (var scope = app.Services.CreateScope())
+    {
+        var store = scope.ServiceProvider.GetRequiredService<Marten.IDocumentStore>();
+        await store.Storage.ApplyAllConfiguredChangesToDatabaseAsync();
+        Log.Information("Marten schema initialized successfully");
+    }
 
     // --- PIPELINE HTTP ---
     app.ConfigureMiddleware();

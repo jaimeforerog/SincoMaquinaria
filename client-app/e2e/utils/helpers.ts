@@ -67,17 +67,26 @@ export async function loginAsAdmin(page: Page) {
   // Wait for successful login response
   const response = await responsePromise;
 
-  // Verify response contains token
-  const responseBody = await response.json();
-  if (!responseBody.token) {
-    throw new Error('Login response did not contain a token');
+  // Try to verify response contains token (may fail in Firefox due to NS_ERROR_FAILURE)
+  try {
+    const responseBody = await response.json();
+    if (!responseBody.token) {
+      throw new Error('Login response did not contain a token');
+    }
+  } catch (error) {
+    // Firefox sometimes throws NS_ERROR_FAILURE when reading response body after navigation
+    // We'll verify the token exists in localStorage instead
+    console.log('Could not read response body (this is OK in Firefox), will verify token in localStorage');
   }
 
   // Wait for redirect to dashboard
   await page.waitForURL(/^.*\/$|^.*\/dashboard$/, { timeout: 10000 });
 
-  // Wait for token to be stored in localStorage
-  await page.waitForTimeout(500);
+  // Wait for token to be stored in localStorage with conditional wait
+  await page.waitForFunction(
+    () => localStorage.getItem('authToken') !== null,
+    { timeout: 15000 }
+  );
 }
 
 /**
@@ -100,17 +109,26 @@ export async function login(page: Page, email: string, password: string) {
   // Wait for successful login response
   const response = await responsePromise;
 
-  // Verify response contains token
-  const responseBody = await response.json();
-  if (!responseBody.token) {
-    throw new Error('Login response did not contain a token');
+  // Try to verify response contains token (may fail in Firefox due to NS_ERROR_FAILURE)
+  try {
+    const responseBody = await response.json();
+    if (!responseBody.token) {
+      throw new Error('Login response did not contain a token');
+    }
+  } catch (error) {
+    // Firefox sometimes throws NS_ERROR_FAILURE when reading response body after navigation
+    // We'll verify the token exists in localStorage instead
+    console.log('Could not read response body (this is OK in Firefox), will verify token in localStorage');
   }
 
   // Wait for redirect
   await page.waitForURL(/^.*\/$|^.*\/dashboard$/, { timeout: 10000 });
 
-  // Wait for token to be stored in localStorage
-  await page.waitForTimeout(500);
+  // Wait for token to be stored in localStorage with conditional wait
+  await page.waitForFunction(
+    () => localStorage.getItem('authToken') !== null,
+    { timeout: 15000 }
+  );
 }
 
 /**
