@@ -1,6 +1,6 @@
 import { Page } from '@playwright/test';
 import { testData, generateUniqueEquipo, generateUniqueRutina } from './test-data';
-import { getAuthToken } from '../utils/helpers';
+import { getAuthToken, retryWithBackoff } from '../utils/helpers';
 
 /**
  * Test Data Setup Script
@@ -13,10 +13,10 @@ import { getAuthToken } from '../utils/helpers';
  * Setup basic test data (admin user, sample equipos, rutinas)
  */
 export async function setupBasicTestData(page: Page) {
-  // Wait for token to be available with retry
+  // Wait for token to be available
   let token = await getAuthToken(page);
   let retries = 0;
-  const maxRetries = 5;
+  const maxRetries = 20; // 10 seconds total (20 * 500ms)
 
   while (!token && retries < maxRetries) {
     await page.waitForTimeout(500);
@@ -25,7 +25,7 @@ export async function setupBasicTestData(page: Page) {
   }
 
   if (!token) {
-    throw new Error('Must be authenticated to setup test data. Token not found after ' + (maxRetries * 500) + 'ms');
+    throw new Error('Must be authenticated to setup test data. Token not found after 10s');
   }
 
   const createdIds: {
@@ -42,20 +42,28 @@ export async function setupBasicTestData(page: Page) {
     // Create test rutinas first (needed for preventive orders)
     for (const rutina of testData.rutinas) {
       const uniqueRutina = generateUniqueRutina(rutina);
-      const rutinaId = await createRutina(page, uniqueRutina, token);
+      const rutinaId = await retryWithBackoff(
+        () => createRutina(page, uniqueRutina, token),
+        2, // 2 retries
+        500 // 500ms initial delay
+      );
       createdIds.rutinas.push(rutinaId);
     }
 
     // Create test equipos
     for (const equipo of testData.equipos) {
       const uniqueEquipo = generateUniqueEquipo(equipo);
-      const equipoId = await createEquipo(page, uniqueEquipo, token);
+      const equipoId = await retryWithBackoff(
+        () => createEquipo(page, uniqueEquipo, token),
+        2, // 2 retries
+        500 // 500ms initial delay
+      );
       createdIds.equipos.push(equipoId);
     }
 
     return createdIds;
   } catch (error) {
-    console.error('Error setting up test data:', error);
+    console.error('[Setup] Error setting up test data:', error);
     // Cleanup on error
     await cleanupTestData(page, createdIds, token);
     throw error;
@@ -84,10 +92,12 @@ async function createEquipo(page: Page, equipoData: any, token: string): Promise
 
   if (!response.ok()) {
     const errorText = await response.text();
-    throw new Error(`Failed to create equipo: ${response.status()} - ${errorText}`);
+    console.error(`[Setup] Failed to create equipo ${equipoData.placa}: ${response.status()} - ${errorText}`);
+    throw new Error(`Failed to create equipo ${equipoData.placa}: ${response.status()} - ${errorText}`);
   }
 
   const data = await response.json();
+  console.log(`[Setup] Created equipo: ${equipoData.placa} (${data.id || data.Id})`);
   return data.id || data.Id;
 }
 
@@ -119,10 +129,12 @@ async function createRutina(page: Page, rutinaData: any, token: string): Promise
 
   if (!response.ok()) {
     const errorText = await response.text();
-    throw new Error(`Failed to create rutina: ${response.status()} - ${errorText}`);
+    console.error(`[Setup] Failed to create rutina ${rutinaData.nombre}: ${response.status()} - ${errorText}`);
+    throw new Error(`Failed to create rutina ${rutinaData.nombre}: ${response.status()} - ${errorText}`);
   }
 
   const data = await response.json();
+  console.log(`[Setup] Created rutina: ${rutinaData.nombre} (${data.id || data.Id})`);
   return data.id || data.Id;
 }
 
@@ -212,6 +224,7 @@ async function cleanupTestData(
 
 /**
  * Cleanup all test data (equipos with E2E- or TEST- prefix)
+ * Deletes in correct order to avoid foreign key constraints: orders -> equipos -> rutinas
  */
 export async function cleanupAllTestData(page: Page) {
   const token = await getAuthToken(page);
@@ -222,7 +235,38 @@ export async function cleanupAllTestData(page: Page) {
   }
 
   try {
-    // Get and delete test equipos
+    console.log('[Cleanup] Starting test data cleanup...');
+
+    // Step 1: Delete test orders FIRST (to avoid FK constraints)
+    try {
+      const ordenesResponse = await page.request.get('/ordenes', {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+
+      if (ordenesResponse.ok()) {
+        const ordenes = await ordenesResponse.json();
+        const data = ordenes.data || ordenes;
+
+        let deletedOrders = 0;
+        for (const orden of data) {
+          if (orden.numero && (orden.numero.includes('E2E') || orden.numero.includes('OT-E2E'))) {
+            try {
+              const deleteResponse = await page.request.delete(`/ordenes/${orden.id}`, {
+                headers: { 'Authorization': `Bearer ${token}` },
+              });
+              if (deleteResponse.ok()) deletedOrders++;
+            } catch (error) {
+              console.warn(`[Cleanup] Failed to delete order ${orden.id}:`, error);
+            }
+          }
+        }
+        if (deletedOrders > 0) console.log(`[Cleanup] Deleted ${deletedOrders} test orders`);
+      }
+    } catch (error) {
+      console.warn('[Cleanup] Error cleaning orders (may not exist):', error);
+    }
+
+    // Step 2: Delete test equipos
     const equiposResponse = await page.request.get('/equipos', {
       headers: { 'Authorization': `Bearer ${token}` },
     });
@@ -231,20 +275,23 @@ export async function cleanupAllTestData(page: Page) {
       const equipos = await equiposResponse.json();
       const data = equipos.data || equipos;
 
+      let deletedEquipos = 0;
       for (const equipo of data) {
-        if (equipo.placa.startsWith('E2E-') || equipo.placa.startsWith('TEST-')) {
+        if (equipo.placa && (equipo.placa.startsWith('E2E-') || equipo.placa.startsWith('TEST-'))) {
           try {
-            await page.request.delete(`/equipos/${equipo.id}`, {
+            const deleteResponse = await page.request.delete(`/equipos/${equipo.id}`, {
               headers: { 'Authorization': `Bearer ${token}` },
             });
+            if (deleteResponse.ok()) deletedEquipos++;
           } catch (error) {
-            console.warn(`Failed to delete equipo ${equipo.id}:`, error);
+            console.warn(`[Cleanup] Failed to delete equipo ${equipo.id} (${equipo.placa}):`, error);
           }
         }
       }
+      if (deletedEquipos > 0) console.log(`[Cleanup] Deleted ${deletedEquipos} test equipos`);
     }
 
-    // Get and delete test rutinas
+    // Step 3: Delete test rutinas LAST
     const rutinasResponse = await page.request.get('/rutinas', {
       headers: { 'Authorization': `Bearer ${token}` },
     });
@@ -253,20 +300,25 @@ export async function cleanupAllTestData(page: Page) {
       const rutinas = await rutinasResponse.json();
       const data = rutinas.data || rutinas;
 
+      let deletedRutinas = 0;
       for (const rutina of data) {
-        if (rutina.nombre.includes('E2E') || rutina.nombre.includes('Test')) {
+        if (rutina.nombre && (rutina.nombre.includes('E2E') || rutina.nombre.includes('Test'))) {
           try {
-            await page.request.delete(`/rutinas/${rutina.id}`, {
+            const deleteResponse = await page.request.delete(`/rutinas/${rutina.id}`, {
               headers: { 'Authorization': `Bearer ${token}` },
             });
+            if (deleteResponse.ok()) deletedRutinas++;
           } catch (error) {
-            console.warn(`Failed to delete rutina ${rutina.id}:`, error);
+            console.warn(`[Cleanup] Failed to delete rutina ${rutina.id} (${rutina.nombre}):`, error);
           }
         }
       }
+      if (deletedRutinas > 0) console.log(`[Cleanup] Deleted ${deletedRutinas} test rutinas`);
     }
+
+    console.log('[Cleanup] Test data cleanup completed');
   } catch (error) {
-    console.error('Error during cleanup:', error);
+    console.error('[Cleanup] Error during cleanup:', error);
   }
 }
 

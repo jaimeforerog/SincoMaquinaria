@@ -41,15 +41,18 @@ test.describe('Smoke Tests - Critical Path', () => {
       try {
         await page.goto(url, { waitUntil: 'commit', timeout: TIMEOUTS.pageLoad });
         await page.waitForLoadState('domcontentloaded');
-        // Extra wait for Firefox to ensure page is stable
+        // Firefox-specific: wait for network idle to ensure stability
         if (browserName === 'firefox') {
-          await page.waitForTimeout(TIMEOUTS.firefoxStabilization);
+          await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {
+            console.log(`[Firefox] Network idle timeout for ${url}, continuing anyway`);
+          });
         }
       } catch (error) {
-        // If navigation fails, try one more time
-        console.log(`Navigation to ${url} failed, retrying...`);
-        await page.waitForTimeout(TIMEOUTS.firefoxStabilization);
-        await page.goto(url, { waitUntil: 'domcontentloaded' });
+        // If navigation fails, try one more time with more lenient waitUntil
+        console.log(`[Navigation] Failed to navigate to ${url}, retrying...`);
+        await page.waitForLoadState('load');
+        await page.goto(url, { waitUntil: 'domcontentloaded', timeout: TIMEOUTS.pageLoad });
+        await page.waitForLoadState('domcontentloaded');
       }
     };
 

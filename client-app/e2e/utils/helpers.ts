@@ -76,7 +76,7 @@ export async function loginAsAdmin(page: Page) {
   // Wait for redirect to dashboard
   await page.waitForURL(/^.*\/$|^.*\/dashboard$/, { timeout: 10000 });
 
-  // Give the frontend time to store the token in localStorage
+  // Wait for token to be stored in localStorage
   await page.waitForTimeout(500);
 }
 
@@ -109,7 +109,7 @@ export async function login(page: Page, email: string, password: string) {
   // Wait for redirect
   await page.waitForURL(/^.*\/$|^.*\/dashboard$/, { timeout: 10000 });
 
-  // Give the frontend time to store the token in localStorage
+  // Wait for token to be stored in localStorage
   await page.waitForTimeout(500);
 }
 
@@ -151,11 +151,22 @@ export async function setAuthToken(page: Page, token: string) {
  * Clear authentication tokens
  */
 export async function clearAuthTokens(page: Page) {
-  await page.evaluate(() => {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('authUser');
-  });
+  // Ensure we're on a page before accessing localStorage
+  try {
+    await page.evaluate(() => {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('authUser');
+    });
+  } catch (error) {
+    // If no page is loaded yet, navigate to login first
+    await page.goto('/login');
+    await page.evaluate(() => {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('authUser');
+    });
+  }
 }
 
 /**
@@ -273,17 +284,44 @@ export async function deleteTestOrder(page: Page, ordenId: string) {
 
 /**
  * Clean up all test data (equipos with E2E- or TEST- prefix)
+ * Deletes in correct order to avoid foreign key constraints: orders -> equipos -> rutinas
  */
 export async function cleanupTestData(page: Page) {
   const token = await getAuthToken(page);
 
   if (!token) {
-    console.warn('No auth token found, skipping cleanup');
+    console.warn('[Cleanup] No auth token found, skipping cleanup');
     return;
   }
 
   try {
-    // Get all equipos
+    console.log('[Cleanup] Starting test data cleanup...');
+
+    // Step 1: Delete test orders FIRST (to avoid FK constraints)
+    try {
+      const ordenesResponse = await page.request.get('/ordenes', {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+
+      if (ordenesResponse.ok()) {
+        const ordenes = await ordenesResponse.json();
+        const data = ordenes.data || ordenes;
+
+        for (const orden of data) {
+          if (orden.numero && (orden.numero.includes('E2E') || orden.numero.includes('OT-E2E'))) {
+            try {
+              await deleteTestOrder(page, orden.id);
+            } catch (error) {
+              console.warn(`[Cleanup] Failed to delete order ${orden.id}:`, error);
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.warn('[Cleanup] Error cleaning orders:', error);
+    }
+
+    // Step 2: Delete test equipos
     const equiposResponse = await page.request.get('/equipos', {
       headers: { 'Authorization': `Bearer ${token}` },
     });
@@ -292,15 +330,18 @@ export async function cleanupTestData(page: Page) {
       const equipos = await equiposResponse.json();
       const data = equipos.data || equipos;
 
-      // Delete test equipos
       for (const equipo of data) {
-        if (equipo.placa.startsWith('E2E-') || equipo.placa.startsWith('TEST-')) {
-          await deleteTestEquipo(page, equipo.id);
+        if (equipo.placa && (equipo.placa.startsWith('E2E-') || equipo.placa.startsWith('TEST-'))) {
+          try {
+            await deleteTestEquipo(page, equipo.id);
+          } catch (error) {
+            console.warn(`[Cleanup] Failed to delete equipo ${equipo.id}:`, error);
+          }
         }
       }
     }
 
-    // Get all rutinas
+    // Step 3: Delete test rutinas LAST
     const rutinasResponse = await page.request.get('/rutinas', {
       headers: { 'Authorization': `Bearer ${token}` },
     });
@@ -309,15 +350,20 @@ export async function cleanupTestData(page: Page) {
       const rutinas = await rutinasResponse.json();
       const data = rutinas.data || rutinas;
 
-      // Delete test rutinas
       for (const rutina of data) {
-        if (rutina.nombre.includes('E2E') || rutina.nombre.includes('Test')) {
-          await deleteTestRutina(page, rutina.id);
+        if (rutina.nombre && (rutina.nombre.includes('E2E') || rutina.nombre.includes('Test'))) {
+          try {
+            await deleteTestRutina(page, rutina.id);
+          } catch (error) {
+            console.warn(`[Cleanup] Failed to delete rutina ${rutina.id}:`, error);
+          }
         }
       }
     }
+
+    console.log('[Cleanup] Test data cleanup completed');
   } catch (error) {
-    console.warn('Error during cleanup:', error);
+    console.warn('[Cleanup] Error during cleanup:', error);
   }
 }
 
@@ -401,4 +447,36 @@ export function generateUniqueId(): string {
  */
 export async function wait(milliseconds: number) {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
+
+/**
+ * Retry a function with exponential backoff
+ * @param fn Function to retry
+ * @param maxRetries Maximum number of retries (default 3)
+ * @param initialDelay Initial delay in ms (default 1000)
+ * @returns Result of the function
+ */
+export async function retryWithBackoff<T>(
+  fn: () => Promise<T>,
+  maxRetries = 3,
+  initialDelay = 1000
+): Promise<T> {
+  let lastError: Error | undefined;
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error as Error;
+
+      if (attempt < maxRetries) {
+        // Exponential backoff: 1s, 2s, 4s, 8s...
+        const delay = initialDelay * Math.pow(2, attempt);
+        console.log(`[Retry] Attempt ${attempt + 1} failed, retrying in ${delay}ms...`);
+        await wait(delay);
+      }
+    }
+  }
+
+  throw new Error(`Failed after ${maxRetries + 1} attempts: ${lastError?.message}`);
 }

@@ -26,7 +26,8 @@ test.describe('Authentication Flow', () => {
     loginPage = new LoginPage(page);
     dashboardPage = new DashboardPage(page);
 
-    // Clear any existing auth state
+    // Navigate to login page first, then clear auth state
+    await page.goto('/login');
     await clearAuthTokens(page);
   });
 
@@ -128,8 +129,14 @@ test.describe('Authentication Flow', () => {
     // Act - Make a request that requires authentication
     await page.goto('/gestion-equipos');
 
-    // Wait for potential token refresh
-    await page.waitForTimeout(2000);
+    // Wait for either token refresh or redirect to login
+    await Promise.race([
+      page.waitForFunction(
+        () => localStorage.getItem('authToken') !== 'expired-token',
+        { timeout: 5000 }
+      ),
+      page.waitForURL('/login', { timeout: 5000 }).catch(() => {})
+    ]);
 
     // Assert - Either token was refreshed or user was logged out
     const currentUrl = page.url();
@@ -257,6 +264,8 @@ test.describe('Authentication - Edge Cases', () => {
 
   test.beforeEach(async ({ page }) => {
     loginPage = new LoginPage(page);
+    // Navigate to login page first, then clear auth state
+    await page.goto('/login');
     await clearAuthTokens(page);
   });
 

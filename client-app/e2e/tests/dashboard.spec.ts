@@ -21,6 +21,8 @@ test.describe('Dashboard', () => {
   test.beforeEach(async ({ page }) => {
     dashboardPage = new DashboardPage(page);
     await loginAsAdmin(page);
+    // Cleanup AFTER login so we have a page loaded
+    await cleanupAllTestData(page);
   });
 
   test.afterAll(async ({ browser }) => {
