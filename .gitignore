@@ -138,3 +138,7 @@ azure-publish-profile.xml
 errors.txt
 full_log.txt
 test_errors.txt
+
+# Script outputs & misc
+NUL
+azure-logs/

@@ -78,7 +78,14 @@
       "Bash(node -e \"\nconst fs = require\\(''fs''\\);\nconst path = require\\(''path''\\);\nconst glob = require\\(''child_process''\\).execSync\\(''dir /s /b coverage-results\\\\\\\\*.xml 2>nul'', {encoding:''utf8''}\\).trim\\(\\).split\\(''\\\\n''\\);\nconst f = glob[glob.length-1].trim\\(\\);\nconst xml = fs.readFileSync\\(f, ''utf8''\\);\nconst lr = xml.match\\(/line-rate=\"\"\\([^\"\"]+\\)\"\"/\\);\nconst br = xml.match\\(/branch-rate=\"\"\\([^\"\"]+\\)\"\"/\\);\nconsole.log\\(''Backend Coverage:''\\);\nconsole.log\\(''  Lines:   '' + \\(parseFloat\\(lr[1]\\)*100\\).toFixed\\(1\\) + ''%''\\);\nconsole.log\\(''  Branches: '' + \\(parseFloat\\(br[1]\\)*100\\).toFixed\\(1\\) + ''%''\\);\n\")",
       "Bash(node:*)",
       "Bash(dotnet tool list:*)",
-      "Bash(npx vite build:*)"
+      "Bash(npx vite build:*)",
+      "Bash(gh workflow run:*)",
+      "Bash(git remote get-url:*)",
+      "Bash(choco install:*)",
+      "Bash(winget install:*)",
+      "Bash(export PATH=\"$PATH:/c/Program Files/GitHub CLI\")",
+      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" --version)",
+      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" run list --repo jaimeforerog/SincoMaquinaria --limit 5)"
     ]
   }
 }

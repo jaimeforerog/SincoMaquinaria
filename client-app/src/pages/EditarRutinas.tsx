@@ -1,16 +1,12 @@
 import { useEffect, useState } from 'react';
-import {
-    Box, Typography, Button, CircularProgress, Alert,
-    Accordion, AccordionSummary, AccordionDetails,
-    Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
-    TextField, Dialog, DialogTitle, DialogContent, DialogActions,
-    IconButton, Chip, MenuItem, FormControl, InputLabel, Select
-} from '@mui/material';
-import {
-    ExpandMore, Edit, Delete, Add, Save, Cancel
-} from '@mui/icons-material';
+import { Box, Typography, Button, CircularProgress, Alert } from '@mui/material';
+import { Add } from '@mui/icons-material';
 import { useAuthFetch } from '../hooks/useAuthFetch';
 import { Rutina, Parte, Actividad } from '../types';
+import RutinaAccordion from '../components/rutinas/RutinaAccordion';
+import RutinaFormDialog from '../components/rutinas/RutinaFormDialog';
+import ParteFormDialog from '../components/rutinas/ParteFormDialog';
+import ActividadFormDialog from '../components/rutinas/ActividadFormDialog';
 
 const EditarRutinas = () => {
     const authFetch = useAuthFetch();
@@ -22,13 +18,13 @@ const EditarRutinas = () => {
     const [medidores, setMedidores] = useState<any[]>([]);
 
     // Dialog states
-    const [editRutinaDialog, setEditRutinaDialog] = useState(false);
-    const [createRutinaDialog, setCreateRutinaDialog] = useState(false);
+    const [rutinaDialogOpen, setRutinaDialogOpen] = useState(false);
+    const [rutinaDialogMode, setRutinaDialogMode] = useState<'create' | 'edit'>('create');
     const [editParteDialog, setEditParteDialog] = useState(false);
     const [editActividadDialog, setEditActividadDialog] = useState(false);
-    const [newRutina, setNewRutina] = useState({ descripcion: '', grupo: '' });
 
     const [currentRutina, setCurrentRutina] = useState<Rutina | null>(null);
+    const [newRutina, setNewRutina] = useState({ descripcion: '', grupo: '' });
     const [currentParte, setCurrentParte] = useState<Parte | null>(null);
     const [currentActividad, setCurrentActividad] = useState<Actividad | null>(null);
     const [currentRutinaId, setCurrentRutinaId] = useState<string | null>(null);
@@ -73,7 +69,6 @@ const EditarRutinas = () => {
                 const response = await res.json();
                 const rutinasData = response.data || response;
 
-                // Fetch full details for each rutina
                 const rutinasWithDetails = await Promise.all(
                     rutinasData.map(async (r: any) => {
                         const detailRes = await authFetch(`/rutinas/${r.id}`);
@@ -111,7 +106,7 @@ const EditarRutinas = () => {
 
             if (res.ok) {
                 setSuccess('Rutina creada exitosamente');
-                setCreateRutinaDialog(false);
+                setRutinaDialogOpen(false);
                 setNewRutina({ descripcion: '', grupo: '' });
                 fetchRutinas();
             } else {
@@ -124,7 +119,8 @@ const EditarRutinas = () => {
 
     const handleEditRutina = (rutina: Rutina) => {
         setCurrentRutina({ ...rutina });
-        setEditRutinaDialog(true);
+        setRutinaDialogMode('edit');
+        setRutinaDialogOpen(true);
     };
 
     const handleSaveRutina = async () => {
@@ -142,7 +138,7 @@ const EditarRutinas = () => {
 
             if (res.ok) {
                 setSuccess('Rutina actualizada exitosamente');
-                setEditRutinaDialog(false);
+                setRutinaDialogOpen(false);
                 fetchRutinas();
             } else {
                 setError('Error al actualizar la rutina');
@@ -171,14 +167,12 @@ const EditarRutinas = () => {
         try {
             let res;
             if (currentParte.id) {
-                // Update existing
                 res = await authFetch(`/rutinas/${currentRutinaId}/partes/${currentParte.id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ descripcion: currentParte.descripcion })
                 });
             } else {
-                // Add new
                 res = await authFetch(`/rutinas/${currentRutinaId}/partes`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -249,7 +243,6 @@ const EditarRutinas = () => {
     const handleSaveActividad = async () => {
         if (!currentActividad || !currentRutinaId || !currentParteId) return;
 
-        // Validate description is not empty
         if (!currentActividad.descripcion || currentActividad.descripcion.trim() === '') {
             setError('La descripción de la actividad es obligatoria');
             return;
@@ -258,7 +251,6 @@ const EditarRutinas = () => {
         try {
             let res;
             if (currentActividad.id) {
-                // Update existing
                 res = await authFetch(
                     `/rutinas/${currentRutinaId}/partes/${currentParteId}/actividades/${currentActividad.id}`,
                     {
@@ -268,7 +260,6 @@ const EditarRutinas = () => {
                     }
                 );
             } else {
-                // Add new
                 res = await authFetch(
                     `/rutinas/${currentRutinaId}/partes/${currentParteId}/actividades`,
                     {
@@ -336,7 +327,8 @@ const EditarRutinas = () => {
                     startIcon={<Add />}
                     onClick={() => {
                         setNewRutina({ descripcion: '', grupo: '' });
-                        setCreateRutinaDialog(true);
+                        setRutinaDialogMode('create');
+                        setRutinaDialogOpen(true);
                     }}
                 >
                     Nueva Rutina
@@ -360,381 +352,57 @@ const EditarRutinas = () => {
                 <Alert severity="info">No hay rutinas para editar. Importe rutinas primero.</Alert>
             ) : (
                 rutinas.map((rutina) => (
-                    <Accordion key={rutina.id} sx={{ mb: 2 }}>
-                        <AccordionSummary expandIcon={<ExpandMore />}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                                <Box sx={{ flexGrow: 1 }}>
-                                    <Typography variant="h6">{rutina.descripcion}</Typography>
-                                    <Chip label={rutina.grupo} size="small" sx={{ mt: 0.5 }} />
-                                </Box>
-                                <IconButton
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleEditRutina(rutina);
-                                    }}
-                                    size="small"
-                                >
-                                    <Edit />
-                                </IconButton>
-                            </Box>
-                        </AccordionSummary>
-                        <AccordionDetails>
-                            <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between' }}>
-                                <Typography variant="subtitle2" color="text.secondary">
-                                    Partes del Equipo
-                                </Typography>
-                                <Button
-                                    startIcon={<Add />}
-                                    size="small"
-                                    onClick={() => handleAddParte(rutina.id)}
-                                >
-                                    Agregar Parte
-                                </Button>
-                            </Box>
-
-                            {rutina.partes && rutina.partes.length > 0 ? (
-                                rutina.partes.map((parte) => (
-                                    <Paper key={parte.id} sx={{ p: 2, mb: 2 }}>
-                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                                            <Typography variant="subtitle1" fontWeight="bold">
-                                                {parte.descripcion}
-                                            </Typography>
-                                            <Box>
-                                                <IconButton
-                                                    size="small"
-                                                    onClick={() => handleEditParte(rutina.id, parte)}
-                                                >
-                                                    <Edit fontSize="small" />
-                                                </IconButton>
-                                                <IconButton
-                                                    size="small"
-                                                    color="error"
-                                                    onClick={() => handleDeleteParte(rutina.id, parte.id)}
-                                                >
-                                                    <Delete fontSize="small" />
-                                                </IconButton>
-                                            </Box>
-                                        </Box>
-
-                                        <Box sx={{ mb: 1 }}>
-                                            <Button
-                                                startIcon={<Add />}
-                                                size="small"
-                                                variant="outlined"
-                                                onClick={() => handleAddActividad(rutina.id, parte.id)}
-                                            >
-                                                Agregar Actividad
-                                            </Button>
-                                        </Box>
-
-                                        {parte.actividades && parte.actividades.length > 0 && (
-                                            <TableContainer>
-                                                <Table size="small">
-                                                    <TableHead>
-                                                        <TableRow>
-                                                            <TableCell><strong>Actividad</strong></TableCell>
-                                                            <TableCell><strong>Clase</strong></TableCell>
-                                                            <TableCell><strong>Frecuencia</strong></TableCell>
-                                                            <TableCell><strong>Insumo</strong></TableCell>
-                                                            <TableCell align="right"><strong>Acciones</strong></TableCell>
-                                                        </TableRow>
-                                                    </TableHead>
-                                                    <TableBody>
-                                                        {parte.actividades.map((actividad) => (
-                                                            <TableRow key={actividad.id}>
-                                                                <TableCell>{actividad.descripcion}</TableCell>
-                                                                <TableCell>{actividad.clase}</TableCell>
-                                                                <TableCell>
-                                                                    {actividad.frecuencia} {actividad.unidadMedida}
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    {actividad.insumo || 'N/A'} ({actividad.cantidad})
-                                                                </TableCell>
-                                                                <TableCell align="right">
-                                                                    <IconButton
-                                                                        size="small"
-                                                                        onClick={() =>
-                                                                            handleEditActividad(rutina.id, parte.id, actividad)
-                                                                        }
-                                                                    >
-                                                                        <Edit fontSize="small" />
-                                                                    </IconButton>
-                                                                    <IconButton
-                                                                        size="small"
-                                                                        color="error"
-                                                                        onClick={() =>
-                                                                            handleDeleteActividad(
-                                                                                rutina.id,
-                                                                                parte.id,
-                                                                                actividad.id
-                                                                            )
-                                                                        }
-                                                                    >
-                                                                        <Delete fontSize="small" />
-                                                                    </IconButton>
-                                                                </TableCell>
-                                                            </TableRow>
-                                                        ))}
-                                                    </TableBody>
-                                                </Table>
-                                            </TableContainer>
-                                        )}
-                                    </Paper>
-                                ))
-                            ) : (
-                                <Alert severity="info">No hay partes definidas para esta rutina.</Alert>
-                            )}
-                        </AccordionDetails>
-                    </Accordion>
+                    <RutinaAccordion
+                        key={rutina.id}
+                        rutina={rutina}
+                        onEditRutina={handleEditRutina}
+                        onAddParte={handleAddParte}
+                        onEditParte={handleEditParte}
+                        onDeleteParte={handleDeleteParte}
+                        onAddActividad={handleAddActividad}
+                        onEditActividad={handleEditActividad}
+                        onDeleteActividad={handleDeleteActividad}
+                    />
                 ))
             )}
 
-            {/* Create Rutina Dialog */}
-            <Dialog open={createRutinaDialog} onClose={() => setCreateRutinaDialog(false)} maxWidth="sm" fullWidth>
-                <DialogTitle>Crear Nueva Rutina</DialogTitle>
-                <DialogContent>
-                    <TextField
-                        autoFocus
-                        margin="dense"
-                        label="Descripción"
-                        fullWidth
-                        required
-                        value={newRutina.descripcion}
-                        onChange={(e) =>
-                            setNewRutina({ ...newRutina, descripcion: e.target.value })
-                        }
-                        helperText="Nombre de la rutina de mantenimiento"
-                    />
-                    <FormControl fullWidth margin="dense" required>
-                        <InputLabel>Grupo de Mantenimiento</InputLabel>
-                        <Select
-                            value={newRutina.grupo}
-                            label="Grupo de Mantenimiento"
-                            onChange={(e) => setNewRutina({ ...newRutina, grupo: e.target.value as string })}
-                        >
-                            {grupos.map((grupo) => (
-                                <MenuItem key={grupo.codigo} value={grupo.nombre}>
-                                    {grupo.nombre}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setCreateRutinaDialog(false)} startIcon={<Cancel />}>
-                        Cancelar
-                    </Button>
-                    <Button onClick={handleCreateRutina} variant="contained" startIcon={<Save />}>
-                        Crear
-                    </Button>
-                </DialogActions>
-            </Dialog>
+            {/* Dialogs */}
+            <RutinaFormDialog
+                open={rutinaDialogOpen}
+                mode={rutinaDialogMode}
+                rutina={rutinaDialogMode === 'create' ? newRutina : currentRutina}
+                grupos={grupos}
+                onClose={() => setRutinaDialogOpen(false)}
+                onSave={rutinaDialogMode === 'create' ? handleCreateRutina : handleSaveRutina}
+                onChange={(field, value) => {
+                    if (rutinaDialogMode === 'create') {
+                        setNewRutina({ ...newRutina, [field]: value });
+                    } else if (currentRutina) {
+                        setCurrentRutina({ ...currentRutina, [field]: value });
+                    }
+                }}
+            />
 
-            {/* Edit Rutina Dialog */}
-            <Dialog open={editRutinaDialog} onClose={() => setEditRutinaDialog(false)} maxWidth="sm" fullWidth>
-                <DialogTitle>Editar Rutina</DialogTitle>
-                <DialogContent>
-                    <TextField
-                        autoFocus
-                        margin="dense"
-                        label="Descripción"
-                        fullWidth
-                        value={currentRutina?.descripcion || ''}
-                        onChange={(e) =>
-                            setCurrentRutina({ ...currentRutina!, descripcion: e.target.value })
-                        }
-                    />
-                    <FormControl fullWidth margin="dense">
-                        <InputLabel>Grupo de Mantenimiento</InputLabel>
-                        <Select
-                            value={currentRutina?.grupo || ''}
-                            label="Grupo de Mantenimiento"
-                            onChange={(e) => setCurrentRutina({ ...currentRutina!, grupo: e.target.value as string })}
-                        >
-                            {grupos.map((grupo) => (
-                                <MenuItem key={grupo.codigo} value={grupo.nombre}>
-                                    {grupo.nombre}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setEditRutinaDialog(false)} startIcon={<Cancel />}>
-                        Cancelar
-                    </Button>
-                    <Button onClick={handleSaveRutina} variant="contained" startIcon={<Save />}>
-                        Guardar
-                    </Button>
-                </DialogActions>
-            </Dialog>
+            <ParteFormDialog
+                open={editParteDialog}
+                parte={currentParte}
+                onClose={() => setEditParteDialog(false)}
+                onSave={handleSaveParte}
+                onChange={(descripcion) =>
+                    setCurrentParte({ ...currentParte!, descripcion })
+                }
+            />
 
-            {/* Edit Parte Dialog */}
-            <Dialog open={editParteDialog} onClose={() => setEditParteDialog(false)} maxWidth="sm" fullWidth>
-                <DialogTitle>{currentParte?.id ? 'Editar Parte' : 'Agregar Parte'}</DialogTitle>
-                <DialogContent>
-                    <TextField
-                        autoFocus
-                        margin="dense"
-                        label="Descripción"
-                        fullWidth
-                        value={currentParte?.descripcion || ''}
-                        onChange={(e) =>
-                            setCurrentParte({ ...currentParte!, descripcion: e.target.value })
-                        }
-                    />
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setEditParteDialog(false)} startIcon={<Cancel />}>
-                        Cancelar
-                    </Button>
-                    <Button onClick={handleSaveParte} variant="contained" startIcon={<Save />}>
-                        Guardar
-                    </Button>
-                </DialogActions>
-            </Dialog>
-
-            {/* Edit Actividad Dialog */}
-            <Dialog open={editActividadDialog} onClose={() => setEditActividadDialog(false)} maxWidth="md" fullWidth>
-                <DialogTitle>{currentActividad?.id ? 'Editar Actividad' : 'Agregar Actividad'}</DialogTitle>
-                <DialogContent>
-                    {error && (
-                        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
-                            {error}
-                        </Alert>
-                    )}
-                    <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, mt: 1 }}>
-                        <TextField
-                            label="Descripción *"
-                            fullWidth
-                            required
-                            error={!currentActividad?.descripcion}
-                            helperText={!currentActividad?.descripcion ? 'Obligatorio' : ''}
-                            value={currentActividad?.descripcion || ''}
-                            onChange={(e) =>
-                                setCurrentActividad({ ...currentActividad!, descripcion: e.target.value })
-                            }
-                        />
-                        <TextField
-                            label="Clase"
-                            fullWidth
-                            value={currentActividad?.clase || ''}
-                            onChange={(e) =>
-                                setCurrentActividad({ ...currentActividad!, clase: e.target.value })
-                            }
-                        />
-                        <TextField
-                            label="Frecuencia"
-                            type="number"
-                            fullWidth
-                            value={currentActividad?.frecuencia || 0}
-                            onChange={(e) =>
-                                setCurrentActividad({ ...currentActividad!, frecuencia: Number(e.target.value) })
-                            }
-                        />
-                        <FormControl fullWidth>
-                            <InputLabel>Medidor I</InputLabel>
-                            <Select
-                                value={currentActividad?.nombreMedidor || ''}
-                                label="Medidor I"
-                                onChange={(e) => {
-                                    const selectedMedidor = medidores.find(m => m.nombre === e.target.value);
-                                    setCurrentActividad({
-                                        ...currentActividad!,
-                                        nombreMedidor: e.target.value as string,
-                                        unidadMedida: selectedMedidor?.unidad || ''
-                                    });
-                                }}
-                            >
-                                <MenuItem value="">
-                                    <em>Ninguno</em>
-                                </MenuItem>
-                                {medidores.map((medidor) => (
-                                    <MenuItem key={medidor.codigo} value={medidor.nombre}>
-                                        {medidor.nombre} ({medidor.unidad})
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-                        <TextField
-                            label="Alerta Faltando"
-                            type="number"
-                            fullWidth
-                            value={currentActividad?.alertaFaltando || 0}
-                            onChange={(e) =>
-                                setCurrentActividad({ ...currentActividad!, alertaFaltando: Number(e.target.value) })
-                            }
-                        />
-                        <TextField
-                            label="Frecuencia II"
-                            type="number"
-                            fullWidth
-                            value={currentActividad?.frecuencia2 || 0}
-                            onChange={(e) =>
-                                setCurrentActividad({ ...currentActividad!, frecuencia2: Number(e.target.value) })
-                            }
-                        />
-                        <FormControl fullWidth>
-                            <InputLabel>Medidor II</InputLabel>
-                            <Select
-                                value={currentActividad?.nombreMedidor2 || ''}
-                                label="Medidor II"
-                                onChange={(e) => {
-                                    const selectedMedidor = medidores.find(m => m.nombre === e.target.value);
-                                    setCurrentActividad({
-                                        ...currentActividad!,
-                                        nombreMedidor2: e.target.value as string,
-                                        unidadMedida2: selectedMedidor?.unidad || ''
-                                    });
-                                }}
-                            >
-                                <MenuItem value="">
-                                    <em>Ninguno</em>
-                                </MenuItem>
-                                {medidores.map((medidor) => (
-                                    <MenuItem key={medidor.codigo} value={medidor.nombre}>
-                                        {medidor.nombre} ({medidor.unidad})
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-                        <TextField
-                            label="Alerta Faltando II"
-                            type="number"
-                            fullWidth
-                            value={currentActividad?.alertaFaltando2 || 0}
-                            onChange={(e) =>
-                                setCurrentActividad({ ...currentActividad!, alertaFaltando2: Number(e.target.value) })
-                            }
-                        />
-                        <TextField
-                            label="Insumo"
-                            fullWidth
-                            value={currentActividad?.insumo || ''}
-                            onChange={(e) =>
-                                setCurrentActividad({ ...currentActividad!, insumo: e.target.value })
-                            }
-                        />
-                        <TextField
-                            label="Cantidad"
-                            type="number"
-                            fullWidth
-                            value={currentActividad?.cantidad || 0}
-                            onChange={(e) =>
-                                setCurrentActividad({ ...currentActividad!, cantidad: Number(e.target.value) })
-                            }
-                        />
-                    </Box>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setEditActividadDialog(false)} startIcon={<Cancel />}>
-                        Cancelar
-                    </Button>
-                    <Button onClick={handleSaveActividad} variant="contained" startIcon={<Save />}>
-                        Guardar
-                    </Button>
-                </DialogActions>
-            </Dialog>
+            <ActividadFormDialog
+                open={editActividadDialog}
+                actividad={currentActividad}
+                medidores={medidores}
+                error={error}
+                onClose={() => setEditActividadDialog(false)}
+                onSave={handleSaveActividad}
+                onChange={setCurrentActividad}
+                onClearError={() => setError(null)}
+            />
         </Box>
     );
 };
