@@ -16,7 +16,7 @@ export default function ImportarRutinas() {
   const [isUploading, setIsUploading] = useState(false);
   const [openDialog, setOpenDialog] = useState(false); // Reset DB Dialog
 
-  const handleTabChange = (event: SyntheticEvent, newValue: number) => {
+  const handleTabChange = (_event: SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
     setFile(null);
     setMessage('');

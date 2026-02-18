@@ -1,16 +1,17 @@
 import { renderHook } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useAuthFetch } from './useAuthFetch';
-import { useAuth } from '../contexts/AuthContext';
 
 // Mock useAuth
 const mockLogout = vi.fn();
+const mockRefreshAccessToken = vi.fn();
 const mockToken = 'fake-token';
 
 vi.mock('../contexts/AuthContext', () => ({
     useAuth: () => ({
         token: mockToken,
-        logout: mockLogout
+        logout: mockLogout,
+        refreshAccessToken: mockRefreshAccessToken
     })
 }));
 
@@ -42,6 +43,9 @@ describe('useAuthFetch', () => {
     });
 
     it('calls logout on 401 response', async () => {
+        // Mock refresh to fail so logout is called
+        mockRefreshAccessToken.mockResolvedValue(false);
+
         (global.fetch as any).mockResolvedValue({
             ok: false,
             status: 401,
@@ -57,6 +61,7 @@ describe('useAuthFetch', () => {
             // Error expected
         }
 
+        expect(mockRefreshAccessToken).toHaveBeenCalled();
         expect(mockLogout).toHaveBeenCalled();
     });
 

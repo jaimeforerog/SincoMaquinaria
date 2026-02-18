@@ -68,7 +68,7 @@ const Dashboard = () => {
 
             {/* KPIs */}
             <Grid container spacing={3} sx={{ mb: 4 }}>
-                <Grid item xs={12} sm={6} md={3}>
+                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                     <Box component={Link} to="/gestion-equipos" sx={{ textDecoration: 'none' }}>
                         <KpiCard
                             title="Equipos"
@@ -79,7 +79,7 @@ const Dashboard = () => {
                     </Box>
                 </Grid>
 
-                <Grid item xs={12} sm={6} md={2}>
+                <Grid size={{ xs: 12, sm: 6, md: 2 }}>
                     <Box component={Link} to="/editar-rutinas" sx={{ textDecoration: 'none' }}>
                         <KpiCard
                             icon={<Engineering sx={{ fontSize: 32, color: "#78909c" }} />} // Blue Grey
@@ -90,7 +90,7 @@ const Dashboard = () => {
                         />
                     </Box>
                 </Grid>
-                <Grid item xs={12} sm={6} md={3}>
+                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                     <Box component={Link} to="/historial" sx={{ textDecoration: 'none' }}>
                         <KpiCard
                             icon={<Assignment sx={{ fontSize: 32, color: "#90caf9" }} />} // MUI Blue 200

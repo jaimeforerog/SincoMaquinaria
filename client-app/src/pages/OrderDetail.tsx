@@ -4,7 +4,7 @@ import { ArrowBack, CalendarToday, Person, LocalShipping, AccessTime, Add, Expan
 import { exportOrdenToPDF } from '../services/PDFExportService';
 import { OrdenDeTrabajo } from '../types';
 import {
-    Box, Typography, Container, Paper, Grid, Card, CardContent, Chip, IconButton, Button, Tabs, Tab, TextField, Divider, List, ListItem, ListItemText, ListItemIcon, MenuItem,
+    Box, Typography, Container, Paper, Grid, Card, CardContent, Chip, IconButton, Button, Tabs, Tab, TextField, List, ListItem, ListItemText, ListItemIcon, MenuItem,
     Accordion, AccordionSummary, AccordionDetails, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Dialog, DialogTitle, DialogContent, DialogActions
 } from '@mui/material';
 
@@ -271,13 +271,13 @@ const OrderDetail = () => {
 
             {/* Info Cards */}
             <Grid container spacing={3} sx={{ mb: 4 }}>
-                <Grid item xs={12} md={4}>
+                <Grid size={{ xs: 12, md: 4 }}>
                     <InfoCard icon={<LocalShipping />} label="Equipo" value={equipo ? `${equipo.placa} - ${equipo.descripcion}` : (order.equipoId || 'N/A')} />
                 </Grid>
-                <Grid item xs={12} md={4}>
+                <Grid size={{ xs: 12, md: 4 }}>
                     <InfoCard icon={<Person />} label="Responsable" value="Sin Asignar" />
                 </Grid>
-                <Grid item xs={12} md={4}>
+                <Grid size={{ xs: 12, md: 4 }}>
                     <InfoCard icon={<CalendarToday />} label="Fecha Creación" value={new Date().toLocaleDateString()} />
                 </Grid>
             </Grid>

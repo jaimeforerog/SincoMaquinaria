@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { LocalShipping, Save } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { Rutina } from '../types';
@@ -12,8 +12,7 @@ import {
     Autocomplete,
     MenuItem,
     Grid,
-    CircularProgress,
-    InputAdornment
+    CircularProgress
 } from '@mui/material';
 
 import { useAuthFetch } from '../hooks/useAuthFetch';
@@ -129,7 +128,7 @@ const CreateOrder = () => {
             <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
                 <Grid container spacing={4}>
                     {/* SECCIÓN 1: Equipo */}
-                    <Grid item xs={12}>
+                    <Grid size={12}>
                         <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                             <LocalShipping sx={{ fontSize: 20 }} /> 1. Selecciona el Equipo
                         </Typography>
@@ -137,7 +136,7 @@ const CreateOrder = () => {
                             options={equiposList}
                             getOptionLabel={(option) => `${option.placa} - ${option.descripcion}`}
                             value={equipoValue}
-                            onChange={(event, newValue: any) => {
+                            onChange={(_event, newValue: any) => {
                                 setEquipoValue(newValue);
                                 let newRutinaId = '';
                                 // Only associate routine for PREVENTIVE orders
@@ -167,12 +166,12 @@ const CreateOrder = () => {
                     </Grid>
 
                     {/* SECCIÓN 2: Detalles */}
-                    <Grid item xs={12}>
+                    <Grid size={12}>
                         <Typography variant="h6" gutterBottom>
                             2. Detalles de la Orden
                         </Typography>
                         <Grid container spacing={2}>
-                            <Grid item xs={12} md={6}>
+                            <Grid size={{ xs: 12, md: 6 }}>
                                 <TextField
                                     select
                                     label="Tipo de Orden"
@@ -202,7 +201,7 @@ const CreateOrder = () => {
                                 </TextField>
                             </Grid>
 
-                            <Grid item xs={12} md={6}>
+                            <Grid size={{ xs: 12, md: 6 }}>
                                 <TextField
                                     type="date"
                                     label="Fecha de la OT"
@@ -215,7 +214,7 @@ const CreateOrder = () => {
 
                             {formData.tipo === 'Preventivo' && (
                                 <>
-                                    <Grid item xs={12} md={6}>
+                                    <Grid size={{ xs: 12, md: 6 }}>
                                         <TextField
                                             select
                                             label="Rutina Sugerida"
@@ -236,7 +235,7 @@ const CreateOrder = () => {
                                         </TextField>
                                     </Grid>
 
-                                    <Grid item xs={12} md={6}>
+                                    <Grid size={{ xs: 12, md: 6 }}>
                                         <TextField
                                             select
                                             label="Frecuencia Mantenimiento"
@@ -262,7 +261,7 @@ const CreateOrder = () => {
                     </Grid>
 
                     {/* Botón Guardar */}
-                    <Grid item xs={12}>
+                    <Grid size={12}>
                         <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
                             <Button
                                 variant="contained"

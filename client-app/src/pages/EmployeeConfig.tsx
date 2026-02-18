@@ -171,7 +171,7 @@ const EmployeeConfig = () => {
                 <DialogTitle>{editingId ? 'Editar Empleado' : 'Nuevo Empleado'}</DialogTitle>
                 <DialogContent dividers>
                     <Grid container spacing={2} sx={{ pt: 1 }}>
-                        <Grid item xs={12}>
+                        <Grid size={12}>
                             <TextField
                                 label="Nombre Completo"
                                 fullWidth
@@ -179,7 +179,7 @@ const EmployeeConfig = () => {
                                 onChange={(e) => setNombre(e.target.value)}
                             />
                         </Grid>
-                        <Grid item xs={12}>
+                        <Grid size={12}>
                             <TextField
                                 label="Identificación (Cédula)"
                                 fullWidth
@@ -187,7 +187,7 @@ const EmployeeConfig = () => {
                                 onChange={(e) => setIdentificacion(e.target.value)}
                             />
                         </Grid>
-                        <Grid item xs={12} sm={6}>
+                        <Grid size={{ xs: 12, sm: 6 }}>
                             <FormControl fullWidth>
                                 <InputLabel>Cargo</InputLabel>
                                 <Select
@@ -201,7 +201,7 @@ const EmployeeConfig = () => {
                                 </Select>
                             </FormControl>
                         </Grid>
-                        <Grid item xs={12} sm={6}>
+                        <Grid size={{ xs: 12, sm: 6 }}>
                             <TextField
                                 label="Especialidad"
                                 fullWidth
@@ -210,7 +210,7 @@ const EmployeeConfig = () => {
                                 placeholder="Ej: Eléctrico, Hidráulico, etc."
                             />
                         </Grid>
-                        <Grid item xs={12}>
+                        <Grid size={12}>
                             <TextField
                                 label="Valor Hora ($)"
                                 fullWidth
@@ -220,7 +220,7 @@ const EmployeeConfig = () => {
                                 inputProps={{ min: 0, step: 1000 }}
                             />
                         </Grid>
-                        <Grid item xs={12}>
+                        <Grid size={12}>
                             {editingId ? (
                                 <FormControlLabel
                                     control={

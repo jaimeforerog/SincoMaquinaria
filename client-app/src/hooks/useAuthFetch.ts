@@ -19,7 +19,7 @@ export const useAuthFetch = () => {
 
       // Add Authorization header if token exists
       if (accessToken) {
-        headers['Authorization'] = `Bearer ${accessToken}`;
+        (headers as any)['Authorization'] = `Bearer ${accessToken}`;
       }
 
       return fetch(url, {

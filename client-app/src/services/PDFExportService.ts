@@ -5,7 +5,7 @@ import { OrdenDeTrabajo } from '../types';
 export const exportOrdenToPDF = (
     order: OrdenDeTrabajo & { detalles?: any[] },
     equipo: any,
-    history: any[],
+    _history: any[],
     tiposFalla?: any[],
     causasFalla?: any[]
 ) => {
@@ -44,7 +44,7 @@ export const exportOrdenToPDF = (
         body: infoData,
         theme: 'striped',
         headStyles: { fillColor: [79, 195, 247] }, // Light Blue
-        columnStyles: { 0: { fontStyle: 'bold', width: 60 } }
+        columnStyles: { 0: { fontStyle: 'bold', cellWidth: 60 } }
     });
 
     // --- Activities Table ---
