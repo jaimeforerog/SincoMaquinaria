@@ -77,7 +77,7 @@ public class ConfiguracionGlobalTests
     }
 
     [Fact]
-    public void ConfiguracionGlobal_NoDuplicarCausaFalla_CuandoYaExiste()
+    public void ConfiguracionGlobal_DuplicarCausaFalla_DebeLanzarDomainException()
     {
         // Arrange
         var config = new ConfiguracionGlobal();
@@ -86,11 +86,11 @@ public class ConfiguracionGlobalTests
 
         // Act
         config.Apply(evento1);
-        config.Apply(evento2);
 
         // Assert
+        var ex = Assert.Throws<DomainException>(() => config.Apply(evento2));
+        Assert.Contains("CAUSA001", ex.Message);
         Assert.Single(config.CausasFalla);
-        Assert.Equal("Primera causa", config.CausasFalla[0].Descripcion);
     }
 
     [Fact]

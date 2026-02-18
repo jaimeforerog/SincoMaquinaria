@@ -25,9 +25,11 @@ public class MantenimientoJobHandler
         _logger.LogInformation("Iniciando limpieza de tokens expirados...");
 
         // Buscar usuarios con refresh tokens expirados
+        // Use DateTime.Now instead of UtcNow to avoid Npgsql 6.0+ DateTime.Kind=UTC issue
+        var ahora = DateTime.Now;
         var usuariosConTokensExpirados = await session.Query<Usuario>()
             .Where(u => u.RefreshToken != null &&
-                        u.RefreshTokenExpiry < DateTime.UtcNow)
+                        u.RefreshTokenExpiry < ahora)
             .ToListAsync();
 
         _logger.LogInformation("Encontrados {Count} tokens expirados", usuariosConTokensExpirados.Count);

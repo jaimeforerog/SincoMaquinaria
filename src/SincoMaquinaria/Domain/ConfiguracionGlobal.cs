@@ -22,131 +22,119 @@ public class ConfiguracionGlobal
     {
         Id = SingletonId;
         var existing = TiposMedidor.FirstOrDefault(t => t.Codigo == @event.Codigo);
-        if (existing == null)
+        if (existing != null)
+            throw new DomainException($"Tipo de medidor con código '{@event.Codigo}' ya existe");
+
+        TiposMedidor.Add(new TipoMedidor
         {
-            TiposMedidor.Add(new TipoMedidor 
-            { 
-                Codigo = @event.Codigo, 
-                Nombre = @event.Nombre, 
-                Unidad = @event.Unidad, 
-                Activo = true,
-                CreadoPor = @event.UsuarioId,
-                CreadoPorNombre = @event.UsuarioNombre,
-                FechaCreacion = @event.FechaCreacion ?? DateTimeOffset.Now
-            });
-        }
+            Codigo = @event.Codigo,
+            Nombre = @event.Nombre,
+            Unidad = @event.Unidad,
+            Activo = true,
+            CreadoPor = @event.UsuarioId,
+            CreadoPorNombre = @event.UsuarioNombre,
+            FechaCreacion = @event.FechaCreacion ?? DateTimeOffset.Now
+        });
     }
 
     public void Apply(EstadoTipoMedidorCambiado @event)
     {
-        var tipo = TiposMedidor.FirstOrDefault(t => t.Codigo == @event.Codigo);
-        if (tipo != null)
-        {
-            tipo.Activo = @event.Activo;
-        }
+        var tipo = TiposMedidor.FirstOrDefault(t => t.Codigo == @event.Codigo)
+            ?? throw new DomainException($"Tipo de medidor con código '{@event.Codigo}' no existe");
+        tipo.Activo = @event.Activo;
     }
 
     public void Apply(GrupoMantenimientoCreado @event)
     {
         Id = SingletonId;
         var existing = GruposMantenimiento.FirstOrDefault(g => g.Codigo == @event.Codigo);
-        if (existing == null)
+        if (existing != null)
+            throw new DomainException($"Grupo de mantenimiento con código '{@event.Codigo}' ya existe");
+
+        GruposMantenimiento.Add(new GrupoMantenimiento
         {
-            GruposMantenimiento.Add(new GrupoMantenimiento
-            {
-                Codigo = @event.Codigo,
-                Nombre = @event.Nombre,
-                Descripcion = @event.Descripcion,
-                Activo = @event.Activo,
-                CreadoPor = @event.UsuarioId,
-                CreadoPorNombre = @event.UsuarioNombre,
-                FechaCreacion = @event.FechaCreacion ?? DateTimeOffset.Now
-            });
-        }
+            Codigo = @event.Codigo,
+            Nombre = @event.Nombre,
+            Descripcion = @event.Descripcion,
+            Activo = @event.Activo,
+            CreadoPor = @event.UsuarioId,
+            CreadoPorNombre = @event.UsuarioNombre,
+            FechaCreacion = @event.FechaCreacion ?? DateTimeOffset.Now
+        });
     }
 
     public void Apply(EstadoGrupoMantenimientoCambiado @event)
     {
-        var grupo = GruposMantenimiento.FirstOrDefault(g => g.Codigo == @event.Codigo);
-        if (grupo != null)
-        {
-            grupo.Activo = @event.Activo;
-        }
+        var grupo = GruposMantenimiento.FirstOrDefault(g => g.Codigo == @event.Codigo)
+            ?? throw new DomainException($"Grupo de mantenimiento con código '{@event.Codigo}' no existe");
+        grupo.Activo = @event.Activo;
     }
 
     public void Apply(TipoMedidorActualizado @event)
     {
-        var tipo = TiposMedidor.FirstOrDefault(t => t.Codigo == @event.Codigo);
-        if (tipo != null)
-        {
-            tipo.Nombre = @event.Nombre;
-            tipo.Unidad = @event.Unidad;
-        }
+        var tipo = TiposMedidor.FirstOrDefault(t => t.Codigo == @event.Codigo)
+            ?? throw new DomainException($"Tipo de medidor con código '{@event.Codigo}' no existe");
+        tipo.Nombre = @event.Nombre;
+        tipo.Unidad = @event.Unidad;
     }
 
     public void Apply(GrupoMantenimientoActualizado @event)
     {
-        var grupo = GruposMantenimiento.FirstOrDefault(g => g.Codigo == @event.Codigo);
-        if (grupo != null)
-        {
-            grupo.Nombre = @event.Nombre;
-            grupo.Descripcion = @event.Descripcion;
-        }
+        var grupo = GruposMantenimiento.FirstOrDefault(g => g.Codigo == @event.Codigo)
+            ?? throw new DomainException($"Grupo de mantenimiento con código '{@event.Codigo}' no existe");
+        grupo.Nombre = @event.Nombre;
+        grupo.Descripcion = @event.Descripcion;
     }
 
     public void Apply(TipoFallaCreado @event)
     {
         Id = SingletonId;
         var existing = TiposFalla.FirstOrDefault(t => t.Codigo == @event.Codigo);
-        if (existing == null)
+        if (existing != null)
+            throw new DomainException($"Tipo de falla con código '{@event.Codigo}' ya existe");
+
+        TiposFalla.Add(new TipoFalla
         {
-            TiposFalla.Add(new TipoFalla 
-            { 
-                Codigo = @event.Codigo, 
-                Descripcion = @event.Descripcion, 
-                Prioridad = @event.Prioridad, 
-                Activo = true,
-                CreadoPor = @event.UsuarioId,
-                CreadoPorNombre = @event.UsuarioNombre,
-                FechaCreacion = @event.FechaCreacion ?? DateTimeOffset.Now
-            });
-        }
+            Codigo = @event.Codigo,
+            Descripcion = @event.Descripcion,
+            Prioridad = @event.Prioridad,
+            Activo = true,
+            CreadoPor = @event.UsuarioId,
+            CreadoPorNombre = @event.UsuarioNombre,
+            FechaCreacion = @event.FechaCreacion ?? DateTimeOffset.Now
+        });
     }
 
     public void Apply(CausaFallaCreada @event)
     {
         Id = SingletonId;
         var existing = CausasFalla.FirstOrDefault(c => c.Codigo == @event.Codigo);
-        if (existing == null)
+        if (existing != null)
+            throw new DomainException($"Causa de falla con código '{@event.Codigo}' ya existe");
+
+        CausasFalla.Add(new CausaFalla
         {
-            CausasFalla.Add(new CausaFalla 
-            { 
-                Codigo = @event.Codigo, 
-                Descripcion = @event.Descripcion, 
-                Activo = true,
-                CreadoPor = @event.UsuarioId,
-                CreadoPorNombre = @event.UsuarioNombre,
-                FechaCreacion = @event.FechaCreacion ?? DateTimeOffset.Now
-            });
-        }
+            Codigo = @event.Codigo,
+            Descripcion = @event.Descripcion,
+            Activo = true,
+            CreadoPor = @event.UsuarioId,
+            CreadoPorNombre = @event.UsuarioNombre,
+            FechaCreacion = @event.FechaCreacion ?? DateTimeOffset.Now
+        });
     }
 
     public void Apply(CausaFallaActualizada @event)
     {
-        var causa = CausasFalla.FirstOrDefault(c => c.Codigo == @event.Codigo);
-        if (causa != null)
-        {
-            causa.Descripcion = @event.Descripcion;
-        }
+        var causa = CausasFalla.FirstOrDefault(c => c.Codigo == @event.Codigo)
+            ?? throw new DomainException($"Causa de falla con código '{@event.Codigo}' no existe");
+        causa.Descripcion = @event.Descripcion;
     }
 
     public void Apply(EstadoCausaFallaCambiado @event)
     {
-        var causa = CausasFalla.FirstOrDefault(c => c.Codigo == @event.Codigo);
-        if (causa != null)
-        {
-            causa.Activo = @event.Activo;
-        }
+        var causa = CausasFalla.FirstOrDefault(c => c.Codigo == @event.Codigo)
+            ?? throw new DomainException($"Causa de falla con código '{@event.Codigo}' no existe");
+        causa.Activo = @event.Activo;
     }
 }
 

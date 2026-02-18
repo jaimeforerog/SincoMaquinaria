@@ -7,7 +7,7 @@ using System;
 
 namespace SincoMaquinaria.Tests.Domain;
 
-public class EmpleadoTests
+public class aumeEmpleadoTests
 {
     [Fact]
     public void Empleado_Creado_DebeEstablecerPropiedadesCorrectamente()

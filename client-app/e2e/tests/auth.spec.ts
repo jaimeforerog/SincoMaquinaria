@@ -53,7 +53,7 @@ test.describe('Authentication Flow', () => {
     await loginPage.goto();
 
     // Act
-    await loginPage.login('invalid@email.com', 'wrongpassword');
+    await loginPage.loginExpectingError('invalid@email.com', 'wrongpassword');
 
     // Assert
     await loginPage.waitForErrorMessage();
@@ -274,7 +274,17 @@ test.describe('Authentication - Edge Cases', () => {
     await loginPage.goto();
 
     // Act - Use password with special characters
-    await loginPage.login(testData.users.admin.email, testData.users.admin.password);
+    await loginPage.fillEmail(testData.users.admin.email);
+    await loginPage.fillPassword(testData.users.admin.password);
+
+    // Wait for login response (any status)
+    const responsePromise = page.waitForResponse(
+      response => response.url().includes('/auth/login'),
+      { timeout: 5000 }
+    );
+
+    await loginPage.clickSubmit();
+    await responsePromise;
 
     // Assert - Should handle special characters correctly
     await page.waitForURL(/\/$|\/dashboard$|\/login$/, { timeout: 5000 });
@@ -287,7 +297,15 @@ test.describe('Authentication - Edge Cases', () => {
     // Act - Add whitespace to email
     await loginPage.fillEmail(`  ${testData.users.admin.email}  `);
     await loginPage.fillPassword(testData.users.admin.password);
+
+    // Wait for login response (any status)
+    const responsePromise = page.waitForResponse(
+      response => response.url().includes('/auth/login'),
+      { timeout: 5000 }
+    );
+
     await loginPage.clickSubmit();
+    await responsePromise;
 
     // Assert - Should handle whitespace (either trim or show error)
     await page.waitForURL(/\/$|\/dashboard$|\/login$/, { timeout: 5000 });
@@ -299,7 +317,17 @@ test.describe('Authentication - Edge Cases', () => {
 
     // Act - Try email with different case
     const emailUpperCase = testData.users.admin.email.toUpperCase();
-    await loginPage.login(emailUpperCase, testData.users.admin.password);
+    await loginPage.fillEmail(emailUpperCase);
+    await loginPage.fillPassword(testData.users.admin.password);
+
+    // Wait for login response (any status)
+    const responsePromise = page.waitForResponse(
+      response => response.url().includes('/auth/login'),
+      { timeout: 5000 }
+    );
+
+    await loginPage.clickSubmit();
+    await responsePromise;
 
     // Assert - Depending on backend implementation, should either:
     // 1. Login successfully (case-insensitive)

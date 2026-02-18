@@ -4,7 +4,7 @@
     "rootDir": "C:/Users/jaime.forero/RiderProjects/SincoMaquinaria/client-app/e2e",
     "forbidOnly": false,
     "fullyParallel": false,
-    "globalSetup": null,
+    "globalSetup": "C:\\Users\\jaime.forero\\RiderProjects\\SincoMaquinaria\\client-app\\e2e\\global-setup.ts",
     "globalTeardown": null,
     "globalTimeout": 0,
     "grep": {},
@@ -18,7 +18,7 @@
       {
         "outputDir": "C:/Users/jaime.forero/RiderProjects/SincoMaquinaria/client-app/test-results",
         "repeatEach": 1,
-        "retries": 0,
+        "retries": 1,
         "metadata": {
           "actualWorkers": 1
         },
@@ -34,7 +34,7 @@
       {
         "outputDir": "C:/Users/jaime.forero/RiderProjects/SincoMaquinaria/client-app/test-results",
         "repeatEach": 1,
-        "retries": 0,
+        "retries": 1,
         "metadata": {
           "actualWorkers": 1
         },
@@ -95,6 +95,3107 @@
   },
   "suites": [
     {
+      "title": "tests\\auth.spec.ts",
+      "file": "tests/auth.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Authentication Flow",
+          "file": "tests/auth.spec.ts",
+          "line": 21,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should login with valid credentials",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 8727,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T18:56:00.100Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d2e30edf93c6681ee681-d799b5098cce1c1feb5d",
+              "file": "tests/auth.spec.ts",
+              "line": 34,
+              "column": 3
+            },
+            {
+              "title": "should show error with invalid credentials",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6539,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T18:56:09.010Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d2e30edf93c6681ee681-9649824e54e79341d4d7",
+              "file": "tests/auth.spec.ts",
+              "line": 51,
+              "column": 3
+            },
+            {
+              "title": "should logout and clear session",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7327,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T18:56:15.591Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d2e30edf93c6681ee681-052128f9fa1878adff7d",
+              "file": "tests/auth.spec.ts",
+              "line": 72,
+              "column": 3
+            },
+            {
+              "title": "should redirect to login when accessing protected route unauthenticated",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5513,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T18:56:22.949Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d2e30edf93c6681ee681-7358c88217ea6f696c68",
+              "file": "tests/auth.spec.ts",
+              "line": 103,
+              "column": 3
+            },
+            {
+              "title": "should refresh token on 401 response",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 11007,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T18:56:28.491Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d2e30edf93c6681ee681-e51d4741f84b7415b078",
+              "file": "tests/auth.spec.ts",
+              "line": 115,
+              "column": 3
+            },
+            {
+              "title": "should show validation error for empty email",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6650,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T18:56:39.524Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d2e30edf93c6681ee681-398ededada7d4c4cf37c",
+              "file": "tests/auth.spec.ts",
+              "line": 159,
+              "column": 3
+            },
+            {
+              "title": "should show validation error for empty password",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6994,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T18:56:46.203Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d2e30edf93c6681ee681-9213a40b07d1b90d91fc",
+              "file": "tests/auth.spec.ts",
+              "line": 176,
+              "column": 3
+            },
+            {
+              "title": "should persist session after page reload",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 9475,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T18:56:53.225Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d2e30edf93c6681ee681-fd0f689a429a0cc8a312",
+              "file": "tests/auth.spec.ts",
+              "line": 192,
+              "column": 3
+            },
+            {
+              "title": "should toggle password visibility",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7573,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T18:57:02.729Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d2e30edf93c6681ee681-689cfc3bd7c30c86385d",
+              "file": "tests/auth.spec.ts",
+              "line": 215,
+              "column": 3
+            },
+            {
+              "title": "should handle rapid login attempts gracefully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6391,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T18:57:10.325Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d2e30edf93c6681ee681-d25d870e369f911a289a",
+              "file": "tests/auth.spec.ts",
+              "line": 240,
+              "column": 3
+            },
+            {
+              "title": "should login with valid credentials",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 21835,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T19:01:06.080Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d2e30edf93c6681ee681-91276ce8d22f6c81278a",
+              "file": "tests/auth.spec.ts",
+              "line": 34,
+              "column": 3
+            },
+            {
+              "title": "should show error with invalid credentials",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 23517,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T19:01:28.991Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d2e30edf93c6681ee681-3116c866607f4c929ae8",
+              "file": "tests/auth.spec.ts",
+              "line": 51,
+              "column": 3
+            },
+            {
+              "title": "should logout and clear session",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 27453,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T19:01:52.544Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d2e30edf93c6681ee681-1aba62b5c4cfc320aa21",
+              "file": "tests/auth.spec.ts",
+              "line": 72,
+              "column": 3
+            },
+            {
+              "title": "should redirect to login when accessing protected route unauthenticated",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 22657,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T19:02:20.029Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d2e30edf93c6681ee681-8bb4a4ba6c5c9ca9706e",
+              "file": "tests/auth.spec.ts",
+              "line": 103,
+              "column": 3
+            },
+            {
+              "title": "should refresh token on 401 response",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 27867,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T19:02:42.710Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d2e30edf93c6681ee681-7439070335f25238dbd7",
+              "file": "tests/auth.spec.ts",
+              "line": 115,
+              "column": 3
+            },
+            {
+              "title": "should show validation error for empty email",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 20548,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T19:03:10.602Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d2e30edf93c6681ee681-c88f2afa3b49443c7207",
+              "file": "tests/auth.spec.ts",
+              "line": 159,
+              "column": 3
+            },
+            {
+              "title": "should show validation error for empty password",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 21018,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T19:03:31.178Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d2e30edf93c6681ee681-178addd8af376f8a03ad",
+              "file": "tests/auth.spec.ts",
+              "line": 176,
+              "column": 3
+            },
+            {
+              "title": "should persist session after page reload",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 31456,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T19:03:52.220Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d2e30edf93c6681ee681-c6605d3151f2e1b635b5",
+              "file": "tests/auth.spec.ts",
+              "line": 192,
+              "column": 3
+            },
+            {
+              "title": "should toggle password visibility",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 22569,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T19:04:23.700Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d2e30edf93c6681ee681-400fd1e7f6a4697a5019",
+              "file": "tests/auth.spec.ts",
+              "line": 215,
+              "column": 3
+            },
+            {
+              "title": "should handle rapid login attempts gracefully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 22700,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T19:04:46.296Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d2e30edf93c6681ee681-a2d91430b6de1e3f4934",
+              "file": "tests/auth.spec.ts",
+              "line": 240,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "Authentication - Edge Cases",
+          "file": "tests/auth.spec.ts",
+          "line": 262,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should handle special characters in password",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6899,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T18:57:16.739Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d2e30edf93c6681ee681-f0600f6d70531b49445f",
+              "file": "tests/auth.spec.ts",
+              "line": 272,
+              "column": 3
+            },
+            {
+              "title": "should trim whitespace from email",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5841,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T18:57:23.660Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d2e30edf93c6681ee681-7abc53f5408dfc25dee5",
+              "file": "tests/auth.spec.ts",
+              "line": 293,
+              "column": 3
+            },
+            {
+              "title": "should handle case-sensitive email",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6493,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T18:57:29.524Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d2e30edf93c6681ee681-a08801992eed7f456e6b",
+              "file": "tests/auth.spec.ts",
+              "line": 314,
+              "column": 3
+            },
+            {
+              "title": "should handle special characters in password",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 21083,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T19:05:09.023Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d2e30edf93c6681ee681-2bb681002166dfa3adea",
+              "file": "tests/auth.spec.ts",
+              "line": 272,
+              "column": 3
+            },
+            {
+              "title": "should trim whitespace from email",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 26670,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T19:05:30.132Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d2e30edf93c6681ee681-65fc18c86807596978a9",
+              "file": "tests/auth.spec.ts",
+              "line": 293,
+              "column": 3
+            },
+            {
+              "title": "should handle case-sensitive email",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 25471,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T19:05:56.838Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d2e30edf93c6681ee681-e3e8580561c846803b69",
+              "file": "tests/auth.spec.ts",
+              "line": 314,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "tests\\dashboard.spec.ts",
+      "file": "tests/dashboard.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Dashboard",
+          "file": "tests/dashboard.spec.ts",
+          "line": 18,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should display current KPIs",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 9413,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com\n"
+                        },
+                        {
+                          "text": "[Cleanup] Starting test data cleanup...\n"
+                        },
+                        {
+                          "text": "[Cleanup] Test data cleanup completed\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T18:57:36.103Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "73305277a59b4d1960cc-72d4cf44f73c93cdecd8",
+              "file": "tests/dashboard.spec.ts",
+              "line": 36,
+              "column": 3
+            },
+            {
+              "title": "should navigate to equipment config",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7697,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com\n"
+                        },
+                        {
+                          "text": "[Cleanup] Starting test data cleanup...\n"
+                        },
+                        {
+                          "text": "[Cleanup] Test data cleanup completed\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T18:57:45.536Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "73305277a59b4d1960cc-b946c9e77f365be84a24",
+              "file": "tests/dashboard.spec.ts",
+              "line": 48,
+              "column": 3
+            },
+            {
+              "title": "should navigate to rutinas",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7019,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com\n"
+                        },
+                        {
+                          "text": "[Cleanup] Starting test data cleanup...\n"
+                        },
+                        {
+                          "text": "[Cleanup] Test data cleanup completed\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T18:57:53.262Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "73305277a59b4d1960cc-2c0c1f9cfc5909ba1780",
+              "file": "tests/dashboard.spec.ts",
+              "line": 59,
+              "column": 3
+            },
+            {
+              "title": "should navigate to historial",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7628,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com\n"
+                        },
+                        {
+                          "text": "[Cleanup] Starting test data cleanup...\n"
+                        },
+                        {
+                          "text": "[Cleanup] Test data cleanup completed\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T18:58:00.301Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "73305277a59b4d1960cc-57b756e24d6beafc3d9e",
+              "file": "tests/dashboard.spec.ts",
+              "line": 70,
+              "column": 3
+            },
+            {
+              "title": "should load without errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7104,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com\n"
+                        },
+                        {
+                          "text": "[Cleanup] Starting test data cleanup...\n"
+                        },
+                        {
+                          "text": "[Cleanup] Test data cleanup completed\n"
+                        },
+                        {
+                          "text": "ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com\n"
+                        },
+                        {
+                          "text": "[Cleanup] Starting test data cleanup...\n"
+                        },
+                        {
+                          "text": "[Cleanup] Test data cleanup completed\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T18:58:07.952Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "73305277a59b4d1960cc-872f8f9effde1a0ef0fb",
+              "file": "tests/dashboard.spec.ts",
+              "line": 81,
+              "column": 3
+            },
+            {
+              "title": "should display current KPIs",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 34907,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com\n"
+                        },
+                        {
+                          "text": "Could not read response body (this is OK in Firefox), will verify token in localStorage\n"
+                        },
+                        {
+                          "text": "[Cleanup] Starting test data cleanup...\n"
+                        },
+                        {
+                          "text": "[Cleanup] Test data cleanup completed\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T19:06:22.412Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "73305277a59b4d1960cc-fa059fe07327eb91a9c3",
+              "file": "tests/dashboard.spec.ts",
+              "line": 36,
+              "column": 3
+            },
+            {
+              "title": "should navigate to equipment config",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 23258,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com\n"
+                        },
+                        {
+                          "text": "Could not read response body (this is OK in Firefox), will verify token in localStorage\n"
+                        },
+                        {
+                          "text": "[Cleanup] Starting test data cleanup...\n"
+                        },
+                        {
+                          "text": "[Cleanup] Test data cleanup completed\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T19:06:57.373Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "73305277a59b4d1960cc-dfbf2ebbe12ab7c339bd",
+              "file": "tests/dashboard.spec.ts",
+              "line": 48,
+              "column": 3
+            },
+            {
+              "title": "should navigate to rutinas",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 25595,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com\n"
+                        },
+                        {
+                          "text": "Could not read response body (this is OK in Firefox), will verify token in localStorage\n"
+                        },
+                        {
+                          "text": "[Cleanup] Starting test data cleanup...\n"
+                        },
+                        {
+                          "text": "[Cleanup] Test data cleanup completed\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T19:07:20.674Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "73305277a59b4d1960cc-ceb7e985f74efffa71a0",
+              "file": "tests/dashboard.spec.ts",
+              "line": 59,
+              "column": 3
+            },
+            {
+              "title": "should navigate to historial",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 26405,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com\n"
+                        },
+                        {
+                          "text": "Could not read response body (this is OK in Firefox), will verify token in localStorage\n"
+                        },
+                        {
+                          "text": "[Cleanup] Starting test data cleanup...\n"
+                        },
+                        {
+                          "text": "[Cleanup] Test data cleanup completed\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T19:07:46.311Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "73305277a59b4d1960cc-a689bbb6ae5c0528ab85",
+              "file": "tests/dashboard.spec.ts",
+              "line": 70,
+              "column": 3
+            },
+            {
+              "title": "should load without errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 24323,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com\n"
+                        },
+                        {
+                          "text": "Could not read response body (this is OK in Firefox), will verify token in localStorage\n"
+                        },
+                        {
+                          "text": "[Cleanup] Starting test data cleanup...\n"
+                        },
+                        {
+                          "text": "[Cleanup] Test data cleanup completed\n"
+                        },
+                        {
+                          "text": "ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com\n"
+                        },
+                        {
+                          "text": "Could not read response body (this is OK in Firefox), will verify token in localStorage\n"
+                        },
+                        {
+                          "text": "[Cleanup] Starting test data cleanup...\n"
+                        },
+                        {
+                          "text": "[Cleanup] Test data cleanup completed\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T19:08:12.756Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "73305277a59b4d1960cc-795bdd4dde2c082312e9",
+              "file": "tests/dashboard.spec.ts",
+              "line": 81,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "tests\\equipment.spec.ts",
+      "file": "tests/equipment.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Equipment Management",
+          "file": "tests/equipment.spec.ts",
+          "line": 7,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should create new equipment",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 14386,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com\n"
+                        },
+                        {
+                          "text": "[Setup] Prerequisites ready: grupo=\"Grupo-Mantenimiento-General\", rutina=\"Rutina-Mantenimiento-Diario\"\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T18:58:18.471Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "b8d50dd04053c96370e7-938c1496367b172e8f6b",
+              "file": "tests/equipment.spec.ts",
+              "line": 26,
+              "column": 3
+            },
+            {
+              "title": "should validate placa is required",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 8883,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com\n"
+                        },
+                        {
+                          "text": "[Setup] Prerequisites ready: grupo=\"Grupo-Mantenimiento-General\", rutina=\"Rutina-Mantenimiento-Diario\"\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T18:58:32.875Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "b8d50dd04053c96370e7-ef49ea80a0ce65fb7263",
+              "file": "tests/equipment.spec.ts",
+              "line": 50,
+              "column": 3
+            },
+            {
+              "title": "should validate descripcion is required",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 8647,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com\n"
+                        },
+                        {
+                          "text": "[Setup] Prerequisites ready: grupo=\"Grupo-Mantenimiento-General\", rutina=\"Rutina-Mantenimiento-Diario\"\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T18:58:41.779Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "b8d50dd04053c96370e7-4fa1e2603feb6ea23d6f",
+              "file": "tests/equipment.spec.ts",
+              "line": 73,
+              "column": 3
+            },
+            {
+              "title": "should search equipment by placa",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 12756,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com\n"
+                        },
+                        {
+                          "text": "[Setup] Prerequisites ready: grupo=\"Grupo-Mantenimiento-General\", rutina=\"Rutina-Mantenimiento-Diario\"\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T18:58:50.451Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "b8d50dd04053c96370e7-f01f8b2848a8a06dfa44",
+              "file": "tests/equipment.spec.ts",
+              "line": 95,
+              "column": 3
+            },
+            {
+              "title": "should edit existing equipment",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 17303,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com\n"
+                        },
+                        {
+                          "text": "[Setup] Prerequisites ready: grupo=\"Grupo-Mantenimiento-General\", rutina=\"Rutina-Mantenimiento-Diario\"\n"
+                        },
+                        {
+                          "text": "ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com\n"
+                        },
+                        {
+                          "text": "[Cleanup] Starting test data cleanup...\n"
+                        },
+                        {
+                          "text": "[Cleanup] Test data cleanup completed\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T18:59:03.232Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "b8d50dd04053c96370e7-97d0321e267342c2066f",
+              "file": "tests/equipment.spec.ts",
+              "line": 113,
+              "column": 3
+            },
+            {
+              "title": "should create new equipment",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 31576,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com\n"
+                        },
+                        {
+                          "text": "Could not read response body (this is OK in Firefox), will verify token in localStorage\n"
+                        },
+                        {
+                          "text": "[Setup] Prerequisites ready: grupo=\"Grupo-Mantenimiento-General\", rutina=\"Rutina-Mantenimiento-Diario\"\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T19:08:48.228Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "b8d50dd04053c96370e7-4e1241f270429e934c10",
+              "file": "tests/equipment.spec.ts",
+              "line": 26,
+              "column": 3
+            },
+            {
+              "title": "should validate placa is required",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 29025,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com\n"
+                        },
+                        {
+                          "text": "Could not read response body (this is OK in Firefox), will verify token in localStorage\n"
+                        },
+                        {
+                          "text": "[Setup] Prerequisites ready: grupo=\"Grupo-Mantenimiento-General\", rutina=\"Rutina-Mantenimiento-Diario\"\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T19:09:19.843Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "b8d50dd04053c96370e7-de53b23a06c2cf7c7930",
+              "file": "tests/equipment.spec.ts",
+              "line": 50,
+              "column": 3
+            },
+            {
+              "title": "should validate descripcion is required",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 28267,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com\n"
+                        },
+                        {
+                          "text": "Could not read response body (this is OK in Firefox), will verify token in localStorage\n"
+                        },
+                        {
+                          "text": "[Setup] Prerequisites ready: grupo=\"Grupo-Mantenimiento-General\", rutina=\"Rutina-Mantenimiento-Diario\"\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T19:09:48.905Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "b8d50dd04053c96370e7-7caff6d24e6c7275d55b",
+              "file": "tests/equipment.spec.ts",
+              "line": 73,
+              "column": 3
+            },
+            {
+              "title": "should search equipment by placa",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 34061,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com\n"
+                        },
+                        {
+                          "text": "Could not read response body (this is OK in Firefox), will verify token in localStorage\n"
+                        },
+                        {
+                          "text": "[Setup] Prerequisites ready: grupo=\"Grupo-Mantenimiento-General\", rutina=\"Rutina-Mantenimiento-Diario\"\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T19:10:17.213Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "b8d50dd04053c96370e7-db59c9d516088db712da",
+              "file": "tests/equipment.spec.ts",
+              "line": 95,
+              "column": 3
+            },
+            {
+              "title": "should edit existing equipment",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 33548,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com\n"
+                        },
+                        {
+                          "text": "Could not read response body (this is OK in Firefox), will verify token in localStorage\n"
+                        },
+                        {
+                          "text": "[Setup] Prerequisites ready: grupo=\"Grupo-Mantenimiento-General\", rutina=\"Rutina-Mantenimiento-Diario\"\n"
+                        },
+                        {
+                          "text": "ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com\n"
+                        },
+                        {
+                          "text": "Could not read response body (this is OK in Firefox), will verify token in localStorage\n"
+                        },
+                        {
+                          "text": "[Cleanup] Starting test data cleanup...\n"
+                        },
+                        {
+                          "text": "[Cleanup] Test data cleanup completed\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T19:10:51.308Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "b8d50dd04053c96370e7-8c800cb93b1740126e56",
+              "file": "tests/equipment.spec.ts",
+              "line": 113,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "tests\\excel-import.spec.ts",
+      "file": "tests/excel-import.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Excel Import",
+          "file": "tests/excel-import.spec.ts",
+          "line": 22,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should switch between import tabs",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7640,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T18:59:23.989Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "b79921fa5ca6bc8b9478-18da0a7bffa29d10b560",
+              "file": "tests/excel-import.spec.ts",
+              "line": 31,
+              "column": 3
+            },
+            {
+              "title": "should import rutinas from valid Excel",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "location": {
+                        "file": "C:\\Users\\jaime.forero\\RiderProjects\\SincoMaquinaria\\client-app\\e2e\\tests\\excel-import.spec.ts",
+                        "line": 46,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "skipped",
+                      "duration": 0,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T18:59:31.648Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "location": {
+                            "file": "C:\\Users\\jaime.forero\\RiderProjects\\SincoMaquinaria\\client-app\\e2e\\tests\\excel-import.spec.ts",
+                            "line": 46,
+                            "column": 8
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "b79921fa5ca6bc8b9478-08fbb452c35a18d2dfd4",
+              "file": "tests/excel-import.spec.ts",
+              "line": 46,
+              "column": 8
+            },
+            {
+              "title": "should import equipos from valid Excel",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "location": {
+                        "file": "C:\\Users\\jaime.forero\\RiderProjects\\SincoMaquinaria\\client-app\\e2e\\tests\\excel-import.spec.ts",
+                        "line": 60,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "skipped",
+                      "duration": 0,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T18:59:31.649Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "location": {
+                            "file": "C:\\Users\\jaime.forero\\RiderProjects\\SincoMaquinaria\\client-app\\e2e\\tests\\excel-import.spec.ts",
+                            "line": 60,
+                            "column": 8
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "b79921fa5ca6bc8b9478-b209d4eb208a5b8f3e3f",
+              "file": "tests/excel-import.spec.ts",
+              "line": 60,
+              "column": 8
+            },
+            {
+              "title": "should have import button disabled when no file selected",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 8094,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T18:59:31.649Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "b79921fa5ca6bc8b9478-785870b3afec7b15f7b9",
+              "file": "tests/excel-import.spec.ts",
+              "line": 72,
+              "column": 3
+            },
+            {
+              "title": "should switch between import tabs",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 25033,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com\n"
+                        },
+                        {
+                          "text": "Could not read response body (this is OK in Firefox), will verify token in localStorage\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T19:11:35.393Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "b79921fa5ca6bc8b9478-6ee5bf57aaeeac4359cc",
+              "file": "tests/excel-import.spec.ts",
+              "line": 31,
+              "column": 3
+            },
+            {
+              "title": "should import rutinas from valid Excel",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "location": {
+                        "file": "C:\\Users\\jaime.forero\\RiderProjects\\SincoMaquinaria\\client-app\\e2e\\tests\\excel-import.spec.ts",
+                        "line": 46,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "skipped",
+                      "duration": 0,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T19:12:00.458Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "location": {
+                            "file": "C:\\Users\\jaime.forero\\RiderProjects\\SincoMaquinaria\\client-app\\e2e\\tests\\excel-import.spec.ts",
+                            "line": 46,
+                            "column": 8
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "b79921fa5ca6bc8b9478-10ec5a207584e5d6524e",
+              "file": "tests/excel-import.spec.ts",
+              "line": 46,
+              "column": 8
+            },
+            {
+              "title": "should import equipos from valid Excel",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "location": {
+                        "file": "C:\\Users\\jaime.forero\\RiderProjects\\SincoMaquinaria\\client-app\\e2e\\tests\\excel-import.spec.ts",
+                        "line": 60,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "skipped",
+                      "duration": 0,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T19:12:00.459Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "location": {
+                            "file": "C:\\Users\\jaime.forero\\RiderProjects\\SincoMaquinaria\\client-app\\e2e\\tests\\excel-import.spec.ts",
+                            "line": 60,
+                            "column": 8
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "b79921fa5ca6bc8b9478-bdc695df942f00c224bd",
+              "file": "tests/excel-import.spec.ts",
+              "line": 60,
+              "column": 8
+            },
+            {
+              "title": "should have import button disabled when no file selected",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 23281,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com\n"
+                        },
+                        {
+                          "text": "Could not read response body (this is OK in Firefox), will verify token in localStorage\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T19:12:00.460Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "b79921fa5ca6bc8b9478-c9855b10895d0fa1fa81",
+              "file": "tests/excel-import.spec.ts",
+              "line": 72,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "tests\\order-creation.spec.ts",
+      "file": "tests/order-creation.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Order Creation - Form Validation",
+          "file": "tests/order-creation.spec.ts",
+          "line": 23,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should load create order page successfully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6479,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T18:59:39.814Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bbf365f32c7358240a9a-cf8ebcbd6b0a2ab8e8dc",
+              "file": "tests/order-creation.spec.ts",
+              "line": 36,
+              "column": 3
+            },
+            {
+              "title": "should have submit button disabled without equipment",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7504,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T18:59:46.318Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bbf365f32c7358240a9a-f3387d7929886a08c5e8",
+              "file": "tests/order-creation.spec.ts",
+              "line": 45,
+              "column": 3
+            },
+            {
+              "title": "should show rutina field only for Preventivo orders",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 9247,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T18:59:53.846Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bbf365f32c7358240a9a-132fa5152f8bec37c2ae",
+              "file": "tests/order-creation.spec.ts",
+              "line": 54,
+              "column": 3
+            },
+            {
+              "title": "should show frecuencia field only for Preventivo orders",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 9826,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T19:00:03.114Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bbf365f32c7358240a9a-03bd65917ccad5b67935",
+              "file": "tests/order-creation.spec.ts",
+              "line": 73,
+              "column": 3
+            },
+            {
+              "title": "should have Tipo de Orden defaulting to Correctivo",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7432,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T19:00:12.960Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bbf365f32c7358240a9a-fe4a6f08f534401cebb8",
+              "file": "tests/order-creation.spec.ts",
+              "line": 92,
+              "column": 3
+            },
+            {
+              "title": "should load create order page successfully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 25441,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T19:12:23.823Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bbf365f32c7358240a9a-8b98b18bc01280e8a363",
+              "file": "tests/order-creation.spec.ts",
+              "line": 36,
+              "column": 3
+            },
+            {
+              "title": "should have submit button disabled without equipment",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 23096,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T19:12:49.297Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bbf365f32c7358240a9a-1c0e6b05d8adb9dc62e5",
+              "file": "tests/order-creation.spec.ts",
+              "line": 45,
+              "column": 3
+            },
+            {
+              "title": "should show rutina field only for Preventivo orders",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 23558,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T19:13:12.438Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bbf365f32c7358240a9a-80d7e92f64bbfc4039b0",
+              "file": "tests/order-creation.spec.ts",
+              "line": 54,
+              "column": 3
+            },
+            {
+              "title": "should show frecuencia field only for Preventivo orders",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 23410,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T19:13:36.033Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bbf365f32c7358240a9a-3aadb2fb22fbadc9aeb1",
+              "file": "tests/order-creation.spec.ts",
+              "line": 73,
+              "column": 3
+            },
+            {
+              "title": "should have Tipo de Orden defaulting to Correctivo",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 20806,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T19:13:59.469Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bbf365f32c7358240a9a-e113629a0475289b5275",
+              "file": "tests/order-creation.spec.ts",
+              "line": 92,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "Order Creation - Happy Path",
+          "file": "tests/order-creation.spec.ts",
+          "line": 104,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should create corrective maintenance order",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "location": {
+                        "file": "C:\\Users\\jaime.forero\\RiderProjects\\SincoMaquinaria\\client-app\\e2e\\tests\\order-creation.spec.ts",
+                        "line": 117,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "skipped",
+                      "duration": 0,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T19:00:20.412Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "location": {
+                            "file": "C:\\Users\\jaime.forero\\RiderProjects\\SincoMaquinaria\\client-app\\e2e\\tests\\order-creation.spec.ts",
+                            "line": 117,
+                            "column": 8
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "bbf365f32c7358240a9a-e941b1d59d3959681c6c",
+              "file": "tests/order-creation.spec.ts",
+              "line": 117,
+              "column": 8
+            },
+            {
+              "title": "should create preventive maintenance order",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "location": {
+                        "file": "C:\\Users\\jaime.forero\\RiderProjects\\SincoMaquinaria\\client-app\\e2e\\tests\\order-creation.spec.ts",
+                        "line": 133,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "skipped",
+                      "duration": 0,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T19:00:20.413Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "location": {
+                            "file": "C:\\Users\\jaime.forero\\RiderProjects\\SincoMaquinaria\\client-app\\e2e\\tests\\order-creation.spec.ts",
+                            "line": 133,
+                            "column": 8
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "bbf365f32c7358240a9a-f3bb66fbd973f67c3456",
+              "file": "tests/order-creation.spec.ts",
+              "line": 133,
+              "column": 8
+            },
+            {
+              "title": "should navigate to create order from URL",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7198,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T19:00:20.413Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bbf365f32c7358240a9a-4b97b440da2c6f3cbad4",
+              "file": "tests/order-creation.spec.ts",
+              "line": 151,
+              "column": 3
+            },
+            {
+              "title": "should display all form fields correctly",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7626,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T19:00:27.636Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bbf365f32c7358240a9a-a9ca0a26b8ff83c5f844",
+              "file": "tests/order-creation.spec.ts",
+              "line": 162,
+              "column": 3
+            },
+            {
+              "title": "should show helper text for fields",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 8191,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T19:00:35.285Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bbf365f32c7358240a9a-5777059bed32c10882a7",
+              "file": "tests/order-creation.spec.ts",
+              "line": 175,
+              "column": 3
+            },
+            {
+              "title": "should create corrective maintenance order",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "location": {
+                        "file": "C:\\Users\\jaime.forero\\RiderProjects\\SincoMaquinaria\\client-app\\e2e\\tests\\order-creation.spec.ts",
+                        "line": 117,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "skipped",
+                      "duration": 0,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T19:14:20.304Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "location": {
+                            "file": "C:\\Users\\jaime.forero\\RiderProjects\\SincoMaquinaria\\client-app\\e2e\\tests\\order-creation.spec.ts",
+                            "line": 117,
+                            "column": 8
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "bbf365f32c7358240a9a-1d8d3069d0cb69c55816",
+              "file": "tests/order-creation.spec.ts",
+              "line": 117,
+              "column": 8
+            },
+            {
+              "title": "should create preventive maintenance order",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "location": {
+                        "file": "C:\\Users\\jaime.forero\\RiderProjects\\SincoMaquinaria\\client-app\\e2e\\tests\\order-creation.spec.ts",
+                        "line": 133,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "skipped",
+                      "duration": 0,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T19:14:20.305Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "location": {
+                            "file": "C:\\Users\\jaime.forero\\RiderProjects\\SincoMaquinaria\\client-app\\e2e\\tests\\order-creation.spec.ts",
+                            "line": 133,
+                            "column": 8
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "bbf365f32c7358240a9a-1ec479cdb84d1942dd81",
+              "file": "tests/order-creation.spec.ts",
+              "line": 133,
+              "column": 8
+            },
+            {
+              "title": "should navigate to create order from URL",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 22259,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T19:14:20.305Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bbf365f32c7358240a9a-e5797fed779e0891a438",
+              "file": "tests/order-creation.spec.ts",
+              "line": 151,
+              "column": 3
+            },
+            {
+              "title": "should display all form fields correctly",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 21450,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T19:14:42.597Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bbf365f32c7358240a9a-84598e0f0890c3602807",
+              "file": "tests/order-creation.spec.ts",
+              "line": 162,
+              "column": 3
+            },
+            {
+              "title": "should show helper text for fields",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 23773,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T19:15:04.085Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bbf365f32c7358240a9a-9b983fb97c61898f15af",
+              "file": "tests/order-creation.spec.ts",
+              "line": 175,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "Order Creation - Navigation",
+          "file": "tests/order-creation.spec.ts",
+          "line": 193,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should access create order page when authenticated",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7078,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T19:00:43.499Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bbf365f32c7358240a9a-942a36a65a8a80f22508",
+              "file": "tests/order-creation.spec.ts",
+              "line": 194,
+              "column": 3
+            },
+            {
+              "title": "should access create order page when authenticated",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 21188,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-02-16T19:15:27.892Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bbf365f32c7358240a9a-5c9f5f45538b04183bda",
+              "file": "tests/order-creation.spec.ts",
+              "line": 194,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
       "title": "tests\\smoke.spec.ts",
       "file": "tests/smoke.spec.ts",
       "column": 0,
@@ -104,7 +3205,7 @@
         {
           "title": "Smoke Tests - Critical Path",
           "file": "tests/smoke.spec.ts",
-          "line": 17,
+          "line": 18,
           "column": 6,
           "specs": [
             {
@@ -123,12 +3224,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 4384,
+                      "duration": 3740,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-09T01:59:18.019Z",
+                      "startTime": "2026-02-16T19:00:50.640Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -138,7 +3239,7 @@
               ],
               "id": "b08dced4ab0b38bf7f55-37fce826cbf7d659a8a6",
               "file": "tests/smoke.spec.ts",
-              "line": 18,
+              "line": 19,
               "column": 3
             },
             {
@@ -157,12 +3258,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 8703,
+                      "duration": 8810,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-09T01:59:22.607Z",
+                      "startTime": "2026-02-16T19:00:54.400Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -172,7 +3273,7 @@
               ],
               "id": "b08dced4ab0b38bf7f55-0bb24b7649f4732509aa",
               "file": "tests/smoke.spec.ts",
-              "line": 31,
+              "line": 32,
               "column": 3
             },
             {
@@ -191,12 +3292,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 12609,
+                      "duration": 12677,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-09T01:59:33.480Z",
+                      "startTime": "2026-02-16T19:15:49.140Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -206,7 +3307,7 @@
               ],
               "id": "b08dced4ab0b38bf7f55-8038a9de36a7ff0322a3",
               "file": "tests/smoke.spec.ts",
-              "line": 18,
+              "line": 19,
               "column": 3
             },
             {
@@ -225,12 +3326,16 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 32695,
+                      "duration": 24082,
                       "errors": [],
-                      "stdout": [],
+                      "stdout": [
+                        {
+                          "text": "[Navigation] Failed to navigate to /historial, retrying...\n"
+                        }
+                      ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-02-09T01:59:46.933Z",
+                      "startTime": "2026-02-16T19:16:01.850Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -240,7 +3345,7 @@
               ],
               "id": "b08dced4ab0b38bf7f55-8456f2311a1c6f5d371f",
               "file": "tests/smoke.spec.ts",
-              "line": 31,
+              "line": 32,
               "column": 3
             }
           ]
@@ -250,10 +3355,10 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-02-09T01:59:16.126Z",
-    "duration": 65218.157,
-    "expected": 4,
-    "skipped": 0,
+    "startTime": "2026-02-16T18:55:52.848Z",
+    "duration": 1235688.069,
+    "expected": 72,
+    "skipped": 8,
     "unexpected": 0,
     "flaky": 0
   }

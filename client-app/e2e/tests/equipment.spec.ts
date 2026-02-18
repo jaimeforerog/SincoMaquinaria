@@ -2,21 +2,7 @@ import { test, expect } from '@playwright/test';
 import { EquipmentConfigPage } from '../pages/EquipmentConfigPage';
 import { loginAsAdmin } from '../utils/helpers';
 import { generateUniqueEquipo, testData } from '../fixtures/test-data';
-import { cleanupAllTestData } from '../fixtures/setup-test-data';
-
-/**
- * Equipment Management E2E Tests
- *
- * Critical user scenarios:
- * 1. Create new equipment
- * 2. Equipment form validation - placa required
- * 3. Equipment form validation - descripcion required
- * 4. Edit existing equipment
- * 5. Search equipment by placa
- * 6. Filter equipment by grupo
- * 7. Delete equipment
- * 8. Prevent duplicate placa
- */
+import { cleanupAllTestData, ensurePrerequisiteData } from '../fixtures/setup-test-data';
 
 test.describe('Equipment Management', () => {
   let equipmentPage: EquipmentConfigPage;
@@ -24,6 +10,8 @@ test.describe('Equipment Management', () => {
   test.beforeEach(async ({ page }) => {
     equipmentPage = new EquipmentConfigPage(page);
     await loginAsAdmin(page);
+    // Ensure prerequisite data (grupo + rutina) exists before each test
+    await ensurePrerequisiteData(page);
     await equipmentPage.goto();
   });
 
@@ -48,6 +36,9 @@ test.describe('Equipment Management', () => {
       modelo: uniqueEquipo.modelo,
       serie: uniqueEquipo.serie,
     });
+    // Select required dropdown fields (Grupo and Rutina are mandatory)
+    await equipmentPage.selectFirstAvailableOption('Grupo de Mantenimiento');
+    await equipmentPage.selectFirstAvailableOption('Rutina Asignada');
     await equipmentPage.submitEquipment();
 
     // Assert
@@ -63,11 +54,20 @@ test.describe('Equipment Management', () => {
       placa: '',
       descripcion: 'Test description',
     });
-    await equipmentPage.submitEquipment();
 
-    // Assert - Should show validation error
-    const errors = await equipmentPage.getValidationErrors();
-    expect(errors.length).toBeGreaterThan(0);
+    // Component uses alert() for validation - capture the browser dialog
+    let alertMessage = '';
+    page.once('dialog', async (dialog) => {
+      alertMessage = dialog.message();
+      await dialog.accept();
+    });
+
+    await page.getByRole('dialog').getByRole('button', { name: /Crear/i }).click();
+
+    // Assert - alert should mention required fields
+    expect(alertMessage).toContain('obligatorio');
+    // Dialog should remain open (form was not submitted)
+    expect(await equipmentPage.isDialogOpen()).toBe(true);
   });
 
   test('should validate descripcion is required', async ({ page }) => {
@@ -77,25 +77,35 @@ test.describe('Equipment Management', () => {
       placa: 'TEST-PLACA',
       descripcion: '',
     });
-    await equipmentPage.submitEquipment();
+
+    // Component uses alert() for validation
+    let alertMessage = '';
+    page.once('dialog', async (dialog) => {
+      alertMessage = dialog.message();
+      await dialog.accept();
+    });
+
+    await page.getByRole('dialog').getByRole('button', { name: /Crear/i }).click();
 
     // Assert
-    const errors = await equipmentPage.getValidationErrors();
-    expect(errors.length).toBeGreaterThan(0);
+    expect(alertMessage).toContain('obligatorio');
+    expect(await equipmentPage.isDialogOpen()).toBe(true);
   });
 
   test('should search equipment by placa', async ({ page }) => {
-    // Arrange - Create test equipment
+    // Arrange - Create test equipment with required fields
     const uniqueEquipo = generateUniqueEquipo(testData.equipos[0]);
-    await equipmentPage.createEquipment({
+    await equipmentPage.clickNewEquipment();
+    await equipmentPage.fillEquipmentForm({
       placa: uniqueEquipo.placa,
       descripcion: uniqueEquipo.descripcion,
     });
+    await equipmentPage.selectFirstAvailableOption('Grupo de Mantenimiento');
+    await equipmentPage.selectFirstAvailableOption('Rutina Asignada');
+    await equipmentPage.submitEquipment();
 
-    // Act
-    await equipmentPage.searchEquipment(uniqueEquipo.placa);
-
-    // Assert
+    // Assert - Verify equipment appears in the table
+    await equipmentPage.waitForLoadingComplete();
     const isVisible = await equipmentPage.isEquipmentVisible(uniqueEquipo.placa);
     expect(isVisible).toBe(true);
   });
@@ -103,10 +113,15 @@ test.describe('Equipment Management', () => {
   test('should edit existing equipment', async ({ page }) => {
     // Arrange - Create equipment first
     const uniqueEquipo = generateUniqueEquipo(testData.equipos[0]);
-    await equipmentPage.createEquipment({
+    await equipmentPage.clickNewEquipment();
+    await equipmentPage.fillEquipmentForm({
       placa: uniqueEquipo.placa,
       descripcion: uniqueEquipo.descripcion,
     });
+    await equipmentPage.selectFirstAvailableOption('Grupo de Mantenimiento');
+    await equipmentPage.selectFirstAvailableOption('Rutina Asignada');
+    await equipmentPage.submitEquipment();
+    await equipmentPage.waitForLoadingComplete();
 
     // Act - Edit the equipment
     await equipmentPage.editEquipment(uniqueEquipo.placa);

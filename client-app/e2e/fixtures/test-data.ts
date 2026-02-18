@@ -161,6 +161,7 @@ export function generateUniqueRutina(base: typeof testData.rutinas[0]) {
   return {
     ...base,
     nombre: `${base.nombre} ${timestamp}`,
+    descripcion: `${base.descripcion} ${timestamp}`,
   };
 }
 

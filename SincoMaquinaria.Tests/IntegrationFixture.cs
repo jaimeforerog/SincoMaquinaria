@@ -25,13 +25,14 @@ public class IntegrationFixture : IAsyncLifetime
         {
             opts.Connection(ConnectionString);
             opts.DatabaseSchemaName = _schema;
-            
+
             // Enable Inline Projections for Tests
             opts.Projections.Snapshot<SincoMaquinaria.Domain.Empleado>(Marten.Events.Projections.SnapshotLifecycle.Inline);
             opts.Projections.Snapshot<SincoMaquinaria.Domain.Equipo>(Marten.Events.Projections.SnapshotLifecycle.Inline);
             opts.Projections.Snapshot<SincoMaquinaria.Domain.OrdenDeTrabajo>(Marten.Events.Projections.SnapshotLifecycle.Inline);
             opts.Projections.Snapshot<SincoMaquinaria.Domain.RutinaMantenimiento>(Marten.Events.Projections.SnapshotLifecycle.Inline);
             opts.Projections.Snapshot<SincoMaquinaria.Domain.ConfiguracionGlobal>(Marten.Events.Projections.SnapshotLifecycle.Inline);
+            opts.Projections.Snapshot<SincoMaquinaria.Domain.Usuario>(Marten.Events.Projections.SnapshotLifecycle.Inline);
         });
     }
 

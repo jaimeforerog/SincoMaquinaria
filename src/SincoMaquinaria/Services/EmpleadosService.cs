@@ -14,7 +14,7 @@ public class EmpleadosService
         _session = session;
     }
 
-    public async Task<Result<Unit>> CrearEmpleado(CrearEmpleadoRequest req, Guid userId, string? userName)
+    public async Task<Result<Guid>> CrearEmpleado(CrearEmpleadoRequest req, Guid userId, string? userName)
     {
         // Validar unicidad de documento
         var existeDocumento = await _session.Query<Empleado>()
@@ -22,17 +22,17 @@ public class EmpleadosService
 
         if (existeDocumento)
         {
-            return Result<Unit>.Failure($"Ya existe un empleado con el documento '{req.Identificacion}'");
+            return Result<Guid>.Failure($"Ya existe un empleado con el documento '{req.Identificacion}'");
         }
 
         var empleadoId = Guid.NewGuid();
-        _session.Events.StartStream<Empleado>(empleadoId, 
-            new EmpleadoCreado(empleadoId, req.Nombre, req.Identificacion, 
+        _session.Events.StartStream<Empleado>(empleadoId,
+            new EmpleadoCreado(empleadoId, req.Nombre, req.Identificacion,
                 req.Cargo, req.Especialidad ?? "", req.ValorHora, req.Estado, userId, userName, DateTimeOffset.Now));
-        
+
         await _session.SaveChangesAsync();
 
-        return Result<Unit>.Success(Unit.Value);
+        return Result<Guid>.Success(empleadoId);
     }
 
     public async Task<Result<Unit>> ActualizarEmpleado(Guid id, ActualizarEmpleadoRequest req, Guid userId, string? userName)

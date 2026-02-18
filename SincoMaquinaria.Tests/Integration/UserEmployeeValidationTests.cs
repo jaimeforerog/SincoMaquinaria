@@ -3,7 +3,11 @@ using System.Net.Http.Json;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using SincoMaquinaria.Domain;
+using SincoMaquinaria.Domain.Events.Usuario;
+using SincoMaquinaria.Domain.Events.Empleado;
 using SincoMaquinaria.DTOs.Requests;
+using SincoMaquinaria.Services;
+using SincoMaquinaria.Tests.Helpers;
 using Marten;
 using Xunit;
 
@@ -19,11 +23,24 @@ public class UserEmployeeValidationTests : IClassFixture<CustomWebApplicationFac
         _factory = factory;
     }
 
+    private async Task<string> GetAdminToken(HttpClient client)
+    {
+        client.DefaultRequestHeaders.Clear();
+        var loginRequest = new LoginRequest("admin@test.com", "Admin123!");
+        var response = await client.PostAsJsonAsync("/auth/login", loginRequest);
+        var authResponse = await response.Content.ReadFromJsonAsync<TestAuthResponse>();
+        return authResponse!.Token;
+    }
+
     [Fact]
     public async Task ActualizarUsuario_NombreDuplicado_DebeRetornarConflict()
     {
         // Arrange
         var client = _factory.CreateClient();
+        var token = await GetAdminToken(client);
+        client.DefaultRequestHeaders.Clear();
+        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+
         var user1Name = "User One";
         var user2Name = "User Two";
         Guid user1Id = Guid.NewGuid();
@@ -34,15 +51,21 @@ public class UserEmployeeValidationTests : IClassFixture<CustomWebApplicationFac
             var store = scope.ServiceProvider.GetRequiredService<IDocumentStore>();
             using (var session = store.LightweightSession())
             {
-                // Create two users
-                session.Store(new Usuario { Id = user1Id, Nombre = user1Name, Email = "user1@test.com", Activo = true, Rol = RolUsuario.Admin });
-                session.Store(new Usuario { Id = user2Id, Nombre = user2Name, Email = "user2@test.com", Activo = true, Rol = RolUsuario.Admin });
+                // Create two users using event sourcing
+                var passwordHash = JwtService.HashPassword("Test123!");
+
+                session.Events.StartStream<Usuario>(user1Id,
+                    new UsuarioCreado(user1Id, "user1@test.com", passwordHash, user1Name, RolUsuario.Admin, DateTime.UtcNow));
+
+                session.Events.StartStream<Usuario>(user2Id,
+                    new UsuarioCreado(user2Id, "user2@test.com", passwordHash, user2Name, RolUsuario.Admin, DateTime.UtcNow));
+
                 await session.SaveChangesAsync();
             }
         }
 
         // Act - Try to rename User 2 to "User One"
-        var request = new ActualizarUsuarioRequest(user1Name, "Admin", true);
+        var request = new ActualizarUsuarioRequest(user1Name, "Admin", true, null);
         var response = await client.PutAsJsonAsync($"/auth/users/{user2Id}", request);
 
         // Assert
@@ -54,14 +77,22 @@ public class UserEmployeeValidationTests : IClassFixture<CustomWebApplicationFac
     {
         // Arrange
         var client = _factory.CreateClient();
+        var token = await GetAdminToken(client);
+        client.DefaultRequestHeaders.Clear();
+        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+
         var documento = "123456789";
+        var empleadoId = Guid.NewGuid();
 
         using (var scope = _factory.Services.CreateScope())
         {
             var store = scope.ServiceProvider.GetRequiredService<IDocumentStore>();
             using (var session = store.LightweightSession())
             {
-                session.Store(new Empleado { Id = Guid.NewGuid(), Identificacion = documento, Nombre = "Empleado Existente", Cargo = CargoEmpleado.Operario, Estado = EstadoEmpleado.Activo });
+                // Create empleado using event sourcing
+                session.Events.StartStream<Empleado>(empleadoId,
+                    new EmpleadoCreado(empleadoId, "Empleado Existente", documento, "Operario", "", 5000, "Activo", Guid.NewGuid(), "Admin Test", DateTime.UtcNow));
+
                 await session.SaveChangesAsync();
             }
         }
@@ -79,17 +110,28 @@ public class UserEmployeeValidationTests : IClassFixture<CustomWebApplicationFac
     {
          // Arrange
         var client = _factory.CreateClient();
+        var token = await GetAdminToken(client);
+        client.DefaultRequestHeaders.Clear();
+        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+
         var documento1 = "11111";
         var documento2 = "22222";
+        Guid id1 = Guid.NewGuid();
         Guid id2 = Guid.NewGuid();
+        var userId = Guid.NewGuid();
 
         using (var scope = _factory.Services.CreateScope())
         {
             var store = scope.ServiceProvider.GetRequiredService<IDocumentStore>();
             using (var session = store.LightweightSession())
             {
-                session.Store(new Empleado { Id = Guid.NewGuid(), Identificacion = documento1, Nombre = "Emp 1", Cargo = CargoEmpleado.Operario, Estado = EstadoEmpleado.Activo });
-                session.Store(new Empleado { Id = id2, Identificacion = documento2, Nombre = "Emp 2", Cargo = CargoEmpleado.Operario, Estado = EstadoEmpleado.Activo });
+                // Create empleados using event sourcing
+                session.Events.StartStream<Empleado>(id1,
+                    new EmpleadoCreado(id1, "Emp 1", documento1, "Operario", "", 5000, "Activo", userId, "Admin Test", DateTime.UtcNow));
+
+                session.Events.StartStream<Empleado>(id2,
+                    new EmpleadoCreado(id2, "Emp 2", documento2, "Operario", "", 5000, "Activo", userId, "Admin Test", DateTime.UtcNow));
+
                 await session.SaveChangesAsync();
             }
         }
@@ -107,26 +149,28 @@ public class UserEmployeeValidationTests : IClassFixture<CustomWebApplicationFac
     {
         // Arrange
         var client = _factory.CreateClient();
+        var token = await GetAdminToken(client);
+        client.DefaultRequestHeaders.Clear();
+        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+
         var nombreDuplicado = "Admin Existing";
-        
+        var userId = Guid.NewGuid();
+
         using (var scope = _factory.Services.CreateScope())
         {
             var store = scope.ServiceProvider.GetRequiredService<IDocumentStore>();
             using (var session = store.LightweightSession())
             {
-                // Create an existing admin user to allow hitting the /register endpoint (which requires Admin role)
-                session.Store(new Usuario { Id = Guid.NewGuid(), Nombre = nombreDuplicado, Email = "admin@test.com", Activo = true, Rol = RolUsuario.Admin, PasswordHash = "hash" });
+                // Create an existing admin user using event sourcing
+                var passwordHash = JwtService.HashPassword("Test123!");
+
+                session.Events.StartStream<Usuario>(userId,
+                    new UsuarioCreado(userId, "adminexisting@test.com", passwordHash, nombreDuplicado, RolUsuario.Admin, DateTime.UtcNow));
+
                 await session.SaveChangesAsync();
             }
         }
-        
-        // Authenticate as Admin (CustomWebApplicationFactory handles auth bypass, usually simulating admin)
-        // But /register endpoint requires Authorization policy "Admin". 
-        // Our CustomWebApplicationFactory Setup:
-        // services.AddAuthentication(defaultScheme: "Test") .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("Test", options => { });
-        // And the TestAuthHandler usually adds claims. Let's check TestAuthHandler in CustomWebApplicationFactory logic if possible.
-        // Assuming it works as Admin by default or we might need simple setup.
-        
+
         // Act
         var request = new RegisterRequest("new@test.com", "password123", nombreDuplicado, "User");
         var response = await client.PostAsJsonAsync("/auth/register", request);
@@ -140,35 +184,31 @@ public class UserEmployeeValidationTests : IClassFixture<CustomWebApplicationFac
     {
         // Arrange
         var client = _factory.CreateClient();
+        var token = await GetAdminToken(client);
+        client.DefaultRequestHeaders.Clear();
+        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+
         var adminId = Guid.NewGuid();
-        
+
         using (var scope = _factory.Services.CreateScope())
         {
             var store = scope.ServiceProvider.GetRequiredService<IDocumentStore>();
             using (var session = store.LightweightSession())
             {
-                // Create an active admin
-                session.Store(new Usuario { Id = adminId, Nombre = "Admin User", Email = "admin_list@test.com", Activo = true, Rol = RolUsuario.Admin });
+                // Create an active admin using event sourcing
+                var passwordHash = JwtService.HashPassword("Test123!");
+
+                session.Events.StartStream<Usuario>(adminId,
+                    new UsuarioCreado(adminId, "admin_list@test.com", passwordHash, "Admin User List", RolUsuario.Admin, DateTime.UtcNow));
+
                 await session.SaveChangesAsync();
             }
         }
 
-        // TestAuthHandler in CustomWebApplicationFactory likely simulates a user. 
-        // We need to ensure it has "Admin" role claim if the endpoint requires it.
-        // If CustomWebApplicationFactory mock user is NOT Admin, this will fail with 403.
-        // Let's assume the default mock is Admin or check CustomWebApplicationFactory.
-        // If it fails, we know we need to adjust the test auth context.
-        
         // Act
         var response = await client.GetAsync("/auth/users");
 
         // Assert
-        if (response.StatusCode == HttpStatusCode.Forbidden)
-        {
-             // This informs us if test setup is why it fails, but for now let's hope it passes or gives us a clue
-             // Real user issue might be they are not admin.
-        }
-        
         response.EnsureSuccessStatusCode();
         var users = await response.Content.ReadFromJsonAsync<List<object>>();
         users.Should().NotBeNull();

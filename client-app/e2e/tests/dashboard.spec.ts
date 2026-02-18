@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { DashboardPage } from '../pages/DashboardPage';
 import { loginAsAdmin } from '../utils/helpers';
-import { setupBasicTestData, cleanupAllTestData } from '../fixtures/setup-test-data';
+import { cleanupAllTestData } from '../fixtures/setup-test-data';
 
 /**
  * Dashboard E2E Tests
@@ -34,13 +34,10 @@ test.describe('Dashboard', () => {
   });
 
   test('should display current KPIs', async ({ page }) => {
-    // Arrange - Setup test data
-    await setupBasicTestData(page);
-
-    // Act
+    // Act - navigate to dashboard (no test data setup needed, we just verify KPIs render)
     await dashboardPage.goto();
 
-    // Assert
+    // Assert - KPIs should render with values >= 0
     const kpis = await dashboardPage.getAllKPIs();
 
     expect(kpis.equipos).toBeGreaterThanOrEqual(0);

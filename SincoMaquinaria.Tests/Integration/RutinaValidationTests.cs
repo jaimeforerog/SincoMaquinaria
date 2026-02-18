@@ -6,6 +6,7 @@ using SincoMaquinaria.Domain;
 using SincoMaquinaria.DTOs.Requests;
 using Marten;
 using Xunit;
+using SincoMaquinaria.Tests.Helpers;
 
 namespace SincoMaquinaria.Tests.Integration;
 
@@ -17,6 +18,15 @@ public class RutinaValidationTests : IClassFixture<CustomWebApplicationFactory>
     public RutinaValidationTests(CustomWebApplicationFactory factory)
     {
         _factory = factory;
+    }
+
+    private async Task<string> GetAdminToken(HttpClient client)
+    {
+        client.DefaultRequestHeaders.Clear();
+        var loginRequest = new LoginRequest("admin@test.com", "Admin123!");
+        var response = await client.PostAsJsonAsync("/auth/login", loginRequest);
+        var authResponse = await response.Content.ReadFromJsonAsync<TestAuthResponse>();
+        return authResponse!.Token;
     }
 
     [Fact]
@@ -36,6 +46,11 @@ public class RutinaValidationTests : IClassFixture<CustomWebApplicationFactory>
                 await session.SaveChangesAsync();
             }
         }
+
+        // Authenticate
+        var token = await GetAdminToken(client);
+        client.DefaultRequestHeaders.Clear();
+        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
 
         // Act - Intentar crear la misma
         var request = new CreateRutinaRequest(nombreRutina, "General");
@@ -66,6 +81,11 @@ public class RutinaValidationTests : IClassFixture<CustomWebApplicationFactory>
                 await session.SaveChangesAsync();
             }
         }
+
+        // Authenticate
+        var token = await GetAdminToken(client);
+        client.DefaultRequestHeaders.Clear();
+        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
 
         // Act - Intentar cambiar nombre B a nombre A
         var request = new UpdateRutinaRequest(nombreExistente, "General");

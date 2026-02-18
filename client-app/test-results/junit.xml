@@ -1,14 +1,390 @@
-<testsuites id="" name="" tests="4" failures="0" skipped="0" errors="0" time="65.218157">
-<testsuite name="tests\smoke.spec.ts" timestamp="2026-02-09T01:59:16.239Z" hostname="chromium" tests="2" failures="0" skipped="0" time="13.087" errors="0">
-<testcase name="Smoke Tests - Critical Path › should login and load dashboard" classname="tests\smoke.spec.ts" time="4.384">
+<testsuites id="" name="" tests="80" failures="0" skipped="8" errors="0" time="1235.6880689999998">
+<testsuite name="tests\auth.spec.ts" timestamp="2026-02-16T18:55:57.851Z" hostname="chromium" tests="13" failures="0" skipped="0" time="95.429" errors="0">
+<testcase name="Authentication Flow › should login with valid credentials" classname="tests\auth.spec.ts" time="8.727">
 </testcase>
-<testcase name="Smoke Tests - Critical Path › should navigate to main pages" classname="tests\smoke.spec.ts" time="8.703">
+<testcase name="Authentication Flow › should show error with invalid credentials" classname="tests\auth.spec.ts" time="6.539">
+</testcase>
+<testcase name="Authentication Flow › should logout and clear session" classname="tests\auth.spec.ts" time="7.327">
+</testcase>
+<testcase name="Authentication Flow › should redirect to login when accessing protected route unauthenticated" classname="tests\auth.spec.ts" time="5.513">
+</testcase>
+<testcase name="Authentication Flow › should refresh token on 401 response" classname="tests\auth.spec.ts" time="11.007">
+</testcase>
+<testcase name="Authentication Flow › should show validation error for empty email" classname="tests\auth.spec.ts" time="6.65">
+</testcase>
+<testcase name="Authentication Flow › should show validation error for empty password" classname="tests\auth.spec.ts" time="6.994">
+</testcase>
+<testcase name="Authentication Flow › should persist session after page reload" classname="tests\auth.spec.ts" time="9.475">
+</testcase>
+<testcase name="Authentication Flow › should toggle password visibility" classname="tests\auth.spec.ts" time="7.573">
+</testcase>
+<testcase name="Authentication Flow › should handle rapid login attempts gracefully" classname="tests\auth.spec.ts" time="6.391">
+</testcase>
+<testcase name="Authentication - Edge Cases › should handle special characters in password" classname="tests\auth.spec.ts" time="6.899">
+</testcase>
+<testcase name="Authentication - Edge Cases › should trim whitespace from email" classname="tests\auth.spec.ts" time="5.841">
+</testcase>
+<testcase name="Authentication - Edge Cases › should handle case-sensitive email" classname="tests\auth.spec.ts" time="6.493">
 </testcase>
 </testsuite>
-<testsuite name="tests\smoke.spec.ts" timestamp="2026-02-09T01:59:16.239Z" hostname="firefox" tests="2" failures="0" skipped="0" time="45.304" errors="0">
-<testcase name="Smoke Tests - Critical Path › should login and load dashboard" classname="tests\smoke.spec.ts" time="12.609">
+<testsuite name="tests\dashboard.spec.ts" timestamp="2026-02-16T18:55:57.851Z" hostname="chromium" tests="5" failures="0" skipped="0" time="38.861" errors="0">
+<testcase name="Dashboard › should display current KPIs" classname="tests\dashboard.spec.ts" time="9.413">
+<system-out>
+<![CDATA[ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com
+[Cleanup] Starting test data cleanup...
+[Cleanup] Test data cleanup completed
+]]>
+</system-out>
 </testcase>
-<testcase name="Smoke Tests - Critical Path › should navigate to main pages" classname="tests\smoke.spec.ts" time="32.695">
+<testcase name="Dashboard › should navigate to equipment config" classname="tests\dashboard.spec.ts" time="7.697">
+<system-out>
+<![CDATA[ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com
+[Cleanup] Starting test data cleanup...
+[Cleanup] Test data cleanup completed
+]]>
+</system-out>
+</testcase>
+<testcase name="Dashboard › should navigate to rutinas" classname="tests\dashboard.spec.ts" time="7.019">
+<system-out>
+<![CDATA[ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com
+[Cleanup] Starting test data cleanup...
+[Cleanup] Test data cleanup completed
+]]>
+</system-out>
+</testcase>
+<testcase name="Dashboard › should navigate to historial" classname="tests\dashboard.spec.ts" time="7.628">
+<system-out>
+<![CDATA[ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com
+[Cleanup] Starting test data cleanup...
+[Cleanup] Test data cleanup completed
+]]>
+</system-out>
+</testcase>
+<testcase name="Dashboard › should load without errors" classname="tests\dashboard.spec.ts" time="7.104">
+<system-out>
+<![CDATA[ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com
+[Cleanup] Starting test data cleanup...
+[Cleanup] Test data cleanup completed
+ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com
+[Cleanup] Starting test data cleanup...
+[Cleanup] Test data cleanup completed
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="tests\equipment.spec.ts" timestamp="2026-02-16T18:55:57.851Z" hostname="chromium" tests="5" failures="0" skipped="0" time="61.975" errors="0">
+<testcase name="Equipment Management › should create new equipment" classname="tests\equipment.spec.ts" time="14.386">
+<system-out>
+<![CDATA[ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com
+[Setup] Prerequisites ready: grupo="Grupo-Mantenimiento-General", rutina="Rutina-Mantenimiento-Diario"
+]]>
+</system-out>
+</testcase>
+<testcase name="Equipment Management › should validate placa is required" classname="tests\equipment.spec.ts" time="8.883">
+<system-out>
+<![CDATA[ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com
+[Setup] Prerequisites ready: grupo="Grupo-Mantenimiento-General", rutina="Rutina-Mantenimiento-Diario"
+]]>
+</system-out>
+</testcase>
+<testcase name="Equipment Management › should validate descripcion is required" classname="tests\equipment.spec.ts" time="8.647">
+<system-out>
+<![CDATA[ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com
+[Setup] Prerequisites ready: grupo="Grupo-Mantenimiento-General", rutina="Rutina-Mantenimiento-Diario"
+]]>
+</system-out>
+</testcase>
+<testcase name="Equipment Management › should search equipment by placa" classname="tests\equipment.spec.ts" time="12.756">
+<system-out>
+<![CDATA[ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com
+[Setup] Prerequisites ready: grupo="Grupo-Mantenimiento-General", rutina="Rutina-Mantenimiento-Diario"
+]]>
+</system-out>
+</testcase>
+<testcase name="Equipment Management › should edit existing equipment" classname="tests\equipment.spec.ts" time="17.303">
+<system-out>
+<![CDATA[ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com
+[Setup] Prerequisites ready: grupo="Grupo-Mantenimiento-General", rutina="Rutina-Mantenimiento-Diario"
+ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com
+[Cleanup] Starting test data cleanup...
+[Cleanup] Test data cleanup completed
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="tests\excel-import.spec.ts" timestamp="2026-02-16T18:55:57.851Z" hostname="chromium" tests="4" failures="0" skipped="2" time="15.734" errors="0">
+<testcase name="Excel Import › should switch between import tabs" classname="tests\excel-import.spec.ts" time="7.64">
+<system-out>
+<![CDATA[ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com
+]]>
+</system-out>
+</testcase>
+<testcase name="Excel Import › should import rutinas from valid Excel" classname="tests\excel-import.spec.ts" time="0">
+<properties>
+<property name="skip" value="">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Excel Import › should import equipos from valid Excel" classname="tests\excel-import.spec.ts" time="0">
+<properties>
+<property name="skip" value="">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Excel Import › should have import button disabled when no file selected" classname="tests\excel-import.spec.ts" time="8.094">
+<system-out>
+<![CDATA[ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="tests\order-creation.spec.ts" timestamp="2026-02-16T18:55:57.851Z" hostname="chromium" tests="11" failures="0" skipped="2" time="70.581" errors="0">
+<testcase name="Order Creation - Form Validation › should load create order page successfully" classname="tests\order-creation.spec.ts" time="6.479">
+</testcase>
+<testcase name="Order Creation - Form Validation › should have submit button disabled without equipment" classname="tests\order-creation.spec.ts" time="7.504">
+</testcase>
+<testcase name="Order Creation - Form Validation › should show rutina field only for Preventivo orders" classname="tests\order-creation.spec.ts" time="9.247">
+</testcase>
+<testcase name="Order Creation - Form Validation › should show frecuencia field only for Preventivo orders" classname="tests\order-creation.spec.ts" time="9.826">
+</testcase>
+<testcase name="Order Creation - Form Validation › should have Tipo de Orden defaulting to Correctivo" classname="tests\order-creation.spec.ts" time="7.432">
+</testcase>
+<testcase name="Order Creation - Happy Path › should create corrective maintenance order" classname="tests\order-creation.spec.ts" time="0">
+<properties>
+<property name="skip" value="">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Order Creation - Happy Path › should create preventive maintenance order" classname="tests\order-creation.spec.ts" time="0">
+<properties>
+<property name="skip" value="">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Order Creation - Happy Path › should navigate to create order from URL" classname="tests\order-creation.spec.ts" time="7.198">
+</testcase>
+<testcase name="Order Creation - Happy Path › should display all form fields correctly" classname="tests\order-creation.spec.ts" time="7.626">
+</testcase>
+<testcase name="Order Creation - Happy Path › should show helper text for fields" classname="tests\order-creation.spec.ts" time="8.191">
+</testcase>
+<testcase name="Order Creation - Navigation › should access create order page when authenticated" classname="tests\order-creation.spec.ts" time="7.078">
+</testcase>
+</testsuite>
+<testsuite name="tests\smoke.spec.ts" timestamp="2026-02-16T18:55:57.851Z" hostname="chromium" tests="2" failures="0" skipped="0" time="12.55" errors="0">
+<testcase name="Smoke Tests - Critical Path › should login and load dashboard" classname="tests\smoke.spec.ts" time="3.74">
+</testcase>
+<testcase name="Smoke Tests - Critical Path › should navigate to main pages" classname="tests\smoke.spec.ts" time="8.81">
+</testcase>
+</testsuite>
+<testsuite name="tests\auth.spec.ts" timestamp="2026-02-16T18:55:57.851Z" hostname="firefox" tests="13" failures="0" skipped="0" time="314.844" errors="0">
+<testcase name="Authentication Flow › should login with valid credentials" classname="tests\auth.spec.ts" time="21.835">
+</testcase>
+<testcase name="Authentication Flow › should show error with invalid credentials" classname="tests\auth.spec.ts" time="23.517">
+</testcase>
+<testcase name="Authentication Flow › should logout and clear session" classname="tests\auth.spec.ts" time="27.453">
+</testcase>
+<testcase name="Authentication Flow › should redirect to login when accessing protected route unauthenticated" classname="tests\auth.spec.ts" time="22.657">
+</testcase>
+<testcase name="Authentication Flow › should refresh token on 401 response" classname="tests\auth.spec.ts" time="27.867">
+</testcase>
+<testcase name="Authentication Flow › should show validation error for empty email" classname="tests\auth.spec.ts" time="20.548">
+</testcase>
+<testcase name="Authentication Flow › should show validation error for empty password" classname="tests\auth.spec.ts" time="21.018">
+</testcase>
+<testcase name="Authentication Flow › should persist session after page reload" classname="tests\auth.spec.ts" time="31.456">
+</testcase>
+<testcase name="Authentication Flow › should toggle password visibility" classname="tests\auth.spec.ts" time="22.569">
+</testcase>
+<testcase name="Authentication Flow › should handle rapid login attempts gracefully" classname="tests\auth.spec.ts" time="22.7">
+</testcase>
+<testcase name="Authentication - Edge Cases › should handle special characters in password" classname="tests\auth.spec.ts" time="21.083">
+</testcase>
+<testcase name="Authentication - Edge Cases › should trim whitespace from email" classname="tests\auth.spec.ts" time="26.67">
+</testcase>
+<testcase name="Authentication - Edge Cases › should handle case-sensitive email" classname="tests\auth.spec.ts" time="25.471">
+</testcase>
+</testsuite>
+<testsuite name="tests\dashboard.spec.ts" timestamp="2026-02-16T18:55:57.851Z" hostname="firefox" tests="5" failures="0" skipped="0" time="134.488" errors="0">
+<testcase name="Dashboard › should display current KPIs" classname="tests\dashboard.spec.ts" time="34.907">
+<system-out>
+<![CDATA[ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com
+Could not read response body (this is OK in Firefox), will verify token in localStorage
+[Cleanup] Starting test data cleanup...
+[Cleanup] Test data cleanup completed
+]]>
+</system-out>
+</testcase>
+<testcase name="Dashboard › should navigate to equipment config" classname="tests\dashboard.spec.ts" time="23.258">
+<system-out>
+<![CDATA[ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com
+Could not read response body (this is OK in Firefox), will verify token in localStorage
+[Cleanup] Starting test data cleanup...
+[Cleanup] Test data cleanup completed
+]]>
+</system-out>
+</testcase>
+<testcase name="Dashboard › should navigate to rutinas" classname="tests\dashboard.spec.ts" time="25.595">
+<system-out>
+<![CDATA[ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com
+Could not read response body (this is OK in Firefox), will verify token in localStorage
+[Cleanup] Starting test data cleanup...
+[Cleanup] Test data cleanup completed
+]]>
+</system-out>
+</testcase>
+<testcase name="Dashboard › should navigate to historial" classname="tests\dashboard.spec.ts" time="26.405">
+<system-out>
+<![CDATA[ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com
+Could not read response body (this is OK in Firefox), will verify token in localStorage
+[Cleanup] Starting test data cleanup...
+[Cleanup] Test data cleanup completed
+]]>
+</system-out>
+</testcase>
+<testcase name="Dashboard › should load without errors" classname="tests\dashboard.spec.ts" time="24.323">
+<system-out>
+<![CDATA[ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com
+Could not read response body (this is OK in Firefox), will verify token in localStorage
+[Cleanup] Starting test data cleanup...
+[Cleanup] Test data cleanup completed
+ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com
+Could not read response body (this is OK in Firefox), will verify token in localStorage
+[Cleanup] Starting test data cleanup...
+[Cleanup] Test data cleanup completed
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="tests\equipment.spec.ts" timestamp="2026-02-16T18:55:57.851Z" hostname="firefox" tests="5" failures="0" skipped="0" time="156.477" errors="0">
+<testcase name="Equipment Management › should create new equipment" classname="tests\equipment.spec.ts" time="31.576">
+<system-out>
+<![CDATA[ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com
+Could not read response body (this is OK in Firefox), will verify token in localStorage
+[Setup] Prerequisites ready: grupo="Grupo-Mantenimiento-General", rutina="Rutina-Mantenimiento-Diario"
+]]>
+</system-out>
+</testcase>
+<testcase name="Equipment Management › should validate placa is required" classname="tests\equipment.spec.ts" time="29.025">
+<system-out>
+<![CDATA[ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com
+Could not read response body (this is OK in Firefox), will verify token in localStorage
+[Setup] Prerequisites ready: grupo="Grupo-Mantenimiento-General", rutina="Rutina-Mantenimiento-Diario"
+]]>
+</system-out>
+</testcase>
+<testcase name="Equipment Management › should validate descripcion is required" classname="tests\equipment.spec.ts" time="28.267">
+<system-out>
+<![CDATA[ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com
+Could not read response body (this is OK in Firefox), will verify token in localStorage
+[Setup] Prerequisites ready: grupo="Grupo-Mantenimiento-General", rutina="Rutina-Mantenimiento-Diario"
+]]>
+</system-out>
+</testcase>
+<testcase name="Equipment Management › should search equipment by placa" classname="tests\equipment.spec.ts" time="34.061">
+<system-out>
+<![CDATA[ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com
+Could not read response body (this is OK in Firefox), will verify token in localStorage
+[Setup] Prerequisites ready: grupo="Grupo-Mantenimiento-General", rutina="Rutina-Mantenimiento-Diario"
+]]>
+</system-out>
+</testcase>
+<testcase name="Equipment Management › should edit existing equipment" classname="tests\equipment.spec.ts" time="33.548">
+<system-out>
+<![CDATA[ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com
+Could not read response body (this is OK in Firefox), will verify token in localStorage
+[Setup] Prerequisites ready: grupo="Grupo-Mantenimiento-General", rutina="Rutina-Mantenimiento-Diario"
+ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com
+Could not read response body (this is OK in Firefox), will verify token in localStorage
+[Cleanup] Starting test data cleanup...
+[Cleanup] Test data cleanup completed
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="tests\excel-import.spec.ts" timestamp="2026-02-16T18:55:57.851Z" hostname="firefox" tests="4" failures="0" skipped="2" time="48.314" errors="0">
+<testcase name="Excel Import › should switch between import tabs" classname="tests\excel-import.spec.ts" time="25.033">
+<system-out>
+<![CDATA[ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com
+Could not read response body (this is OK in Firefox), will verify token in localStorage
+]]>
+</system-out>
+</testcase>
+<testcase name="Excel Import › should import rutinas from valid Excel" classname="tests\excel-import.spec.ts" time="0">
+<properties>
+<property name="skip" value="">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Excel Import › should import equipos from valid Excel" classname="tests\excel-import.spec.ts" time="0">
+<properties>
+<property name="skip" value="">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Excel Import › should have import button disabled when no file selected" classname="tests\excel-import.spec.ts" time="23.281">
+<system-out>
+<![CDATA[ℹ️ Assuming test admin user already exists. Email: e2e-test@sinco.com
+Could not read response body (this is OK in Firefox), will verify token in localStorage
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="tests\order-creation.spec.ts" timestamp="2026-02-16T18:55:57.851Z" hostname="firefox" tests="11" failures="0" skipped="2" time="204.981" errors="0">
+<testcase name="Order Creation - Form Validation › should load create order page successfully" classname="tests\order-creation.spec.ts" time="25.441">
+</testcase>
+<testcase name="Order Creation - Form Validation › should have submit button disabled without equipment" classname="tests\order-creation.spec.ts" time="23.096">
+</testcase>
+<testcase name="Order Creation - Form Validation › should show rutina field only for Preventivo orders" classname="tests\order-creation.spec.ts" time="23.558">
+</testcase>
+<testcase name="Order Creation - Form Validation › should show frecuencia field only for Preventivo orders" classname="tests\order-creation.spec.ts" time="23.41">
+</testcase>
+<testcase name="Order Creation - Form Validation › should have Tipo de Orden defaulting to Correctivo" classname="tests\order-creation.spec.ts" time="20.806">
+</testcase>
+<testcase name="Order Creation - Happy Path › should create corrective maintenance order" classname="tests\order-creation.spec.ts" time="0">
+<properties>
+<property name="skip" value="">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Order Creation - Happy Path › should create preventive maintenance order" classname="tests\order-creation.spec.ts" time="0">
+<properties>
+<property name="skip" value="">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Order Creation - Happy Path › should navigate to create order from URL" classname="tests\order-creation.spec.ts" time="22.259">
+</testcase>
+<testcase name="Order Creation - Happy Path › should display all form fields correctly" classname="tests\order-creation.spec.ts" time="21.45">
+</testcase>
+<testcase name="Order Creation - Happy Path › should show helper text for fields" classname="tests\order-creation.spec.ts" time="23.773">
+</testcase>
+<testcase name="Order Creation - Navigation › should access create order page when authenticated" classname="tests\order-creation.spec.ts" time="21.188">
+</testcase>
+</testsuite>
+<testsuite name="tests\smoke.spec.ts" timestamp="2026-02-16T18:55:57.851Z" hostname="firefox" tests="2" failures="0" skipped="0" time="36.759" errors="0">
+<testcase name="Smoke Tests - Critical Path › should login and load dashboard" classname="tests\smoke.spec.ts" time="12.677">
+</testcase>
+<testcase name="Smoke Tests - Critical Path › should navigate to main pages" classname="tests\smoke.spec.ts" time="24.082">
+<system-out>
+<![CDATA[[Navigation] Failed to navigate to /historial, retrying...
+]]>
+</system-out>
 </testcase>
 </testsuite>
 </testsuites>

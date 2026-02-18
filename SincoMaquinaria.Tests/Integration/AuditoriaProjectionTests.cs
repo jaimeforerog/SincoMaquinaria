@@ -2,6 +2,7 @@ using System.Net.Http.Json;
 using FluentAssertions;
 using SincoMaquinaria.Domain;
 using SincoMaquinaria.Domain.Projections;
+using SincoMaquinaria.Tests.Helpers;
 using Marten;
 
 namespace SincoMaquinaria.Tests.Integration;
@@ -67,9 +68,4 @@ public class AuditoriaProjectionTests : IClassFixture<IntegrationFixture>
         log.Detalles.Should().Contain("Juan Perez Audit");
     }
     */
-}
-
-public class AuthResponse
-{
-    public string Token { get; set; }
 }

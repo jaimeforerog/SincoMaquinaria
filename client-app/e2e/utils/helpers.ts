@@ -1,5 +1,6 @@
 import { Page, BrowserContext } from '@playwright/test';
 import { testData } from '../fixtures/test-data';
+import { URLS } from '../e2e.config';
 
 /**
  * Helper utilities for E2E tests
@@ -17,28 +18,43 @@ import { testData } from '../fixtures/test-data';
 export async function ensureTestAdminExists(page: Page) {
   // Try to create the test admin user using /auth/setup endpoint
   // This only works if NO users exist in the database
-  try {
-    const response = await page.request.post('/auth/setup', {
-      data: {
-        Nombre: testData.users.admin.nombre,
-        Email: testData.users.admin.email,
-        Password: testData.users.admin.password,
-      },
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      failOnStatusCode: false, // Don't throw on error
-    });
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const response = await page.request.post(`${URLS.backend}/auth/setup`, {
+        data: {
+          Nombre: testData.users.admin.nombre,
+          Email: testData.users.admin.email,
+          Password: testData.users.admin.password,
+        },
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        failOnStatusCode: false,
+      });
 
-    if (response.ok()) {
-      console.log('✅ Test admin user created successfully');
-    } else {
-      // User likely already exists or database is not empty - that's OK
-      console.log('ℹ️ Assuming test admin user already exists. Email:', testData.users.admin.email);
+      if (response.ok()) {
+        console.log('✅ Test admin user created successfully');
+        return;
+      } else if (response.status() === 400) {
+        // User already exists - that's OK
+        console.log('ℹ️ Assuming test admin user already exists. Email:', testData.users.admin.email);
+        return;
+      } else if (response.status() === 500 && attempt < 3) {
+        // DB schema might not be ready yet, retry
+        console.log(`⚠️ /auth/setup returned 500, retrying in 1s (attempt ${attempt}/3)...`);
+        await new Promise(r => setTimeout(r, 1000));
+        continue;
+      } else {
+        console.log('ℹ️ Assuming test admin user already exists. Email:', testData.users.admin.email);
+        return;
+      }
+    } catch (error) {
+      if (attempt < 3) {
+        await new Promise(r => setTimeout(r, 1000));
+        continue;
+      }
+      console.log('ℹ️ Could not setup admin, assuming user exists. Email:', testData.users.admin.email);
     }
-  } catch (error) {
-    // If setup fails for any reason, assume user exists and continue
-    console.log('ℹ️ Could not setup admin, assuming user exists. Email:', testData.users.admin.email);
   }
 }
 
@@ -201,7 +217,7 @@ export async function isAuthenticated(page: Page): Promise<boolean> {
 export async function createTestEquipo(page: Page, equipoData: any): Promise<string> {
   const token = await getAuthToken(page);
 
-  const response = await page.request.post('/equipos', {
+  const response = await page.request.post(`${URLS.backend}/equipos`, {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
@@ -223,7 +239,7 @@ export async function createTestEquipo(page: Page, equipoData: any): Promise<str
 export async function createTestRutina(page: Page, rutinaData: any): Promise<string> {
   const token = await getAuthToken(page);
 
-  const response = await page.request.post('/rutinas', {
+  const response = await page.request.post(`${URLS.backend}/rutinas`, {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
@@ -245,7 +261,7 @@ export async function createTestRutina(page: Page, rutinaData: any): Promise<str
 export async function createTestOrder(page: Page, orderData: any): Promise<string> {
   const token = await getAuthToken(page);
 
-  const response = await page.request.post('/ordenes', {
+  const response = await page.request.post(`${URLS.backend}/ordenes`, {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
@@ -267,7 +283,7 @@ export async function createTestOrder(page: Page, orderData: any): Promise<strin
 export async function deleteTestEquipo(page: Page, equipoId: string) {
   const token = await getAuthToken(page);
 
-  await page.request.delete(`/equipos/${equipoId}`, {
+  await page.request.delete(`${URLS.backend}/equipos/${equipoId}`, {
     headers: {
       'Authorization': `Bearer ${token}`,
     },
@@ -280,7 +296,7 @@ export async function deleteTestEquipo(page: Page, equipoId: string) {
 export async function deleteTestRutina(page: Page, rutinaId: string) {
   const token = await getAuthToken(page);
 
-  await page.request.delete(`/rutinas/${rutinaId}`, {
+  await page.request.delete(`${URLS.backend}/rutinas/${rutinaId}`, {
     headers: {
       'Authorization': `Bearer ${token}`,
     },
@@ -293,7 +309,7 @@ export async function deleteTestRutina(page: Page, rutinaId: string) {
 export async function deleteTestOrder(page: Page, ordenId: string) {
   const token = await getAuthToken(page);
 
-  await page.request.delete(`/ordenes/${ordenId}`, {
+  await page.request.delete(`${URLS.backend}/ordenes/${ordenId}`, {
     headers: {
       'Authorization': `Bearer ${token}`,
     },
@@ -317,7 +333,7 @@ export async function cleanupTestData(page: Page) {
 
     // Step 1: Delete test orders FIRST (to avoid FK constraints)
     try {
-      const ordenesResponse = await page.request.get('/ordenes', {
+      const ordenesResponse = await page.request.get(`${URLS.backend}/ordenes`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
 
@@ -340,7 +356,7 @@ export async function cleanupTestData(page: Page) {
     }
 
     // Step 2: Delete test equipos
-    const equiposResponse = await page.request.get('/equipos', {
+    const equiposResponse = await page.request.get(`${URLS.backend}/equipos`, {
       headers: { 'Authorization': `Bearer ${token}` },
     });
 
@@ -360,7 +376,7 @@ export async function cleanupTestData(page: Page) {
     }
 
     // Step 3: Delete test rutinas LAST
-    const rutinasResponse = await page.request.get('/rutinas', {
+    const rutinasResponse = await page.request.get(`${URLS.backend}/rutinas`, {
       headers: { 'Authorization': `Bearer ${token}` },
     });
 

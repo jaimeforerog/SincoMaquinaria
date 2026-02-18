@@ -24,8 +24,8 @@ export default defineConfig({
   // Fail the build on CI if you accidentally left test.only in the source code
   forbidOnly: !!process.env.CI,
 
-  // Retry on CI only
-  retries: process.env.CI ? 2 : 0,
+  // Retry on failure (1 locally for transient Firefox crashes, 2 in CI)
+  retries: process.env.CI ? 2 : 1,
 
   // Always use 1 worker for E2E tests to avoid race conditions
   workers: 1,

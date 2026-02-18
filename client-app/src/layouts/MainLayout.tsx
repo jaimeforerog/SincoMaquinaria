@@ -25,8 +25,8 @@ const MainLayout = () => {
     const navigate = useNavigate();
     const { user, logout } = useAuth();
 
-    const handleLogout = () => {
-        logout();
+    const handleLogout = async () => {
+        await logout();
         navigate('/login');
     };
 

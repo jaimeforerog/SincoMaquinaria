@@ -12,10 +12,19 @@ export class BasePage {
   constructor(protected page: Page) {}
 
   /**
-   * Navigate to a specific path
+   * Navigate to a specific path (retries on Firefox NS_BINDING_ABORTED)
    */
   async goto(path: string) {
-    await this.page.goto(path);
+    try {
+      await this.page.goto(path);
+    } catch (error: any) {
+      if (error.message?.includes('NS_BINDING_ABORTED')) {
+        await this.page.waitForTimeout(500);
+        await this.page.goto(path);
+      } else {
+        throw error;
+      }
+    }
   }
 
   /**

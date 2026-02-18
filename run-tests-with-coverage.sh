@@ -5,6 +5,9 @@
 echo "=== SincoMaquinaria - Test Coverage Report ==="
 echo ""
 
+# Add dotnet to PATH for bash environment
+export PATH="/c/Program Files/dotnet:$PATH"
+
 # Limpiar reportes anteriores
 echo "Limpiando reportes anteriores..."
 rm -rf TestResults

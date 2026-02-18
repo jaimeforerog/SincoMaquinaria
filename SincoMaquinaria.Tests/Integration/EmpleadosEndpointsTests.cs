@@ -6,9 +6,12 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System;
+using SincoMaquinaria.DTOs.Requests;
+using SincoMaquinaria.Tests.Helpers;
 
 namespace SincoMaquinaria.Tests.Integration;
 
+[Collection("Integration")]
 public class EmpleadosEndpointsTests : IClassFixture<CustomWebApplicationFactory>
 {
     private readonly HttpClient _client;
@@ -18,8 +21,17 @@ public class EmpleadosEndpointsTests : IClassFixture<CustomWebApplicationFactory
         _client = factory.CreateClient();
     }
 
+    private async Task<string> GetAdminToken(HttpClient client)
+    {
+        client.DefaultRequestHeaders.Clear();
+        var loginRequest = new LoginRequest("admin@test.com", "Admin123!");
+        var response = await client.PostAsJsonAsync("/auth/login", loginRequest);
+        var authResponse = await response.Content.ReadFromJsonAsync<TestAuthResponse>();
+        return authResponse!.Token;
+    }
+
     /// <summary>
-    /// Creates an employee via POST and retrieves its server-assigned ID from GET /empleados.
+    /// Creates an employee via POST and retrieves its server-assigned ID from the response.
     /// </summary>
     private async Task<Guid> CrearEmpleadoYObtenerIdAsync(string nombre, string identificacion,
         string cargo = "Mecanico", string especialidad = "Motores Diesel", decimal valorHora = 25000m)
@@ -37,24 +49,21 @@ public class EmpleadosEndpointsTests : IClassFixture<CustomWebApplicationFactory
         var createResponse = await _client.PostAsJsonAsync("/empleados", nuevoEmpleado);
         createResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        var listResponse = await _client.GetAsync("/empleados");
-        listResponse.EnsureSuccessStatusCode();
+        // Parse the response to get the created ID
+        var responseBody = await createResponse.Content.ReadAsStringAsync();
+        var json = JsonSerializer.Deserialize<JsonElement>(responseBody);
 
-        var body = await listResponse.Content.ReadAsStringAsync();
-        var json = JsonSerializer.Deserialize<JsonElement>(body)!;
-
-        foreach (var item in json.GetProperty("data").EnumerateArray())
-        {
-            if (item.GetProperty("identificacion").GetString() == identificacion)
-                return Guid.Parse(item.GetProperty("id").GetString()!);
-        }
-
-        throw new InvalidOperationException($"Empleado con identificacion '{identificacion}' no encontrado en lista");
+        return Guid.Parse(json.GetProperty("id").GetString()!);
     }
 
     [Fact]
     public async Task CrearEmpleado_DebeRetornarOk_ConDatosValidos()
     {
+        // Arrange
+        var token = await GetAdminToken(_client);
+        _client.DefaultRequestHeaders.Clear();
+        _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+
         var uid = Guid.NewGuid().ToString("N")[..8];
         var nuevoEmpleado = new
         {
@@ -74,6 +83,11 @@ public class EmpleadosEndpointsTests : IClassFixture<CustomWebApplicationFactory
     [Fact]
     public async Task ActualizarEmpleado_DebeRetornarOk_ConDatosValidos()
     {
+        // Arrange
+        var token = await GetAdminToken(_client);
+        _client.DefaultRequestHeaders.Clear();
+        _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+
         var uid = Guid.NewGuid().ToString("N")[..8];
         var identificacion = $"test-upd-{uid}";
 
@@ -102,6 +116,11 @@ public class EmpleadosEndpointsTests : IClassFixture<CustomWebApplicationFactory
     [Fact]
     public async Task CrearEmpleado_ConValorHoraCero_DebeAceptar()
     {
+        // Arrange
+        var token = await GetAdminToken(_client);
+        _client.DefaultRequestHeaders.Clear();
+        _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+
         var uid = Guid.NewGuid().ToString("N")[..8];
         var nuevoEmpleado = new
         {
@@ -121,6 +140,11 @@ public class EmpleadosEndpointsTests : IClassFixture<CustomWebApplicationFactory
     [Fact]
     public async Task ActualizarEmpleado_CambiarEstadoAInactivo_DebeRetornarOk()
     {
+        // Arrange
+        var token = await GetAdminToken(_client);
+        _client.DefaultRequestHeaders.Clear();
+        _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+
         var uid = Guid.NewGuid().ToString("N")[..8];
         var identificacion = $"test-inact-{uid}";
 

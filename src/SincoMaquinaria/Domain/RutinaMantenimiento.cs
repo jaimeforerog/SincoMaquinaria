@@ -63,28 +63,27 @@ public class RutinaMantenimiento
 
     public void Apply(ActividadDeRutinaMigrada @event)
     {
-        var parte = Partes.FirstOrDefault(p => p.Id == @event.ParteId);
-        if (parte != null)
-        {
-            parte.Actividades.Add(new ActividadMantenimiento
-            {
-                Id = @event.ActividadId,
-                Descripcion = @event.Descripcion,
-                Clase = @event.Clase,
-                Frecuencia = @event.Frecuencia,
-                UnidadMedida = @event.UnidadMedida,
-                NombreMedidor = @event.NombreMedidor,
-                AlertaFaltando = @event.AlertaFaltando,
-                
-                Frecuencia2 = @event.Frecuencia2,
-                UnidadMedida2 = @event.UnidadMedida2,
-                NombreMedidor2 = @event.NombreMedidor2,
-                AlertaFaltando2 = @event.AlertaFaltando2,
+        var parte = Partes.FirstOrDefault(p => p.Id == @event.ParteId)
+            ?? throw new DomainException($"Parte con ID {@event.ParteId} no existe en la rutina");
 
-                Insumo = @event.Insumo,
-                Cantidad = @event.Cantidad
-            });
-        }
+        parte.Actividades.Add(new ActividadMantenimiento
+        {
+            Id = @event.ActividadId,
+            Descripcion = @event.Descripcion,
+            Clase = @event.Clase,
+            Frecuencia = @event.Frecuencia,
+            UnidadMedida = @event.UnidadMedida,
+            NombreMedidor = @event.NombreMedidor,
+            AlertaFaltando = @event.AlertaFaltando,
+
+            Frecuencia2 = @event.Frecuencia2,
+            UnidadMedida2 = @event.UnidadMedida2,
+            NombreMedidor2 = @event.NombreMedidor2,
+            AlertaFaltando2 = @event.AlertaFaltando2,
+
+            Insumo = @event.Insumo,
+            Cantidad = @event.Cantidad
+        });
     }
 
     public void Apply(RutinaCreada @event)
@@ -112,8 +111,9 @@ public class RutinaMantenimiento
 
     public void Apply(ParteActualizada @event)
     {
-        var parte = Partes.FirstOrDefault(p => p.Id == @event.ParteId);
-        if (parte != null) parte.Descripcion = @event.Descripcion;
+        var parte = Partes.FirstOrDefault(p => p.Id == @event.ParteId)
+            ?? throw new DomainException($"Parte con ID {@event.ParteId} no existe en la rutina");
+        parte.Descripcion = @event.Descripcion;
     }
 
     public void Apply(ParteEliminada @event)
@@ -123,8 +123,10 @@ public class RutinaMantenimiento
 
     public void Apply(ActividadDeRutinaAgregada @event)
     {
-        var parte = Partes.FirstOrDefault(p => p.Id == @event.ParteId);
-        parte?.Actividades.Add(new ActividadMantenimiento
+        var parte = Partes.FirstOrDefault(p => p.Id == @event.ParteId)
+            ?? throw new DomainException($"Parte con ID {@event.ParteId} no existe en la rutina");
+
+        parte.Actividades.Add(new ActividadMantenimiento
         {
             Id = @event.ActividadId,
             Descripcion = @event.Descripcion,
@@ -163,12 +165,15 @@ public class RutinaMantenimiento
             actividad.Cantidad = @event.Cantidad;
             return;
         }
+
+        throw new DomainException($"Actividad con ID {@event.ActividadId} no existe en ninguna parte de la rutina");
     }
 
     public void Apply(ActividadDeRutinaEliminada @event)
     {
-        var parte = Partes.FirstOrDefault(p => p.Id == @event.ParteId);
-        parte?.Actividades.RemoveAll(a => a.Id == @event.ActividadId);
+        var parte = Partes.FirstOrDefault(p => p.Id == @event.ParteId)
+            ?? throw new DomainException($"Parte con ID {@event.ParteId} no existe en la rutina");
+        parte.Actividades.RemoveAll(a => a.Id == @event.ActividadId);
     }
 }
 

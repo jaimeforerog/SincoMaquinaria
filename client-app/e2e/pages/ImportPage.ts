@@ -30,7 +30,7 @@ export class ImportPage extends BasePage {
    * Navigate to import page
    */
   async goto() {
-    await super.goto('/importar');
+    await super.goto('/importar-rutinas');
     await this.waitForPageLoad();
   }
 
@@ -160,7 +160,7 @@ export class ImportPage extends BasePage {
    * Wait for loading to complete
    */
   async waitForLoadingComplete() {
-    const spinner = this.page.locator(this.loadingSpinner);
+    const spinner = this.page.locator(this.loadingSpinner).first();
     try {
       await spinner.waitFor({ state: 'visible', timeout: 2000 });
       await spinner.waitFor({ state: 'hidden', timeout: 30000 });

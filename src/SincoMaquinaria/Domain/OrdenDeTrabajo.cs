@@ -67,8 +67,8 @@ public class OrdenDeTrabajo
 
     public void Apply(AvanceDeActividadRegistrado @event)
     {
-        var item = Detalles.FirstOrDefault(d => d.Id == @event.ItemDetalleId);
-        if (item == null) return; // O lanzar excepción si somos estrictos
+        var item = Detalles.FirstOrDefault(d => d.Id == @event.ItemDetalleId)
+            ?? throw new DomainException($"Detalle con ID {@event.ItemDetalleId} no existe en la orden");
 
         item.Avance = @event.PorcentajeAvance;
         item.Observaciones = @event.Observacion;

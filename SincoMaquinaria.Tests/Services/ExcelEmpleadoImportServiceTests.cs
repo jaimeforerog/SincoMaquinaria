@@ -175,4 +175,116 @@ public class ExcelEmpleadoImportServiceTests : IntegrationContext
         var ex = await Assert.ThrowsAsync<Exception>(() => Service.ImportarEmpleados(stream));
         ex.Message.Should().Contain("ya existe en el sistema");
     }
+
+    [Fact]
+    public async Task ImportarEmpleados_MissingCargoColumn_ShouldDefaultToOperario()
+    {
+        // Arrange - File without "Cargo" column should default to "Operario"
+        var rows = new List<Dictionary<string, object>>
+        {
+            new()
+            {
+                { "Nombres", "Juan" },
+                { "Apellidos", "Default" },
+                { "No. Identificación", "DEFAULT123" }
+                // No Cargo column
+            }
+        };
+
+        using var stream = ExcelTestHelper.CreateExcelStream("Empleados", rows);
+
+        // Act
+        var result = await Service.ImportarEmpleados(stream);
+
+        // Assert
+        result.Should().Be(1);
+        var empleado = await CurrentSession.Query<Empleado>()
+            .FirstOrDefaultAsync(e => e.Identificacion == "DEFAULT123");
+        empleado.Should().NotBeNull();
+        empleado!.Cargo.Should().Be(CargoEmpleado.Operario);
+    }
+
+    [Fact]
+    public async Task ImportarEmpleados_WithEspecialidad_ShouldImportCorrectly()
+    {
+        // Arrange
+        var rows = new List<Dictionary<string, object>>
+        {
+            new()
+            {
+                { "Nombres", "Pedro" },
+                { "Apellidos", "Gonzalez" },
+                { "No. Identificación", "ESP123" },
+                { "Cargo", "Mecanico" },
+                { "Especialidad", "Motores diesel" },
+                { "Valor $ (Hr)", "25.5" }
+            }
+        };
+
+        using var stream = ExcelTestHelper.CreateExcelStream("Empleados", rows);
+
+        // Act
+        var result = await Service.ImportarEmpleados(stream);
+
+        // Assert
+        result.Should().Be(1);
+        var empleado = await CurrentSession.Query<Empleado>()
+            .FirstOrDefaultAsync(e => e.Identificacion == "ESP123");
+        empleado.Should().NotBeNull();
+        empleado!.Especialidad.Should().Be("Motores diesel");
+        empleado.ValorHora.Should().Be(25.5m);
+    }
+
+    [Fact]
+    public async Task ImportarEmpleados_AlternativeColumnNames_ShouldParse()
+    {
+        // Arrange - Using "Nombre" instead of "Nombres"/"Apellidos"
+        var rows = new List<Dictionary<string, object>>
+        {
+            new()
+            {
+                { "Nombre", "Maria Lopez" },
+                { "Documento", "ALT456" },
+                { "Cargo", "Conductor" },
+                { "Valor hora", "18" }
+            }
+        };
+
+        using var stream = ExcelTestHelper.CreateExcelStream("Empleados", rows);
+
+        // Act
+        var result = await Service.ImportarEmpleados(stream);
+
+        // Assert
+        result.Should().Be(1);
+        var empleado = await CurrentSession.Query<Empleado>()
+            .FirstOrDefaultAsync(e => e.Identificacion == "ALT456");
+        empleado.Should().NotBeNull();
+        empleado!.Nombre.Should().Be("Maria Lopez");
+        empleado.ValorHora.Should().Be(18m);
+    }
+
+    [Fact]
+    public async Task ImportarEmpleados_MultipleEmployees_ShouldImportAll()
+    {
+        // Arrange
+        var rows = new List<Dictionary<string, object>>
+        {
+            new() { { "Nombres", "Juan" }, { "No. Identificación", "MULTI1" }, { "Cargo", "Operario" } },
+            new() { { "Nombres", "Pedro" }, { "No. Identificación", "MULTI2" }, { "Cargo", "Conductor" } },
+            new() { { "Nombres", "Luis" }, { "No. Identificación", "MULTI3" }, { "Cargo", "Mecanico" } }
+        };
+
+        using var stream = ExcelTestHelper.CreateExcelStream("Empleados", rows);
+
+        // Act
+        var result = await Service.ImportarEmpleados(stream);
+
+        // Assert
+        result.Should().Be(3);
+        var empleados = await CurrentSession.Query<Empleado>()
+            .Where(e => e.Identificacion.StartsWith("MULTI"))
+            .ToListAsync();
+        empleados.Should().HaveCount(3);
+    }
 }

@@ -5,9 +5,11 @@ import { useDashboardSocket } from './useDashboardSocket';
 // Mock signalR
 const mockOn = vi.fn();
 const mockStart = vi.fn().mockResolvedValue(undefined);
+const mockStop = vi.fn().mockResolvedValue(undefined);
 const mockBuild = vi.fn(() => ({
     on: mockOn,
-    start: mockStart
+    start: mockStart,
+    stop: mockStop
 }));
 const mockWithAutomaticReconnect = vi.fn(() => ({
     build: mockBuild

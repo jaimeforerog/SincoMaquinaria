@@ -78,6 +78,27 @@ export class LoginPage extends BasePage {
   }
 
   /**
+   * Perform login expecting an error (for negative test cases)
+   */
+  async loginExpectingError(email: string, password: string) {
+    await this.fillEmail(email);
+    await this.fillPassword(password);
+
+    // Wait for ANY response (not just 200)
+    const responsePromise = this.page.waitForResponse(
+      response => response.url().includes('/auth/login'),
+      { timeout: TIMEOUTS.apiResponse }
+    );
+
+    await this.clickSubmit();
+
+    // Wait for response (will be 401 or other error status)
+    await responsePromise;
+
+    // Don't wait for navigation - we expect to stay on login page
+  }
+
+  /**
    * Get error message text
    */
   async getErrorMessage(): Promise<string | null> {
@@ -113,9 +134,12 @@ export class LoginPage extends BasePage {
    * Wait for loading to complete
    */
   async waitForLoadingComplete() {
-    const spinner = this.page.locator(this.loadingSpinner);
-    if (await spinner.isVisible()) {
-      await spinner.waitFor({ state: 'hidden' });
+    const spinner = this.page.locator(this.loadingSpinner).first();
+    try {
+      await spinner.waitFor({ state: 'visible', timeout: 2000 });
+      await spinner.waitFor({ state: 'hidden', timeout: 10000 });
+    } catch {
+      // Spinner might not appear or already disappeared
     }
   }
 

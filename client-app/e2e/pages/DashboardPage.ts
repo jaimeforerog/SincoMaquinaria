@@ -38,58 +38,58 @@ export class DashboardPage extends BasePage {
   }
 
   /**
+   * Read KPI value from a card, waiting for the h3 element to appear
+   */
+  private async readKpiValue(href: string): Promise<number> {
+    const card = this.page.locator(`a[href="${href}"]`).first();
+    const valueElement = card.locator('h3').first();
+    try {
+      await valueElement.waitFor({ state: 'visible', timeout: 15000 });
+      const text = await valueElement.textContent();
+      return parseInt(text || '0', 10);
+    } catch {
+      return 0;
+    }
+  }
+
+  /**
    * Get equipos count from KPI card
    */
   async getEquiposCount(): Promise<number> {
-    // Wait for loading to complete
     await this.waitForLoadingComplete();
-
-    // Find the equipos card and extract the number
-    const card = this.page.locator('a[href="/gestion-equipos"]').first();
-    const valueElement = card.locator('h3').first();
-    const text = await valueElement.textContent();
-    return parseInt(text || '0', 10);
+    return this.readKpiValue('/gestion-equipos');
   }
 
   /**
    * Get rutinas count from KPI card
    */
   async getRutinasCount(): Promise<number> {
-    // Wait for loading to complete
     await this.waitForLoadingComplete();
-
-    // Find the rutinas card and extract the number
-    const card = this.page.locator('a[href="/editar-rutinas"]').first();
-    const valueElement = card.locator('h3').first();
-    const text = await valueElement.textContent();
-    return parseInt(text || '0', 10);
+    return this.readKpiValue('/editar-rutinas');
   }
 
   /**
    * Get ordenes activas count from KPI card
    */
   async getOrdenesActivasCount(): Promise<number> {
-    // Wait for loading to complete
     await this.waitForLoadingComplete();
-
-    // Find the ordenes activas card and extract the number
-    const card = this.page.locator('a[href="/historial"]').first();
-    const valueElement = card.locator('h3').first();
-    const text = await valueElement.textContent();
-    return parseInt(text || '0', 10);
+    return this.readKpiValue('/historial');
   }
 
   /**
    * Wait for loading spinner to disappear
    */
   async waitForLoadingComplete() {
-    const spinner = this.page.locator(this.loadingSpinner);
-    // Wait for the spinner to appear and then disappear
     try {
-      await spinner.waitFor({ state: 'visible', timeout: TIMEOUTS.short });
-      await spinner.waitFor({ state: 'hidden', timeout: TIMEOUTS.pageLoad });
+      // Wait for first spinner to appear
+      await this.page.locator(this.loadingSpinner).first().waitFor({ state: 'visible', timeout: TIMEOUTS.short });
+      // Wait for ALL spinners to disappear (dashboard has multiple KPI spinners)
+      await this.page.waitForFunction(
+        () => document.querySelectorAll('[role="progressbar"]').length === 0,
+        { timeout: TIMEOUTS.pageLoad }
+      );
     } catch {
-      // Spinner might not appear if data loads quickly
+      // Spinners might not appear if data loads quickly
     }
   }
 
@@ -134,10 +134,11 @@ export class DashboardPage extends BasePage {
   }> {
     await this.waitForLoadingComplete();
 
+    // Read all KPI values directly (loading already complete)
     const [equipos, rutinas, ordenesActivas] = await Promise.all([
-      this.getEquiposCount(),
-      this.getRutinasCount(),
-      this.getOrdenesActivasCount(),
+      this.readKpiValue('/gestion-equipos'),
+      this.readKpiValue('/editar-rutinas'),
+      this.readKpiValue('/historial'),
     ]);
 
     return { equipos, rutinas, ordenesActivas };

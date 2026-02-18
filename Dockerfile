@@ -53,7 +53,14 @@ COPY --from=dotnet-build /app/publish ./
 COPY --from=node-build /app/client-app/dist ./wwwroot
 
 # Create logs directory with proper permissions
-RUN mkdir -p /app/logs && chmod 777 /app/logs
+RUN mkdir -p /app/logs && chmod 755 /app/logs
+
+# Create non-root user for security
+RUN groupadd --gid 1000 appuser && \
+    useradd --uid 1000 --gid appuser --shell /bin/bash appuser && \
+    chown -R appuser:appuser /app
+
+USER appuser
 
 # Expose port
 EXPOSE 5000

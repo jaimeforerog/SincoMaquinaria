@@ -43,9 +43,17 @@ public class CacheService : ICacheService
 
         if (_distributedCache != null)
         {
-            var data = await _distributedCache.GetStringAsync(key, cancellationToken);
-            if (data == null) return default;
-            return JsonSerializer.Deserialize<T>(data);
+            try
+            {
+                var data = await _distributedCache.GetStringAsync(key, cancellationToken);
+                if (data == null) return default;
+                return JsonSerializer.Deserialize<T>(data);
+            }
+            catch (Exception)
+            {
+                // Redis unavailable - fall through to return default
+                return default;
+            }
         }
         else if (_memoryCache != null)
         {
@@ -66,12 +74,19 @@ public class CacheService : ICacheService
 
         if (_distributedCache != null)
         {
-            var options = new DistributedCacheEntryOptions
+            try
             {
-                AbsoluteExpirationRelativeToNow = finalExpiration
-            };
-            var serialized = JsonSerializer.Serialize(value);
-            await _distributedCache.SetStringAsync(key, serialized, options, cancellationToken);
+                var options = new DistributedCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = finalExpiration
+                };
+                var serialized = JsonSerializer.Serialize(value);
+                await _distributedCache.SetStringAsync(key, serialized, options, cancellationToken);
+            }
+            catch (Exception)
+            {
+                // Redis unavailable - silently skip cache write
+            }
         }
         else if (_memoryCache != null)
         {
@@ -89,7 +104,14 @@ public class CacheService : ICacheService
 
         if (_distributedCache != null)
         {
-            await _distributedCache.RemoveAsync(key, cancellationToken);
+            try
+            {
+                await _distributedCache.RemoveAsync(key, cancellationToken);
+            }
+            catch (Exception)
+            {
+                // Redis unavailable - silently skip cache removal
+            }
         }
         else if (_memoryCache != null)
         {

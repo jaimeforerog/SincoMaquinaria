@@ -1,6 +1,7 @@
 import { Page } from '@playwright/test';
 import { testData, generateUniqueEquipo, generateUniqueRutina } from './test-data';
 import { getAuthToken, retryWithBackoff } from '../utils/helpers';
+import { URLS } from '../e2e.config';
 
 /**
  * Test Data Setup Script
@@ -13,19 +14,16 @@ import { getAuthToken, retryWithBackoff } from '../utils/helpers';
  * Setup basic test data (admin user, sample equipos, rutinas)
  */
 export async function setupBasicTestData(page: Page) {
-  // Wait for token to be available
-  let token = await getAuthToken(page);
-  let retries = 0;
-  const maxRetries = 20; // 10 seconds total (20 * 500ms)
+  // Wait for token to be available with conditional wait
+  await page.waitForFunction(
+    () => localStorage.getItem('authToken') !== null,
+    { timeout: 15000 }
+  );
 
-  while (!token && retries < maxRetries) {
-    await page.waitForTimeout(500);
-    token = await getAuthToken(page);
-    retries++;
-  }
+  const token = await getAuthToken(page);
 
   if (!token) {
-    throw new Error('Must be authenticated to setup test data. Token not found after 10s');
+    throw new Error('Must be authenticated to setup test data. Token not found after 15s');
   }
 
   const createdIds: {
@@ -39,7 +37,7 @@ export async function setupBasicTestData(page: Page) {
   };
 
   try {
-    // Create test rutinas first (needed for preventive orders)
+    // Create test rutinas first (needed for preventive orders and equipment)
     for (const rutina of testData.rutinas) {
       const uniqueRutina = generateUniqueRutina(rutina);
       const rutinaId = await retryWithBackoff(
@@ -50,11 +48,58 @@ export async function setupBasicTestData(page: Page) {
       createdIds.rutinas.push(rutinaId);
     }
 
-    // Create test equipos
+    // Ensure a grupo exists for equipment creation
+    let grupoName = '';
+    try {
+      const gruposRes = await page.request.get(`${URLS.backend}/configuracion/grupos`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      console.log(`[Setup] Grupos fetch status: ${gruposRes.status()}`);
+      if (gruposRes.ok()) {
+        const grupos = await gruposRes.json();
+        console.log(`[Setup] Grupos response: ${JSON.stringify(grupos).substring(0, 200)}`);
+        const gruposList = Array.isArray(grupos) ? grupos : (grupos.data || []);
+        const activeGrupos = gruposList.filter((g: any) => g.activo);
+        if (activeGrupos.length > 0) {
+          grupoName = activeGrupos[0].nombre;
+          console.log(`[Setup] Found existing grupo: ${grupoName}`);
+        }
+      }
+    } catch (error) {
+      console.warn('[Setup] Could not fetch grupos:', error);
+    }
+
+    // Create a grupo if none exist
+    if (!grupoName) {
+      console.log('[Setup] No grupo found, creating one...');
+      try {
+        const createGrupoRes = await page.request.post(`${URLS.backend}/configuracion/grupos`, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          data: {
+            Nombre: 'Grupo-Mantenimiento-General',
+            Descripcion: 'Grupo creado para E2E testing',
+          },
+        });
+        console.log(`[Setup] Create grupo status: ${createGrupoRes.status()}`);
+        if (createGrupoRes.ok() || createGrupoRes.status() === 409) {
+          grupoName = 'Grupo-Mantenimiento-General';
+          console.log('[Setup] Created test grupo: Grupo-Mantenimiento-General');
+        }
+      } catch (error) {
+        console.warn('[Setup] Could not create grupo:', error);
+      }
+    }
+
+    // Create test equipos (with required Grupo and Rutina)
+    const rutinaIdForEquipos = createdIds.rutinas[0] || '';
+    console.log(`[Setup] Creating equipos with grupo="${grupoName}", rutina="${rutinaIdForEquipos}"`);
     for (const equipo of testData.equipos) {
       const uniqueEquipo = generateUniqueEquipo(equipo);
       const equipoId = await retryWithBackoff(
-        () => createEquipo(page, uniqueEquipo, token),
+        () => createEquipo(page, { ...uniqueEquipo, grupo: grupoName, rutina: rutinaIdForEquipos }, token),
         2, // 2 retries
         500 // 500ms initial delay
       );
@@ -74,7 +119,7 @@ export async function setupBasicTestData(page: Page) {
  * Create a single equipo
  */
 async function createEquipo(page: Page, equipoData: any, token: string): Promise<string> {
-  const response = await page.request.post('/equipos', {
+  const response = await page.request.post(`${URLS.backend}/equipos`, {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
@@ -82,11 +127,12 @@ async function createEquipo(page: Page, equipoData: any, token: string): Promise
     data: {
       Placa: equipoData.placa,
       Descripcion: equipoData.descripcion,
-      Marca: equipoData.marca,
-      Modelo: equipoData.modelo,
+      Marca: equipoData.marca || 'GENERICO',
+      Modelo: equipoData.modelo || 'GENERICO',
       Serie: equipoData.serie,
-      Año: equipoData.año,
-      HorasUso: equipoData.horasUso,
+      Codigo: equipoData.codigo || '',
+      Grupo: equipoData.grupo || '',
+      Rutina: equipoData.rutina || '',
     },
   });
 
@@ -105,7 +151,7 @@ async function createEquipo(page: Page, equipoData: any, token: string): Promise
  * Create a single rutina with activities
  */
 async function createRutina(page: Page, rutinaData: any, token: string): Promise<string> {
-  const response = await page.request.post('/rutinas', {
+  const response = await page.request.post(`${URLS.backend}/rutinas`, {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
@@ -165,7 +211,7 @@ export async function createTestOrder(
     orderData.FrecuenciaPreventiva = 30; // Monthly
   }
 
-  const response = await page.request.post('/ordenes', {
+  const response = await page.request.post(`${URLS.backend}/ordenes`, {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
@@ -193,7 +239,7 @@ async function cleanupTestData(
   // Delete in reverse order to avoid foreign key issues
   for (const orderId of ids.orders) {
     try {
-      await page.request.delete(`/ordenes/${orderId}`, {
+      await page.request.delete(`${URLS.backend}/ordenes/${orderId}`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
     } catch (error) {
@@ -203,7 +249,7 @@ async function cleanupTestData(
 
   for (const equipoId of ids.equipos) {
     try {
-      await page.request.delete(`/equipos/${equipoId}`, {
+      await page.request.delete(`${URLS.backend}/equipos/${equipoId}`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
     } catch (error) {
@@ -213,7 +259,7 @@ async function cleanupTestData(
 
   for (const rutinaId of ids.rutinas) {
     try {
-      await page.request.delete(`/rutinas/${rutinaId}`, {
+      await page.request.delete(`${URLS.backend}/rutinas/${rutinaId}`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
     } catch (error) {
@@ -239,7 +285,7 @@ export async function cleanupAllTestData(page: Page) {
 
     // Step 1: Delete test orders FIRST (to avoid FK constraints)
     try {
-      const ordenesResponse = await page.request.get('/ordenes', {
+      const ordenesResponse = await page.request.get(`${URLS.backend}/ordenes`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
 
@@ -251,7 +297,7 @@ export async function cleanupAllTestData(page: Page) {
         for (const orden of data) {
           if (orden.numero && (orden.numero.includes('E2E') || orden.numero.includes('OT-E2E'))) {
             try {
-              const deleteResponse = await page.request.delete(`/ordenes/${orden.id}`, {
+              const deleteResponse = await page.request.delete(`${URLS.backend}/ordenes/${orden.id}`, {
                 headers: { 'Authorization': `Bearer ${token}` },
               });
               if (deleteResponse.ok()) deletedOrders++;
@@ -267,7 +313,7 @@ export async function cleanupAllTestData(page: Page) {
     }
 
     // Step 2: Delete test equipos
-    const equiposResponse = await page.request.get('/equipos', {
+    const equiposResponse = await page.request.get(`${URLS.backend}/equipos`, {
       headers: { 'Authorization': `Bearer ${token}` },
     });
 
@@ -279,7 +325,7 @@ export async function cleanupAllTestData(page: Page) {
       for (const equipo of data) {
         if (equipo.placa && (equipo.placa.startsWith('E2E-') || equipo.placa.startsWith('TEST-'))) {
           try {
-            const deleteResponse = await page.request.delete(`/equipos/${equipo.id}`, {
+            const deleteResponse = await page.request.delete(`${URLS.backend}/equipos/${equipo.id}`, {
               headers: { 'Authorization': `Bearer ${token}` },
             });
             if (deleteResponse.ok()) deletedEquipos++;
@@ -292,7 +338,7 @@ export async function cleanupAllTestData(page: Page) {
     }
 
     // Step 3: Delete test rutinas LAST
-    const rutinasResponse = await page.request.get('/rutinas', {
+    const rutinasResponse = await page.request.get(`${URLS.backend}/rutinas`, {
       headers: { 'Authorization': `Bearer ${token}` },
     });
 
@@ -302,14 +348,16 @@ export async function cleanupAllTestData(page: Page) {
 
       let deletedRutinas = 0;
       for (const rutina of data) {
-        if (rutina.nombre && (rutina.nombre.includes('E2E') || rutina.nombre.includes('Test'))) {
+        // GET /rutinas returns { id, descripcion } - use descripcion field
+        const rutinaDesc = rutina.descripcion || rutina.nombre || '';
+        if (rutinaDesc && (rutinaDesc.includes('E2E') || rutinaDesc.includes('Test'))) {
           try {
-            const deleteResponse = await page.request.delete(`/rutinas/${rutina.id}`, {
+            const deleteResponse = await page.request.delete(`${URLS.backend}/rutinas/${rutina.id}`, {
               headers: { 'Authorization': `Bearer ${token}` },
             });
             if (deleteResponse.ok()) deletedRutinas++;
           } catch (error) {
-            console.warn(`[Cleanup] Failed to delete rutina ${rutina.id} (${rutina.nombre}):`, error);
+            console.warn(`[Cleanup] Failed to delete rutina ${rutina.id} (${rutinaDesc}):`, error);
           }
         }
       }
@@ -320,6 +368,109 @@ export async function cleanupAllTestData(page: Page) {
   } catch (error) {
     console.error('[Cleanup] Error during cleanup:', error);
   }
+}
+
+/**
+ * Ensure prerequisite data exists (grupo + rutina) for equipment tests.
+ * Creates them via API if they don't exist. Returns names for UI dropdown selection.
+ */
+export async function ensurePrerequisiteData(page: Page): Promise<{ grupoName: string; rutinaName: string }> {
+  const token = await getAuthToken(page);
+  if (!token) throw new Error('Must be authenticated to ensure prerequisite data');
+
+  let grupoName = '';
+  let rutinaName = '';
+
+  // Ensure a grupo exists (with retries for Marten schema warmup)
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const gruposRes = await page.request.get(`${URLS.backend}/configuracion/grupos`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (gruposRes.ok()) {
+        const grupos = await gruposRes.json();
+        const gruposList = Array.isArray(grupos) ? grupos : (grupos.data || []);
+        const activeGrupos = gruposList.filter((g: any) => g.activo);
+        if (activeGrupos.length > 0) {
+          grupoName = activeGrupos[0].nombre;
+          break;
+        }
+      }
+      if (gruposRes.status() === 500 && attempt < 3) {
+        console.log(`[Setup] Grupos GET returned 500, retrying in 1s (attempt ${attempt}/3)...`);
+        await new Promise(r => setTimeout(r, 1000));
+        continue;
+      }
+    } catch {
+      if (attempt < 3) {
+        await new Promise(r => setTimeout(r, 1000));
+        continue;
+      }
+    }
+    break;
+  }
+
+  if (!grupoName) {
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        const res = await page.request.post(`${URLS.backend}/configuracion/grupos`, {
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          data: { Nombre: 'Grupo-Mantenimiento-General', Descripcion: 'Grupo para mantenimiento' },
+        });
+        if (res.ok() || res.status() === 409) {
+          grupoName = 'Grupo-Mantenimiento-General';
+          break;
+        }
+        if (res.status() === 500 && attempt < 3) {
+          console.log(`[Setup] Grupo POST returned 500, retrying in 1s (attempt ${attempt}/3)...`);
+          await new Promise(r => setTimeout(r, 1000));
+          continue;
+        }
+      } catch {
+        if (attempt < 3) {
+          await new Promise(r => setTimeout(r, 1000));
+          continue;
+        }
+      }
+    }
+  }
+
+  // Ensure a rutina exists
+  // NOTE: GET /rutinas returns { id, descripcion } - NO 'nombre' field
+  try {
+    const rutinasRes = await page.request.get(`${URLS.backend}/rutinas`, {
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
+    if (rutinasRes.ok()) {
+      const rutinas = await rutinasRes.json();
+      const data = Array.isArray(rutinas) ? rutinas : (rutinas.data || []);
+      if (data.length > 0) {
+        rutinaName = data[0].descripcion || data[0].Descripcion || '';
+      }
+    }
+  } catch { /* ignore */ }
+
+  if (!rutinaName) {
+    const rutinaData = {
+      Nombre: 'Rutina-Mantenimiento-Diario',
+      Descripcion: 'Rutina-Mantenimiento-Diario',
+      Grupo: 'General',
+      Partes: [{
+        Nombre: 'Parte Principal',
+        Actividades: [{ Nombre: 'Inspección general', Descripcion: 'Inspección visual', Frecuencia: 30 }],
+      }],
+    };
+    const res = await page.request.post(`${URLS.backend}/rutinas`, {
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      data: rutinaData,
+    });
+    if (res.ok()) {
+      rutinaName = 'Rutina-Mantenimiento-Diario';
+    }
+  }
+
+  console.log(`[Setup] Prerequisites ready: grupo="${grupoName}", rutina="${rutinaName}"`);
+  return { grupoName, rutinaName };
 }
 
 /**

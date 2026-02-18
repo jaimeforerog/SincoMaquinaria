@@ -122,7 +122,7 @@ public static class EmpleadosEndpoints
              return Results.Conflict(result.Error);
         }
 
-        return Results.Ok();
+        return Results.Ok(new { Id = result.Value });
     }
 
     private static async Task<IResult> ListarEmpleados(

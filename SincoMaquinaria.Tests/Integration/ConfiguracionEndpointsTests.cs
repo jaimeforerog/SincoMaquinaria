@@ -5,9 +5,12 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
+using SincoMaquinaria.DTOs.Requests;
+using SincoMaquinaria.Tests.Helpers;
 
 namespace SincoMaquinaria.Tests.Integration;
 
+[Collection("Integration")]
 public class ConfiguracionEndpointsTests : IClassFixture<CustomWebApplicationFactory>
 {
     private readonly HttpClient _client;
@@ -17,11 +20,24 @@ public class ConfiguracionEndpointsTests : IClassFixture<CustomWebApplicationFac
         _client = factory.CreateClient();
     }
 
+    private async Task<string> GetAdminToken(HttpClient client)
+    {
+        client.DefaultRequestHeaders.Clear();
+        var loginRequest = new LoginRequest("admin@test.com", "Admin123!");
+        var response = await client.PostAsJsonAsync("/auth/login", loginRequest);
+        var authResponse = await response.Content.ReadFromJsonAsync<TestAuthResponse>();
+        return authResponse!.Token;
+    }
+
 
     [Fact]
     public async Task CrearTipoMedidor_DebeRetornarOk_ConDatosValidos()
     {
         // Arrange
+        var token = await GetAdminToken(_client);
+        _client.DefaultRequestHeaders.Clear();
+        _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+
         var nuevoTipo = new
         {
             Nombre = $"Horómetro Test {Guid.NewGuid().ToString("N").Substring(0, 8)}",
@@ -38,6 +54,11 @@ public class ConfiguracionEndpointsTests : IClassFixture<CustomWebApplicationFac
     [Fact]
     public async Task GetTiposMedidor_DebeRetornarLista()
     {
+        // Arrange
+        var token = await GetAdminToken(_client);
+        _client.DefaultRequestHeaders.Clear();
+        _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+
         // Act
         var response = await _client.GetAsync("/configuracion/medidores");
 
@@ -51,6 +72,10 @@ public class ConfiguracionEndpointsTests : IClassFixture<CustomWebApplicationFac
     public async Task CrearGrupoMantenimiento_DebeRetornarOk_ConDatosValidos()
     {
         // Arrange
+        var token = await GetAdminToken(_client);
+        _client.DefaultRequestHeaders.Clear();
+        _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+
         var nuevoGrupo = new
         {
             Nombre = $"Grupo Test {Guid.NewGuid().ToString("N").Substring(0, 8)}",
@@ -67,6 +92,11 @@ public class ConfiguracionEndpointsTests : IClassFixture<CustomWebApplicationFac
     [Fact]
     public async Task GetGruposMantenimiento_DebeRetornarLista()
     {
+        // Arrange
+        var token = await GetAdminToken(_client);
+        _client.DefaultRequestHeaders.Clear();
+        _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+
         // Act
         var response = await _client.GetAsync("/configuracion/grupos");
 
@@ -80,6 +110,10 @@ public class ConfiguracionEndpointsTests : IClassFixture<CustomWebApplicationFac
     public async Task CrearTipoFalla_DebeRetornarOk_ConDatosValidos()
     {
         // Arrange
+        var token = await GetAdminToken(_client);
+        _client.DefaultRequestHeaders.Clear();
+        _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+
         var nuevoTipo = new
         {
             Descripcion = $"Falla Mecánica Test {Guid.NewGuid().ToString("N").Substring(0, 8)}",
@@ -96,6 +130,11 @@ public class ConfiguracionEndpointsTests : IClassFixture<CustomWebApplicationFac
     [Fact]
     public async Task GetTiposFalla_DebeRetornarLista()
     {
+        // Arrange
+        var token = await GetAdminToken(_client);
+        _client.DefaultRequestHeaders.Clear();
+        _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+
         // Act
         var response = await _client.GetAsync("/configuracion/fallas");
 
@@ -109,6 +148,10 @@ public class ConfiguracionEndpointsTests : IClassFixture<CustomWebApplicationFac
     public async Task CrearCausaFalla_DebeRetornarOk_ConDatosValidos()
     {
         // Arrange
+        var token = await GetAdminToken(_client);
+        _client.DefaultRequestHeaders.Clear();
+        _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+
         var nuevaCausa = new
         {
             Descripcion = $"Desgaste por uso Test {Guid.NewGuid().ToString("N").Substring(0, 8)}"
@@ -124,6 +167,11 @@ public class ConfiguracionEndpointsTests : IClassFixture<CustomWebApplicationFac
     [Fact]
     public async Task GetCausasFalla_DebeRetornarLista()
     {
+        // Arrange
+        var token = await GetAdminToken(_client);
+        _client.DefaultRequestHeaders.Clear();
+        _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+
         // Act
         var response = await _client.GetAsync("/configuracion/causas-falla");
 
@@ -137,6 +185,10 @@ public class ConfiguracionEndpointsTests : IClassFixture<CustomWebApplicationFac
     public async Task CrearTipoMedidorDuplicado_DebeRetornarConflict()
     {
         // Arrange
+        var token = await GetAdminToken(_client);
+        _client.DefaultRequestHeaders.Clear();
+        _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+
         var nuevoTipo = new
         {
             Nombre = "Tipo Duplicado",
@@ -157,6 +209,10 @@ public class ConfiguracionEndpointsTests : IClassFixture<CustomWebApplicationFac
     public async Task ActualizarTipoMedidor_DebeRetornarOk_CuandoExiste()
     {
         // Arrange - Crear primero
+        var token = await GetAdminToken(_client);
+        _client.DefaultRequestHeaders.Clear();
+        _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+
         var nuevoTipo = new
         {
             Nombre = $"Tipo Para Actualizar {Guid.NewGuid().ToString("N").Substring(0, 4)}",
@@ -189,6 +245,10 @@ public class ConfiguracionEndpointsTests : IClassFixture<CustomWebApplicationFac
     public async Task CambiarEstadoTipoMedidor_DebeRetornarOk_CuandoExiste()
     {
         // Arrange - Crear primero
+        var token = await GetAdminToken(_client);
+        _client.DefaultRequestHeaders.Clear();
+        _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+
         var nuevoTipo = new
         {
             Nombre = $"Tipo Para Desactivar {Guid.NewGuid().ToString("N").Substring(0, 4)}",

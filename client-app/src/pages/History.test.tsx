@@ -87,15 +87,15 @@ describe('History Component', () => {
 
     it('fetches ordenes and equipos on mount', async () => {
         mockAuthFetch
-            .mockResolvedValueOnce({ ok: true, json: async () => mockOrdenes })
-            .mockResolvedValueOnce({ ok: true, json: async () => mockEquipos });
+            .mockResolvedValueOnce({ ok: true, json: async () => ({ data: mockEquipos }) })
+            .mockResolvedValueOnce({ ok: true, json: async () => ({ data: mockOrdenes, totalCount: 2 }) });
 
         await act(async () => {
             renderWithRouter(<History />);
         });
 
-        expect(mockAuthFetch).toHaveBeenCalledWith('/ordenes');
-        expect(mockAuthFetch).toHaveBeenCalledWith('/equipos');
+        expect(mockAuthFetch).toHaveBeenCalledWith('/equipos?PageSize=200');
+        expect(mockAuthFetch).toHaveBeenCalledWith('/ordenes?Page=1&PageSize=20');
     });
 
     it('renders empty state when no orders', async () => {
@@ -115,8 +115,8 @@ describe('History Component', () => {
 
     it('renders orders when data is loaded', async () => {
         mockAuthFetch
-            .mockResolvedValueOnce({ ok: true, json: async () => mockOrdenes })
-            .mockResolvedValueOnce({ ok: true, json: async () => mockEquipos });
+            .mockResolvedValueOnce({ ok: true, json: async () => ({ data: mockEquipos }) })
+            .mockResolvedValueOnce({ ok: true, json: async () => ({ data: mockOrdenes, totalCount: 2 }) });
 
         await act(async () => {
             renderWithRouter(<History />);
@@ -130,8 +130,8 @@ describe('History Component', () => {
 
     it('displays equipment placa', async () => {
         mockAuthFetch
-            .mockResolvedValueOnce({ ok: true, json: async () => mockOrdenes })
-            .mockResolvedValueOnce({ ok: true, json: async () => mockEquipos });
+            .mockResolvedValueOnce({ ok: true, json: async () => ({ data: mockEquipos }) })
+            .mockResolvedValueOnce({ ok: true, json: async () => ({ data: mockOrdenes, totalCount: 2 }) });
 
         await act(async () => {
             renderWithRouter(<History />);
@@ -144,8 +144,8 @@ describe('History Component', () => {
 
     it('displays order type', async () => {
         mockAuthFetch
-            .mockResolvedValueOnce({ ok: true, json: async () => mockOrdenes })
-            .mockResolvedValueOnce({ ok: true, json: async () => mockEquipos });
+            .mockResolvedValueOnce({ ok: true, json: async () => ({ data: mockEquipos }) })
+            .mockResolvedValueOnce({ ok: true, json: async () => ({ data: mockOrdenes, totalCount: 2 }) });
 
         await act(async () => {
             renderWithRouter(<History />);
@@ -159,8 +159,8 @@ describe('History Component', () => {
 
     it('displays order status chips', async () => {
         mockAuthFetch
-            .mockResolvedValueOnce({ ok: true, json: async () => mockOrdenes })
-            .mockResolvedValueOnce({ ok: true, json: async () => mockEquipos });
+            .mockResolvedValueOnce({ ok: true, json: async () => ({ data: mockEquipos }) })
+            .mockResolvedValueOnce({ ok: true, json: async () => ({ data: mockOrdenes, totalCount: 2 }) });
 
         await act(async () => {
             renderWithRouter(<History />);
@@ -191,8 +191,8 @@ describe('History Component', () => {
 
     it('renders Ver Detalle links', async () => {
         mockAuthFetch
-            .mockResolvedValueOnce({ ok: true, json: async () => mockOrdenes })
-            .mockResolvedValueOnce({ ok: true, json: async () => mockEquipos });
+            .mockResolvedValueOnce({ ok: true, json: async () => ({ data: mockEquipos }) })
+            .mockResolvedValueOnce({ ok: true, json: async () => ({ data: mockOrdenes, totalCount: 2 }) });
 
         await act(async () => {
             renderWithRouter(<History />);

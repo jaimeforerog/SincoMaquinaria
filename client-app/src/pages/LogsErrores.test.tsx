@@ -2,6 +2,15 @@ import { render, screen, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import LogsErrores from './LogsErrores';
 
+// Mock useAuth
+vi.mock('../contexts/AuthContext', () => ({
+    useAuth: vi.fn(() => ({
+        token: 'fake-token',
+        logout: vi.fn(),
+        refreshAccessToken: vi.fn()
+    }))
+}));
+
 // Mock fetch
 global.fetch = vi.fn();
 
@@ -37,7 +46,11 @@ describe('LogsErrores Component', () => {
             render(<LogsErrores />);
         });
 
-        expect(global.fetch).toHaveBeenCalledWith('/admin/logs');
+        expect(global.fetch).toHaveBeenCalledWith('/admin/logs', expect.objectContaining({
+            headers: expect.objectContaining({
+                'Authorization': 'Bearer fake-token'
+            })
+        }));
     });
 
     it('renders Refrescar button', async () => {
@@ -58,7 +71,7 @@ describe('LogsErrores Component', () => {
             render(<LogsErrores />);
         });
 
-        expect(screen.getByText('No hay errores registrados.')).toBeInTheDocument();
+        expect(screen.getByText(/No hay errores registrados/i)).toBeInTheDocument();
     });
 
     it('renders table headers', async () => {

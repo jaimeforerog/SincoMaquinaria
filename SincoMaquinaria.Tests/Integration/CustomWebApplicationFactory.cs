@@ -1,3 +1,11 @@
+using SincoMaquinaria.Extensions;
+using SincoMaquinaria.Domain;
+using SincoMaquinaria.Domain.Projections;
+using JasperFx.Events.Projections;
+using Marten;
+using Marten.Events.Projections;
+using Marten.Schema;
+using Marten.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -5,31 +13,38 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Npgsql;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using Weasel.Core;
 using Xunit;
 
 namespace SincoMaquinaria.Tests.Integration;
 
 /// <summary>
-/// Custom WebApplicationFactory that uses local PostgreSQL with a test database.
-/// This ensures tests run against a real PostgreSQL instance with isolated data.
+/// Custom WebApplicationFactory that uses local PostgreSQL with isolated schemas per test run.
+/// Each factory instance gets a unique schema (test_{guid}) for complete data isolation.
 /// Authentication is bypassed for integration tests.
 /// </summary>
 public class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
-    // Use local PostgreSQL with a dedicated test database
+    // Use a unique schema per factory instance for complete isolation
+    private readonly string _schema = $"test_{Guid.NewGuid():N}";
     private const string TestDatabaseName = "SincoMaquinaria_Test";
-    private const string TestConnectionString =
-        $"host=localhost;database={TestDatabaseName};password=postgres;username=postgres";
+    private readonly string _testConnectionString;
     private const string PostgresConnectionString =
         "host=localhost;database=postgres;password=postgres;username=postgres";
 
     public CustomWebApplicationFactory()
     {
+        // Build connection string with unique schema
+        _testConnectionString = $"host=localhost;database={TestDatabaseName};password=postgres;username=postgres";
+
         // Environment variables override appsettings.json and are available when
         // WebApplication.CreateBuilder reads config (before ConfigureWebHost runs).
         // This ensures Marten and DatabaseSetup get the test connection string.
-        Environment.SetEnvironmentVariable("ConnectionStrings__DefaultConnection", TestConnectionString);
+        Environment.SetEnvironmentVariable("ConnectionStrings__DefaultConnection", _testConnectionString);
         Environment.SetEnvironmentVariable("Jwt__Key", "SUPER-SECRET-TEST-KEY-FOR-INTEGRATION-TESTS-1234567890");
         Environment.SetEnvironmentVariable("Jwt__Issuer", "SincoMaquinariaTest");
         Environment.SetEnvironmentVariable("Jwt__Audience", "SincoMaquinariaTestApp");
@@ -37,116 +52,184 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyn
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        // Fix for content root path after moving to src/ folder
-        var projectDir = AppDomain.CurrentDomain.BaseDirectory;
-        var configPath = Path.Combine(projectDir, "../../../../src/SincoMaquinaria");
-        
-        if (Directory.Exists(configPath))
-        {
-            builder.UseContentRoot(Path.GetFullPath(configPath));
-        }
-
-        // Override configuration to use test database
+        // Override configuration to use test database with unique schema
         builder.ConfigureAppConfiguration((context, config) =>
         {
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["ConnectionStrings:DefaultConnection"] = TestConnectionString,
+                ["ConnectionStrings:DefaultConnection"] = _testConnectionString,
                 ["Jwt:Key"] = "SUPER-SECRET-TEST-KEY-FOR-INTEGRATION-TESTS-1234567890",
                 ["Jwt:Issuer"] = "SincoMaquinariaTest",
-                ["Jwt:Audience"] = "SincoMaquinariaTestApp"
+                ["Jwt:Audience"] = "SincoMaquinariaTestApp",
+                ["Caching:Enabled"] = "false",
+                ["Hangfire:DashboardEnabled"] = "false",
+                ["Security:EnableAdminEndpoints"] = "true"
             });
         });
 
         builder.UseEnvironment("Testing");
 
-        // Override authorization to allow anonymous access in tests
+        // Configure services for testing
         builder.ConfigureServices(services =>
         {
-            // Add a fallback authorization policy that allows anonymous
-            services.AddAuthorization(options =>
-            {
-                options.DefaultPolicy = new AuthorizationPolicyBuilder()
-                    .RequireAssertion(_ => true) // Always pass authorization
-                    .Build();
+            // Remove existing Marten services
+            services.RemoveAll<IDocumentStore>();
+            services.RemoveAll<IDocumentSession>();
+            services.RemoveAll<IQuerySession>();
 
-                // Override Admin policy for tests
-                options.AddPolicy("Admin", policy => 
-                    policy.RequireAssertion(_ => true));
+            // Re-add Marten with unique schema configuration
+            var jsonOptions = new JsonSerializerOptions
+            {
+                Converters = { new JsonStringEnumConverter() }
+            };
+
+            services.AddMarten(opts =>
+            {
+                opts.Connection(_testConnectionString);
+                opts.DatabaseSchemaName = _schema; // Use unique schema per test run
+
+                // Use custom JSON serializer that handles enums as strings
+                var serializer = new SystemTextJsonSerializer(jsonOptions);
+                serializer.EnumStorage = EnumStorage.AsString;
+                opts.Serializer(serializer);
+
+                // Projections
+                opts.Projections.Snapshot<OrdenDeTrabajo>(SnapshotLifecycle.Inline);
+                opts.Projections.Snapshot<ConfiguracionGlobal>(SnapshotLifecycle.Inline);
+                opts.Projections.Snapshot<Equipo>(SnapshotLifecycle.Inline);
+                opts.Projections.Snapshot<RutinaMantenimiento>(SnapshotLifecycle.Inline);
+                opts.Projections.Snapshot<Empleado>(SnapshotLifecycle.Inline);
+                opts.Projections.Snapshot<Usuario>(SnapshotLifecycle.Inline);
+
+                // Unique indexes
+                opts.Schema.For<Equipo>().Index(x => x.Placa, x =>
+                {
+                    x.IsUnique = true;
+                    x.Name = "idx_equipo_placa_unique";
+                });
+
+                // Projections
+                opts.Projections.Add(new AuditoriaProjection(), ProjectionLifecycle.Inline);
             });
 
-            // Inject a fake user for testing to avoid NullReference in Endpoints expecting User claims
-            services.AddTransient<IStartupFilter, FakeUserStartupFilter>();
+            // Keep real authentication and authorization for tests
+            // Tests will use actual JWT tokens obtained from login endpoints
         });
-    }
-
-    private class FakeUserStartupFilter : IStartupFilter
-    {
-        public Action<IApplicationBuilder> Configure(Action<IApplicationBuilder> next)
-        {
-            return builder =>
-            {
-                builder.Use(async (context, nextMiddleware) =>
-                {
-                    // If no user is present (because we bypassed auth), set a fake one
-                    if (context.User.Identity?.IsAuthenticated != true)
-                    {
-                        var claims = new[]
-                        {
-                            new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.NameIdentifier, Guid.NewGuid().ToString()),
-                            new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Name, "Test User"),
-                            new System.Security.Claims.Claim("role", "Admin")
-                        };
-                        var identity = new System.Security.Claims.ClaimsIdentity(claims, "Test");
-                        context.User = new System.Security.Claims.ClaimsPrincipal(identity);
-                    }
-                    await nextMiddleware();
-                });
-                next(builder);
-            };
-        }
     }
 
     public async Task InitializeAsync()
     {
-        // Drop and recreate the test database to ensure clean state
-        await ResetTestDatabaseAsync();
+        // Ensure the test database exists and create our unique schema
+        await EnsureTestDatabaseAsync();
+        await CreateSchemaAsync();
+
+        // Force Marten to apply all schema changes to the database
+        // This creates all necessary tables in the unique schema
+        using (var scope = Services.CreateScope())
+        {
+            var store = scope.ServiceProvider.GetRequiredService<IDocumentStore>();
+            await store.Storage.ApplyAllConfiguredChangesToDatabaseAsync();
+        }
+
+        // Seed test admin user for auth tests
+        await SeedAdminUserAsync();
     }
 
-    public new Task DisposeAsync()
+    private async Task SeedAdminUserAsync()
     {
-        return Task.CompletedTask;
+        using var scope = Services.CreateScope();
+        var store = scope.ServiceProvider.GetRequiredService<IDocumentStore>();
+
+        await using var session = store.LightweightSession();
+
+        // Check if admin already exists
+        var existingAdmin = await session.Query<Usuario>()
+            .FirstOrDefaultAsync(u => u.Email == "admin@test.com");
+
+        if (existingAdmin == null)
+        {
+            var adminId = Guid.NewGuid();
+            var passwordHash = BCrypt.Net.BCrypt.HashPassword("Admin123!");
+
+            var events = new object[]
+            {
+                new SincoMaquinaria.Domain.Events.Usuario.UsuarioCreado(
+                    adminId,
+                    "admin@test.com",
+                    passwordHash,
+                    "Test Admin",
+                    RolUsuario.Admin,
+                    DateTime.UtcNow
+                )
+            };
+
+            session.Events.StartStream<Usuario>(adminId, events);
+            await session.SaveChangesAsync();
+        }
     }
 
-    private async Task ResetTestDatabaseAsync()
+    public new async Task DisposeAsync()
+    {
+        // Clean up the unique schema after tests complete
+        await DropSchemaAsync();
+        await base.DisposeAsync();
+    }
+
+    private async Task EnsureTestDatabaseAsync()
     {
         try
         {
             await using var conn = new NpgsqlConnection(PostgresConnectionString);
             await conn.OpenAsync();
 
-            // Terminate all connections to the test database
-            await using var cmd1 = conn.CreateCommand();
-            cmd1.CommandText = $@"
-                SELECT pg_terminate_backend(pid) 
-                FROM pg_stat_activity 
-                WHERE datname = '{TestDatabaseName}' 
-                AND pid <> pg_backend_pid();";
-            await cmd1.ExecuteNonQueryAsync();
+            // Check if test database exists
+            await using var checkCmd = conn.CreateCommand();
+            checkCmd.CommandText = $"SELECT 1 FROM pg_database WHERE datname = '{TestDatabaseName}'";
+            var exists = await checkCmd.ExecuteScalarAsync();
 
-            // Drop and recreate the database
-            await using var cmd2 = conn.CreateCommand();
-            cmd2.CommandText = $"DROP DATABASE IF EXISTS {TestDatabaseName};";
-            await cmd2.ExecuteNonQueryAsync();
-
-            await using var cmd3 = conn.CreateCommand();
-            cmd3.CommandText = $"CREATE DATABASE {TestDatabaseName};";
-            await cmd3.ExecuteNonQueryAsync();
+            if (exists == null)
+            {
+                // Create test database if it doesn't exist
+                await using var createCmd = conn.CreateCommand();
+                createCmd.CommandText = $"CREATE DATABASE {TestDatabaseName}";
+                await createCmd.ExecuteNonQueryAsync();
+            }
         }
         catch (Exception ex)
         {
-            // Log but don't fail - database might already be clean
-            Console.WriteLine($"Warning: Could not reset test database: {ex.Message}");
+            Console.WriteLine($"Warning: Could not ensure test database exists: {ex.Message}");
+        }
+    }
+
+    private async Task CreateSchemaAsync()
+    {
+        try
+        {
+            await using var conn = new NpgsqlConnection(_testConnectionString);
+            await conn.OpenAsync();
+            await using var cmd = conn.CreateCommand();
+            cmd.CommandText = $"CREATE SCHEMA IF NOT EXISTS {_schema}";
+            await cmd.ExecuteNonQueryAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Warning: Could not create schema {_schema}: {ex.Message}");
+        }
+    }
+
+    private async Task DropSchemaAsync()
+    {
+        try
+        {
+            await using var conn = new NpgsqlConnection(_testConnectionString);
+            await conn.OpenAsync();
+            await using var cmd = conn.CreateCommand();
+            cmd.CommandText = $"DROP SCHEMA IF EXISTS {_schema} CASCADE";
+            await cmd.ExecuteNonQueryAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Warning: Could not drop schema {_schema}: {ex.Message}");
         }
     }
 }
