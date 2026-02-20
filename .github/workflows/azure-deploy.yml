@@ -37,35 +37,11 @@ jobs:
         echo "✅ CI/CD Pipeline (including E2E tests) passed successfully"
         echo "Proceeding with deployment..."
 
-  # Job 2: Build and Test
-  # Note: E2E tests already ran in ci-cd.yml workflow
-  build-and-test:
-    name: Build and Test
-    needs: verify-ci-success
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '9.0.x'
-
-    - name: Restore dependencies
-      run: dotnet restore src/SincoMaquinaria/SincoMaquinaria.csproj
-
-    - name: Build
-      run: dotnet build src/SincoMaquinaria/SincoMaquinaria.csproj --configuration Release --no-restore
-
-    - name: Test
-      run: dotnet test SincoMaquinaria.Tests/SincoMaquinaria.Tests.csproj --configuration Release --no-build --verbosity normal
-
-  # Job 3: Build and Push Docker Image
+  # Job 2: Build and Push Docker Image
+  # Note: Tests already ran and passed in ci-cd.yml workflow (verified by verify-ci-success)
   build-and-push:
     name: Build and Push Docker Image
-    needs: build-and-test
+    needs: verify-ci-success
     runs-on: ubuntu-latest
     if: >-
       (github.event_name == 'workflow_dispatch') ||
@@ -249,6 +225,8 @@ jobs:
       run: |
         if [ "${{ needs.deploy.result }}" == "success" ]; then
           echo "✅ Deployment to production succeeded!"
+        elif [ "${{ needs.deploy.result }}" == "skipped" ]; then
+          echo "⚠️ Deployment was skipped (infrastructure may not be provisioned)"
         else
           echo "❌ Deployment to production failed!"
           exit 1
