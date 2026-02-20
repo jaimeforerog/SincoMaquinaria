@@ -24,12 +24,19 @@ export interface DetalleOrden {
 
 export interface Equipo {
     id: string;
+    placa: string;
+    descripcion: string;
+    marca: string;
+    modelo: string;
+    serie: string;
     codigo: string;
-    nombre: string;
-    modelo?: string;
-    serie?: string;
-    ubicacion?: string;
-    rutina?: string;
+    tipoMedidorId: string;
+    tipoMedidorId2: string;
+    grupo: string;
+    rutina: string;
+    estado?: string;
+    creadoPor?: string;
+    fechaCreacion?: string;
 }
 
 export interface Rutina {
@@ -94,6 +101,14 @@ export interface CausaFalla {
     codigo: string;
     descripcion: string;
     activo: boolean;
+}
+
+export interface HistorialEvent {
+    id: string;
+    tipo: string;
+    fecha: string;
+    datos: Record<string, unknown>;
+    descripcion: string;
 }
 
 export interface ConfiguracionGlobal {

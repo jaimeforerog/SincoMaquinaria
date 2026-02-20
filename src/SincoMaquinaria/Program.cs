@@ -76,6 +76,7 @@ try
     app.MapConfiguracionEndpoints();
     app.MapAuditoriaEndpoints();
     app.MapDashboardEndpoints();
+    app.MapMetricasEndpoints();
     app.MapAdminEndpoints(builder.Configuration);
 
     // --- SIGNALR HUBS ---

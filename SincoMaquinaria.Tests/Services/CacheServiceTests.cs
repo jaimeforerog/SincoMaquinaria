@@ -7,6 +7,7 @@ using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using SincoMaquinaria.Services;
 using Xunit;
@@ -31,7 +32,7 @@ public class CacheServiceTests
 
         var serviceProvider = CreateServiceProvider(distributedCacheMock.Object, null);
         var config = CreateConfig(cachingEnabled: true);
-        var cacheService = new CacheService(serviceProvider, config);
+        var cacheService = new CacheService(serviceProvider, config, NullLogger<CacheService>.Instance);
 
         // Act
         var result = await cacheService.GetAsync<object>("test-key");
@@ -52,7 +53,7 @@ public class CacheServiceTests
 
         var serviceProvider = CreateServiceProvider(distributedCacheMock.Object, null);
         var config = CreateConfig(cachingEnabled: true);
-        var cacheService = new CacheService(serviceProvider, config);
+        var cacheService = new CacheService(serviceProvider, config, NullLogger<CacheService>.Instance);
 
         // Act
         var result = await cacheService.GetAsync<string>("missing-key");
@@ -70,7 +71,7 @@ public class CacheServiceTests
 
         var serviceProvider = CreateServiceProvider(distributedCacheMock.Object, null);
         var config = CreateConfig(cachingEnabled: true, expirationMinutes: 10);
-        var cacheService = new CacheService(serviceProvider, config);
+        var cacheService = new CacheService(serviceProvider, config, NullLogger<CacheService>.Instance);
 
         // Act
         await cacheService.SetAsync("test-key", testData);
@@ -94,7 +95,7 @@ public class CacheServiceTests
 
         var serviceProvider = CreateServiceProvider(distributedCacheMock.Object, null);
         var config = CreateConfig(cachingEnabled: true);
-        var cacheService = new CacheService(serviceProvider, config);
+        var cacheService = new CacheService(serviceProvider, config, NullLogger<CacheService>.Instance);
 
         var customExpiration = TimeSpan.FromMinutes(30);
 
@@ -119,7 +120,7 @@ public class CacheServiceTests
 
         var serviceProvider = CreateServiceProvider(distributedCacheMock.Object, null);
         var config = CreateConfig(cachingEnabled: true);
-        var cacheService = new CacheService(serviceProvider, config);
+        var cacheService = new CacheService(serviceProvider, config, NullLogger<CacheService>.Instance);
 
         // Act
         await cacheService.RemoveAsync("test-key");
@@ -148,7 +149,7 @@ public class CacheServiceTests
 
         // Since cachingEnabled=true, constructor looks for DistributedCache (won't find it)
         // So _distributedCache will be null, and GetAsync will check _memoryCache (also null in constructor)
-        var cacheService = new CacheService(serviceProvider, config);
+        var cacheService = new CacheService(serviceProvider, config, NullLogger<CacheService>.Instance);
 
         // Act
         var result = await cacheService.GetAsync<string>("test-key");
@@ -167,7 +168,7 @@ public class CacheServiceTests
 
         var serviceProvider = CreateServiceProvider(null, memoryCache);
         var config = CreateConfig(cachingEnabled: false);
-        var cacheService = new CacheService(serviceProvider, config);
+        var cacheService = new CacheService(serviceProvider, config, NullLogger<CacheService>.Instance);
 
         // Act
         var result = await cacheService.GetAsync<string>("test-key");
@@ -185,7 +186,7 @@ public class CacheServiceTests
 
         var serviceProvider = CreateServiceProvider(null, memoryCache);
         var config = CreateConfig(cachingEnabled: false);
-        var cacheService = new CacheService(serviceProvider, config);
+        var cacheService = new CacheService(serviceProvider, config, NullLogger<CacheService>.Instance);
 
         // Act
         await cacheService.SetAsync("test-key", testData);
@@ -204,7 +205,7 @@ public class CacheServiceTests
 
         var serviceProvider = CreateServiceProvider(null, memoryCache);
         var config = CreateConfig(cachingEnabled: false);
-        var cacheService = new CacheService(serviceProvider, config);
+        var cacheService = new CacheService(serviceProvider, config, NullLogger<CacheService>.Instance);
 
         // Act
         await cacheService.RemoveAsync("test-key");
@@ -224,7 +225,7 @@ public class CacheServiceTests
         // Arrange
         var serviceProvider = CreateServiceProvider(null, null);
         var config = CreateConfig(cachingEnabled: false);
-        var cacheService = new CacheService(serviceProvider, config);
+        var cacheService = new CacheService(serviceProvider, config, NullLogger<CacheService>.Instance);
 
         // Act
         var result = await cacheService.GetAsync<string>("test-key");
@@ -248,7 +249,7 @@ public class CacheServiceTests
             })
             .Build();
 
-        var cacheService = new CacheService(serviceProvider, config);
+        var cacheService = new CacheService(serviceProvider, config, NullLogger<CacheService>.Instance);
 
         // Act
         await cacheService.SetAsync("test-key", "test-value");
@@ -265,7 +266,7 @@ public class CacheServiceTests
         var distributedCacheMock = new Mock<IDistributedCache>();
         var serviceProvider = CreateServiceProvider(distributedCacheMock.Object, null);
         var config = CreateConfig(cachingEnabled: true);
-        var cacheService = new CacheService(serviceProvider, config);
+        var cacheService = new CacheService(serviceProvider, config, NullLogger<CacheService>.Instance);
 
         // Act
         await cacheService.SetAsync<string>("test-key", null!);
@@ -286,7 +287,7 @@ public class CacheServiceTests
         var distributedCacheMock = new Mock<IDistributedCache>();
         var serviceProvider = CreateServiceProvider(distributedCacheMock.Object, null);
         var config = CreateConfig(cachingEnabled: false);
-        var cacheService = new CacheService(serviceProvider, config);
+        var cacheService = new CacheService(serviceProvider, config, NullLogger<CacheService>.Instance);
 
         // Act
         await cacheService.RemoveAsync("test-key");
@@ -308,7 +309,7 @@ public class CacheServiceTests
         // Arrange
         var serviceProvider = CreateServiceProvider(null, null);
         var config = CreateConfig(cachingEnabled: true);
-        var cacheService = new CacheService(serviceProvider, config);
+        var cacheService = new CacheService(serviceProvider, config, NullLogger<CacheService>.Instance);
 
         // Act & Assert - Should not throw
         await cacheService.RemoveByPrefixAsync("test-prefix");

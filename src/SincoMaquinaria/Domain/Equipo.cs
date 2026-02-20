@@ -19,7 +19,7 @@ public class Equipo
     public string Grupo { get; set; } = string.Empty;
     public string Rutina { get; set; } = string.Empty;
     
-    public string Estado { get; set; } = "Inactivo";
+    public string Estado { get; set; } = EstadoEquipo.Inactivo;
 
     // Auditoría
     public Guid? CreadoPor { get; set; }
@@ -42,7 +42,7 @@ public class Equipo
         TipoMedidorId2 = @event.TipoMedidorId2;
         Grupo = @event.Grupo;
         Rutina = @event.Rutina;
-        Estado = "Activo";
+        Estado = EstadoEquipo.Activo;
         // Auditoría
         CreadoPor = @event.UsuarioId;
         CreadoPorNombre = @event.UsuarioNombre;
@@ -62,7 +62,7 @@ public class Equipo
         TipoMedidorId2 = @event.TipoMedidorId2;
         Grupo = @event.Grupo;
         Rutina = @event.Rutina;
-        Estado = "Activo"; // Asumimos activo al migrar
+        Estado = EstadoEquipo.Activo;
         // Auditoría
         CreadoPor = @event.UsuarioId;
         CreadoPorNombre = @event.UsuarioNombre;

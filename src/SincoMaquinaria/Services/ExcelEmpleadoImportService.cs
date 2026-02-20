@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using ExcelDataReader;
 using Marten;
+using Microsoft.Extensions.Logging;
 using SincoMaquinaria.Domain;
 using SincoMaquinaria.Domain.Events;
 
@@ -13,10 +14,12 @@ namespace SincoMaquinaria.Services;
 public class ExcelEmpleadoImportService
 {
     private readonly IDocumentSession _session;
+    private readonly ILogger<ExcelEmpleadoImportService> _logger;
 
-    public ExcelEmpleadoImportService(IDocumentSession session)
+    public ExcelEmpleadoImportService(IDocumentSession session, ILogger<ExcelEmpleadoImportService> logger)
     {
         _session = session;
+        _logger = logger;
     }
 
     public async Task<int> ImportarEmpleados(Stream fileStream, Guid? usuarioId = null, string? usuarioNombre = null)
@@ -87,7 +90,7 @@ public class ExcelEmpleadoImportService
             decimal.TryParse(valorHoraStr, out var valorHora); 
             
             // Default "Activo"
-            var estado = "Activo";
+            var estado = EstadoEquipo.Activo;
 
             // Validations
             if (string.IsNullOrEmpty(nombre))
@@ -143,6 +146,7 @@ public class ExcelEmpleadoImportService
         }
 
         await _session.SaveChangesAsync();
+        _logger.LogInformation("Importación de empleados completada: {Count} empleados creados", count);
         return count;
     }
 

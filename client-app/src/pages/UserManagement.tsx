@@ -77,7 +77,7 @@ const UserManagement: React.FC = () => {
         const errorText = await response.text();
         setError(`Error al cargar usuarios: ${response.status} ${response.statusText} - ${errorText}`);
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error fetching usuarios:', error);
       setError('Error de conexión al cargar usuarios');
     } finally {
@@ -126,7 +126,7 @@ const UserManagement: React.FC = () => {
     });
   };
 
-  const handleRolChange = (e: any) => {
+  const handleRolChange = (e: { target: { value: string } }) => {
     setFormData({
       ...formData,
       rol: e.target.value,
@@ -190,8 +190,8 @@ const UserManagement: React.FC = () => {
         handleCloseDialog();
         fetchUsuarios();
       }, 1500);
-    } catch (err: any) {
-      setError(err.message || 'Error al procesar solicitud');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al procesar solicitud');
     }
   };
 

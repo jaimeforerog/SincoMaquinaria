@@ -23,6 +23,7 @@ public static class RutinasEndpoints
             .DisableAntiforgery();
 
         group.MapGet("/", ListarRutinas);
+        group.MapGet("/con-detalles", ListarRutinasConDetalles);
         group.MapGet("/{id:guid}", ObtenerRutina);
         group.MapPost("/", CrearRutina)
             .AddEndpointFilter<Infrastructure.ValidationFilter<CreateRutinaRequest>>();
@@ -146,6 +147,17 @@ public static class RutinasEndpoints
         };
 
         return Results.Ok(resultado);
+    }
+
+    private static async Task<IResult> ListarRutinasConDetalles(
+        IQuerySession session,
+        [AsParameters] PaginationRequest pagination)
+    {
+        var result = await session.Query<RutinaMantenimiento>()
+            .ApplyOrdering(pagination)
+            .ToPagedResponseAsync(pagination);
+
+        return Results.Ok(result);
     }
 
     private static async Task<IResult> ObtenerRutina(IQuerySession session, Guid id)

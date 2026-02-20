@@ -23,6 +23,7 @@ public class OrdenDeTrabajo
     public DateTime FechaOrden { get; set; } // Fecha de la OT (Seleccionable)
     public DateTime? FechaProgramada { get; set; }
     public DateTimeOffset FechaCreacion { get; set; }
+    public DateTimeOffset? FechaCompletado { get; set; }
 
     public List<DetalleOrden> Detalles { get; set; } = new();
 
@@ -47,12 +48,20 @@ public class OrdenDeTrabajo
 
     public void Apply(OrdenProgramada @event)
     {
+        if (Estado != EstadoOrdenDeTrabajo.Borrador)
+            throw new DomainException($"No se puede programar una orden en estado '{Estado}'. Solo desde Borrador.");
+
         FechaProgramada = @event.FechaProgramada;
         Estado = EstadoOrdenDeTrabajo.Programada;
     }
 
     public void Apply(ActividadAgregada @event)
     {
+        if (Estado != EstadoOrdenDeTrabajo.Borrador &&
+            Estado != EstadoOrdenDeTrabajo.Programada &&
+            Estado != EstadoOrdenDeTrabajo.EnEjecucion)
+            throw new DomainException($"No se puede agregar actividad en estado '{Estado}'.");
+
         Detalles.Add(new DetalleOrden
         {
             Id = @event.ItemDetalleId,
@@ -67,6 +76,10 @@ public class OrdenDeTrabajo
 
     public void Apply(AvanceDeActividadRegistrado @event)
     {
+        if (Estado != EstadoOrdenDeTrabajo.Programada &&
+            Estado != EstadoOrdenDeTrabajo.EnEjecucion)
+            throw new DomainException($"No se puede registrar avance en estado '{Estado}'.");
+
         var item = Detalles.FirstOrDefault(d => d.Id == @event.ItemDetalleId)
             ?? throw new DomainException($"Detalle con ID {@event.ItemDetalleId} no existe en la orden");
 
@@ -78,6 +91,7 @@ public class OrdenDeTrabajo
         if (Detalles.All(d => d.Estado == EstadoDetalleOrden.Finalizado))
         {
             Estado = EstadoOrdenDeTrabajo.EjecucionCompleta;
+            FechaCompletado = DateTimeOffset.UtcNow;
         }
         else
         {
@@ -87,11 +101,18 @@ public class OrdenDeTrabajo
 
     public void Apply(OrdenFinalizada @event)
     {
+        if (Estado != EstadoOrdenDeTrabajo.EnEjecucion &&
+            Estado != EstadoOrdenDeTrabajo.EjecucionCompleta)
+            throw new DomainException($"No se puede finalizar una orden en estado '{Estado}'.");
+
         Estado = @event.EstadoFinal.ToEnum<EstadoOrdenDeTrabajo>();
     }
 
     public void Apply(OrdenDeTrabajoEliminada @event)
     {
+        if (Estado == EstadoOrdenDeTrabajo.Eliminada)
+            throw new DomainException("La orden ya está eliminada.");
+
         Estado = EstadoOrdenDeTrabajo.Eliminada;
     }
 }

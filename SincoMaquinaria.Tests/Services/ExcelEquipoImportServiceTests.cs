@@ -7,6 +7,7 @@ using Marten;
 using SincoMaquinaria.Domain;
 using SincoMaquinaria.Domain.Events;
 using SincoMaquinaria.Domain.Events.ConfiguracionGlobal;
+using Microsoft.Extensions.Logging.Abstractions;
 using SincoMaquinaria.Services;
 using SincoMaquinaria.Tests.Helpers;
 using SincoMaquinaria.Tests;
@@ -23,7 +24,7 @@ public class ExcelEquipoImportServiceTests : IntegrationContext
         System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
     }
     
-    private ExcelEquipoImportService Service => _service ??= new ExcelEquipoImportService(CurrentSession);
+    private ExcelEquipoImportService Service => _service ??= new ExcelEquipoImportService(CurrentSession, NullLogger<ExcelEquipoImportService>.Instance);
 
     private async Task SetupConfig()
     {
@@ -195,7 +196,7 @@ public class ExcelEquipoImportServiceTests : IntegrationContext
 
         // Act - USE NEW SESSION
         await using var session2 = _fixture.Store.LightweightSession();
-        var service2 = new ExcelEquipoImportService(session2);
+        var service2 = new ExcelEquipoImportService(session2, NullLogger<ExcelEquipoImportService>.Instance);
         
         var result = await service2.ImportarEquipos(stream2);
         await session2.SaveChangesAsync();

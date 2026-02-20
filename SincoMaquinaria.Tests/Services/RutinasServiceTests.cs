@@ -5,6 +5,7 @@ using FluentAssertions;
 using Marten;
 using SincoMaquinaria.Domain;
 using SincoMaquinaria.DTOs.Requests;
+using Microsoft.Extensions.Logging.Abstractions;
 using SincoMaquinaria.Services;
 using Xunit;
 
@@ -24,7 +25,7 @@ public class RutinasServiceTests : IClassFixture<IntegrationFixture>, IAsyncLife
     public async Task InitializeAsync()
     {
         _session = _fixture.Store.LightweightSession();
-        _rutinasService = new RutinasService(_session);
+        _rutinasService = new RutinasService(_session, NullLogger<RutinasService>.Instance);
         await Task.CompletedTask;
     }
 

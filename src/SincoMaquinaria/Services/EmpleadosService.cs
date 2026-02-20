@@ -1,4 +1,5 @@
 using Marten;
+using Microsoft.Extensions.Logging;
 using SincoMaquinaria.Domain;
 using SincoMaquinaria.Domain.Events;
 using SincoMaquinaria.DTOs.Requests;
@@ -8,10 +9,12 @@ namespace SincoMaquinaria.Services;
 public class EmpleadosService
 {
     private readonly IDocumentSession _session;
+    private readonly ILogger<EmpleadosService> _logger;
 
-    public EmpleadosService(IDocumentSession session)
+    public EmpleadosService(IDocumentSession session, ILogger<EmpleadosService> logger)
     {
         _session = session;
+        _logger = logger;
     }
 
     public async Task<Result<Guid>> CrearEmpleado(CrearEmpleadoRequest req, Guid userId, string? userName)
@@ -31,6 +34,7 @@ public class EmpleadosService
                 req.Cargo, req.Especialidad ?? "", req.ValorHora, req.Estado, userId, userName, DateTimeOffset.Now));
 
         await _session.SaveChangesAsync();
+        _logger.LogInformation("Empleado creado: {EmpleadoId} - {Nombre}", empleadoId, req.Nombre);
 
         return Result<Guid>.Success(empleadoId);
     }
@@ -55,6 +59,7 @@ public class EmpleadosService
                 req.Cargo, req.Especialidad ?? "", req.ValorHora, req.Estado, userId, userName, DateTimeOffset.UtcNow));
 
         await _session.SaveChangesAsync();
+        _logger.LogInformation("Empleado actualizado: {EmpleadoId} - {Nombre}", id, req.Nombre);
 
         return Result<Unit>.Success(Unit.Value);
     }

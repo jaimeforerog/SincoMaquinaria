@@ -1,4 +1,5 @@
 using Marten;
+using Microsoft.Extensions.Logging;
 using SincoMaquinaria.Domain;
 using SincoMaquinaria.DTOs.Requests;
 
@@ -7,10 +8,12 @@ namespace SincoMaquinaria.Services;
 public class RutinasService
 {
     private readonly IDocumentSession _session;
+    private readonly ILogger<RutinasService> _logger;
 
-    public RutinasService(IDocumentSession session)
+    public RutinasService(IDocumentSession session, ILogger<RutinasService> logger)
     {
         _session = session;
+        _logger = logger;
     }
 
     public async Task<Result<RutinaMantenimiento>> CrearRutina(CreateRutinaRequest request, Guid? userId, string? userName)
@@ -25,6 +28,7 @@ public class RutinasService
         _session.Events.StartStream<RutinaMantenimiento>(rutinaId,
             new RutinaCreada(rutinaId, request.Descripcion, request.Grupo, userId, userName));
         await _session.SaveChangesAsync();
+        _logger.LogInformation("Rutina creada: {RutinaId} - {Descripcion}", rutinaId, request.Descripcion);
 
         return Result<RutinaMantenimiento>.Success(new RutinaMantenimiento
         {
@@ -49,6 +53,7 @@ public class RutinasService
 
         _session.Events.Append(id, new RutinaActualizada(id, request.Descripcion, request.Grupo, userId, userName));
         await _session.SaveChangesAsync();
+        _logger.LogInformation("Rutina actualizada: {RutinaId} - {Descripcion}", id, request.Descripcion);
 
         rutina.Descripcion = request.Descripcion;
         rutina.Grupo = request.Grupo;

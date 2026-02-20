@@ -9,11 +9,13 @@ public class AuthService
 {
     private readonly IDocumentSession _session;
     private readonly JwtService _jwtService;
+    private readonly ILogger<AuthService> _logger;
 
-    public AuthService(IDocumentSession session, JwtService jwtService)
+    public AuthService(IDocumentSession session, JwtService jwtService, ILogger<AuthService> logger)
     {
         _session = session;
         _jwtService = jwtService;
+        _logger = logger;
     }
 
     public async Task<Result<AuthResponse>> Login(LoginRequest req)
@@ -23,18 +25,23 @@ public class AuthService
 
         if (usuario == null || !JwtService.VerifyPassword(req.Password, usuario.PasswordHash))
         {
+            _logger.LogWarning("Login fallido para email {Email}", req.Email);
             return Result<AuthResponse>.Unauthorized();
         }
 
         // Generar access token y refresh token
         var (token, expiration, refreshToken, refreshExpiry) = _jwtService.GenerateTokens(usuario);
 
+        // Use exclusive write lock to safely append to the user stream
+        var stream = await _session.Events.FetchForExclusiveWriting<Usuario>(usuario.Id);
+
         // Guardar refresh token en BD
-        _session.Events.Append(usuario.Id, new RefreshTokenGenerado(
+        stream.AppendOne(new RefreshTokenGenerado(
             usuario.Id, refreshToken, refreshExpiry, DateTimeOffset.UtcNow));
 
         await _session.SaveChangesAsync();
 
+        _logger.LogInformation("Login exitoso para usuario {UserId} ({Email})", usuario.Id, usuario.Email);
         return Result<AuthResponse>.Success(new AuthResponse(
             token,
             expiration,
@@ -76,11 +83,12 @@ public class AuthService
         }
 
         _session.Events.StartStream<Usuario>(usuarioId,
-            new UsuarioCreado(usuarioId, req.Email, passwordHash, req.Nombre, 
+            new UsuarioCreado(usuarioId, req.Email, passwordHash, req.Nombre,
                 rolUsuario, DateTime.UtcNow));
 
         await _session.SaveChangesAsync();
 
+        _logger.LogInformation("Usuario {UserId} registrado ({Email}, rol: {Rol})", usuarioId, req.Email, rolUsuario);
         return Result<Guid>.Success(usuarioId);
     }
 
@@ -152,12 +160,16 @@ public class AuthService
             return Result<AuthResponse>.Unauthorized();
         }
 
+        // Use exclusive write lock to prevent concurrent version conflicts
+        // (multiple refresh requests for the same user at the same time)
+        var stream = await _session.Events.FetchForExclusiveWriting<Usuario>(usuario.Id);
+
         // Generar nuevos tokens
         var (newToken, expiration, newRefreshToken, refreshExpiry) =
             _jwtService.GenerateTokens(usuario);
 
-        // Guardar nuevo refresh token
-        _session.Events.Append(usuario.Id, new RefreshTokenGenerado(
+        // Append via the locked stream to avoid duplicate version
+        stream.AppendOne(new RefreshTokenGenerado(
             usuario.Id, newRefreshToken, refreshExpiry, DateTimeOffset.UtcNow));
 
         await _session.SaveChangesAsync();
@@ -176,7 +188,9 @@ public class AuthService
 
     public async Task<Result<bool>> Logout(Guid usuarioId)
     {
-        _session.Events.Append(usuarioId, new RefreshTokenRevocado(
+        var stream = await _session.Events.FetchForExclusiveWriting<Usuario>(usuarioId);
+
+        stream.AppendOne(new RefreshTokenRevocado(
             usuarioId, DateTimeOffset.UtcNow));
 
         await _session.SaveChangesAsync();

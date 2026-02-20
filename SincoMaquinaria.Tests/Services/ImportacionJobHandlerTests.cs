@@ -1,5 +1,6 @@
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using SincoMaquinaria.Services;
 using SincoMaquinaria.Services.Jobs;
@@ -21,8 +22,8 @@ public class ImportacionJobHandlerTests : IntegrationContext
     private ImportacionJobHandler CreateHandler()
     {
         // Create handler with fresh session - called from each test
-        var equipoImportService = new ExcelEquipoImportService(CurrentSession);
-        var empleadoImportService = new ExcelEmpleadoImportService(CurrentSession);
+        var equipoImportService = new ExcelEquipoImportService(CurrentSession, NullLogger<ExcelEquipoImportService>.Instance);
+        var empleadoImportService = new ExcelEmpleadoImportService(CurrentSession, NullLogger<ExcelEmpleadoImportService>.Instance);
 
         return new ImportacionJobHandler(
             _fixture.Store,

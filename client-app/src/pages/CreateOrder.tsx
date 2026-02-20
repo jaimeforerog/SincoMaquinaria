@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { LocalShipping, Save } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import { Rutina } from '../types';
+import { Rutina, Equipo } from '../types';
 import {
     Box,
     Button,
@@ -16,10 +16,12 @@ import {
 } from '@mui/material';
 
 import { useAuthFetch } from '../hooks/useAuthFetch';
+import { useNotification } from '../contexts/NotificationContext';
 
 const CreateOrder = () => {
     const navigate = useNavigate();
     const authFetch = useAuthFetch();
+    const { showNotification } = useNotification();
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
         equipoId: '',
@@ -30,8 +32,8 @@ const CreateOrder = () => {
         fechaOrden: new Date().toISOString().split('T')[0]
     });
     const [rutinas, setRutinas] = useState<Rutina[]>([]);
-    const [equiposList, setEquiposList] = useState<any[]>([]);
-    const [equipoValue, setEquipoValue] = useState<any | null>(null);
+    const [equiposList, setEquiposList] = useState<Equipo[]>([]);
+    const [equipoValue, setEquipoValue] = useState<Equipo | null>(null);
     const [availableFrequencies, setAvailableFrequencies] = useState<number[]>([]);
     const [frecuenciaPreventiva, setFrecuenciaPreventiva] = useState<string>('');
 
@@ -100,15 +102,15 @@ const CreateOrder = () => {
                     navigate(`/ordenes/${newId}`);
                 } else {
                     console.error("No ID returned", data);
-                    alert("Orden creada, pero no se pudo redirigir. Revisa el historial.");
+                    showNotification("Orden creada, pero no se pudo redirigir. Revisa el historial.", "warning");
                     navigate('/historial');
                 }
             } else {
-                alert("Error al crear la orden");
+                showNotification("Error al crear la orden", "error");
             }
         } catch (error) {
             console.error(error);
-            alert("Error de conexión");
+            showNotification("Error de conexión", "error");
         } finally {
             setLoading(false);
         }
@@ -136,7 +138,7 @@ const CreateOrder = () => {
                             options={equiposList}
                             getOptionLabel={(option) => `${option.placa} - ${option.descripcion}`}
                             value={equipoValue}
-                            onChange={(_event, newValue: any) => {
+                            onChange={(_event, newValue: Equipo | null) => {
                                 setEquipoValue(newValue);
                                 let newRutinaId = '';
                                 // Only associate routine for PREVENTIVE orders

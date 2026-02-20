@@ -4,6 +4,7 @@ using System.Security.Claims;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using SincoMaquinaria.Domain;
+using Microsoft.Extensions.Logging.Abstractions;
 using SincoMaquinaria.Services;
 using Xunit;
 using System.IdentityModel.Tokens.Jwt;
@@ -30,7 +31,7 @@ public class JwtServiceTests
             .AddInMemoryCollection(configData)
             .Build();
 
-        _jwtService = new JwtService(_configuration);
+        _jwtService = new JwtService(_configuration, NullLogger<JwtService>.Instance);
     }
 
     #region GenerateToken Tests

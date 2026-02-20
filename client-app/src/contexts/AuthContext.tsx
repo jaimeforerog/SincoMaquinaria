@@ -37,33 +37,48 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [, setRefreshToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Function to refresh access token
+  // Shared promise to deduplicate concurrent refresh calls
+  const refreshPromiseRef = React.useRef<Promise<boolean> | null>(null);
+
+  // Function to refresh access token (deduplicated)
   const refreshAccessToken = async (): Promise<boolean> => {
-    const storedRefreshToken = localStorage.getItem('refreshToken');
-    if (!storedRefreshToken) return false;
-
-    try {
-      const response = await fetch('/auth/refresh', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refreshToken: storedRefreshToken }),
-      });
-
-      if (!response.ok) return false;
-
-      const data = await response.json();
-
-      // Update tokens
-      localStorage.setItem('authToken', data.token);
-      localStorage.setItem('refreshToken', data.refreshToken);
-      setToken(data.token);
-      setRefreshToken(data.refreshToken);
-
-      return true;
-    } catch (error) {
-      console.error('Error refreshing token:', error);
-      return false;
+    // If a refresh is already in progress, wait for it instead of starting a new one
+    if (refreshPromiseRef.current) {
+      return refreshPromiseRef.current;
     }
+
+    const doRefresh = async (): Promise<boolean> => {
+      const storedRefreshToken = localStorage.getItem('refreshToken');
+      if (!storedRefreshToken) return false;
+
+      try {
+        const response = await fetch('/auth/refresh', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refreshToken: storedRefreshToken }),
+        });
+
+        if (!response.ok) return false;
+
+        const data = await response.json();
+
+        // Update tokens
+        localStorage.setItem('authToken', data.token);
+        localStorage.setItem('refreshToken', data.refreshToken);
+        setToken(data.token);
+        setRefreshToken(data.refreshToken);
+
+        return true;
+      } catch (error) {
+        console.error('Error refreshing token:', error);
+        return false;
+      } finally {
+        refreshPromiseRef.current = null;
+      }
+    };
+
+    refreshPromiseRef.current = doRefresh();
+    return refreshPromiseRef.current;
   };
 
   // Verify token with backend on mount (NON-BLOCKING)

@@ -7,6 +7,7 @@ using Marten;
 using SincoMaquinaria.Domain;
 using SincoMaquinaria.Domain.Events;
 using SincoMaquinaria.Domain.Events.Empleado;
+using Microsoft.Extensions.Logging.Abstractions;
 using SincoMaquinaria.Services;
 using SincoMaquinaria.Tests.Helpers;
 using SincoMaquinaria.Tests;
@@ -29,7 +30,7 @@ public class ExcelEmpleadoImportServiceTests : IntegrationContext
     // However, CurrentSession is null in Constructor. 
     // We can instantiate service inside the test or create a Lazy/Property.
     
-    private ExcelEmpleadoImportService Service => _service ??= new ExcelEmpleadoImportService(CurrentSession);
+    private ExcelEmpleadoImportService Service => _service ??= new ExcelEmpleadoImportService(CurrentSession, NullLogger<ExcelEmpleadoImportService>.Instance);
 
     [Fact]
     public async Task ImportarEmpleados_ValidData_ShouldImportSuccessfully()

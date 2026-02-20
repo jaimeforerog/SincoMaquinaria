@@ -42,13 +42,11 @@ public static class EquiposEndpoints
 
     private static IResult DescargarPlantilla()
     {
-        // Configurar licencia EPPlus (Non-Commercial)
         ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
         using var package = new ExcelPackage();
         var worksheet = package.Workbook.Worksheets.Add("Equipos");
 
-        // Encabezados
         var headers = new[]
         {
             "Placa",
@@ -64,7 +62,6 @@ public static class EquiposEndpoints
             "Fecha ultima OT"
         };
 
-        // Escribir encabezados en la fila 1
         for (int i = 0; i < headers.Length; i++)
         {
             worksheet.Cells[1, i + 1].Value = headers[i];
@@ -74,10 +71,8 @@ public static class EquiposEndpoints
             worksheet.Cells[1, i + 1].Style.Font.Color.SetColor(System.Drawing.Color.White);
         }
 
-        // Ajustar ancho de columnas automáticamente
         worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
 
-        // Generar el archivo
         var bytes = package.GetAsByteArray();
         var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
         var fileName = $"plantillaEquipos_{timestamp}.xlsx";
@@ -90,7 +85,7 @@ public static class EquiposEndpoints
         HttpContext httpContext,
         IFormFile? file,
         int maxFileUploadSizeMB,
-        DashboardNotifier notifier) // Inject notifier
+        DashboardNotifier notifier)
     {
         var fileError = HttpContextExtensions.ValidateFileUpload(file, maxFileUploadSizeMB);
         if (fileError != null) return fileError;
@@ -104,10 +99,7 @@ public static class EquiposEndpoints
         try
         {
             var count = await importService.ImportarEquipos(stream, userId, userName);
-            
-            // Notificar al Dashboard
             await notifier.NotificarEquiposImportados();
-
             return Results.Ok(new { Message = $"Importación completada. {count} equipos creados/actualizados." });
         }
         catch (Exception ex)
@@ -134,71 +126,31 @@ public static class EquiposEndpoints
     }
 
     private static async Task<IResult> CrearEquipo(
-        IDocumentSession session,
+        EquiposService service,
         HttpContext httpContext,
         [FromBody] CrearEquipoRequest req)
     {
         var (userId, userName) = httpContext.GetUserContext();
+        var result = await service.CrearEquipo(req, userId, userName);
 
-        // Validar campos obligatorios
-        if (string.IsNullOrEmpty(req.Grupo) || string.IsNullOrEmpty(req.Rutina))
-            return Results.BadRequest("El Grupo de Mantenimiento y la Rutina Asignada son obligatorios.");
+        if (!result.IsSuccess)
+            return Results.Conflict(result.Error);
 
-        // Verificar si ya existe un equipo con la misma placa (primera línea de defensa)
-        var existe = await session.Query<Equipo>().AnyAsync(e => e.Placa == req.Placa);
-        if (existe)
-            return Results.Conflict($"Ya existe un equipo con la placa {req.Placa}");
-
-        var id = Guid.NewGuid();
-
-        session.Events.StartStream<Equipo>(id,
-            new EquipoCreado(id, req.Placa, req.Descripcion, req.Marca, req.Modelo,
-                req.Serie, req.Codigo, req.TipoMedidorId, req.TipoMedidorId2,
-                req.Grupo, req.Rutina, userId, userName, DateTimeOffset.Now));
-
-        // Registrar lecturas iniciales
-        if (!string.IsNullOrEmpty(req.TipoMedidorId) && req.LecturaInicial1.HasValue)
-        {
-            var fecha = req.FechaInicial1 ?? DateTime.Now;
-            // TrabajaAcumuladoCalculado se asume igual a la lectura inicial
-            session.Events.Append(id, new MedicionRegistrada(req.TipoMedidorId, req.LecturaInicial1.Value, fecha, req.LecturaInicial1.Value, userId, userName));
-        }
-
-        if (!string.IsNullOrEmpty(req.TipoMedidorId2) && req.LecturaInicial2.HasValue)
-        {
-            var fecha = req.FechaInicial2 ?? DateTime.Now;
-            session.Events.Append(id, new MedicionRegistrada(req.TipoMedidorId2, req.LecturaInicial2.Value, fecha, req.LecturaInicial2.Value, userId, userName));
-        }
-
-        try
-        {
-            await session.SaveChangesAsync();
-            return Results.Created($"/equipos/{id}", new { Id = id });
-        }
-        catch (Npgsql.PostgresException ex) when (ex.SqlState == "23505") // Unique violation
-        {
-            // Segunda línea de defensa: índice único en base de datos
-            return Results.Conflict($"Ya existe un equipo con la placa {req.Placa}");
-        }
+        return Results.Created($"/equipos/{result.Value}", new { Id = result.Value });
     }
 
     private static async Task<IResult> ActualizarEquipo(
-        IDocumentSession session,
+        EquiposService service,
         HttpContext httpContext,
         Guid id, 
         [FromBody] ActualizarEquipoRequest req)
     {
         var (userId, userName) = httpContext.GetUserContext();
-        
-        // Validar campos obligatorios
-        if (string.IsNullOrEmpty(req.Grupo) || string.IsNullOrEmpty(req.Rutina))
-            return Results.BadRequest("El Grupo de Mantenimiento y la Rutina Asignada son obligatorios.");
+        var result = await service.ActualizarEquipo(id, req, userId, userName);
 
-        session.Events.Append(id,
-            new EquipoActualizado(id, req.Descripcion, req.Marca, req.Modelo,
-                req.Serie, req.Codigo, req.TipoMedidorId, req.TipoMedidorId2,
-                req.Grupo, req.Rutina, userId, userName, DateTimeOffset.UtcNow));
-        await session.SaveChangesAsync();
+        if (!result.IsSuccess)
+            return Results.BadRequest(result.Error);
+
         return Results.Ok();
     }
 

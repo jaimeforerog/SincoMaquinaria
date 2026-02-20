@@ -3,13 +3,13 @@ import {
     TextField, Button, FormControl, InputLabel, Select, MenuItem
 } from '@mui/material';
 import { Save, Cancel } from '@mui/icons-material';
-import { Rutina } from '../../types';
+import { Rutina, GrupoMantenimiento } from '../../types';
 
 interface RutinaFormDialogProps {
     open: boolean;
     mode: 'create' | 'edit';
     rutina: { descripcion: string; grupo: string } | Rutina | null;
-    grupos: any[];
+    grupos: GrupoMantenimiento[];
     onClose: () => void;
     onSave: () => void;
     onChange: (field: string, value: string) => void;

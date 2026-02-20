@@ -1,6 +1,10 @@
-import { Equipo } from '../types';
+interface EquipoSeed {
+    id: string;
+    codigo: string;
+    nombre: string;
+}
 
-export const equipos: Equipo[] = [
+export const equipos: EquipoSeed[] = [
     { id: '1', codigo: 'ACT_SEBAS_SIN_PADRE_1', nombre: 'ACTIVO SEBAS SIN PADRE' },
     { id: '2', codigo: 'ACT_SEBAS_PADRE', nombre: 'ACTIVO SEBAS PADRE' },
     { id: '7', codigo: 'VD-Inter-01', nombre: 'Volqueta Dobletroque international XAB-844' },

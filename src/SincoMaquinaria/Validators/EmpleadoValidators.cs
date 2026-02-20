@@ -1,11 +1,12 @@
 using FluentValidation;
+using SincoMaquinaria.Domain;
 using SincoMaquinaria.DTOs.Requests;
 
 namespace SincoMaquinaria.Validators;
 
 public class CrearEmpleadoRequestValidator : AbstractValidator<CrearEmpleadoRequest>
 {
-    private static readonly string[] EstadosValidos = { "Activo", "Inactivo" };
+    private static readonly string[] EstadosValidos = EstadoEquipo.Todos;
     private static readonly string[] CargosValidos = { "Conductor", "Operario", "Mecanico" };
 
     public CrearEmpleadoRequestValidator()
@@ -38,7 +39,7 @@ public class CrearEmpleadoRequestValidator : AbstractValidator<CrearEmpleadoRequ
 
 public class ActualizarEmpleadoRequestValidator : AbstractValidator<ActualizarEmpleadoRequest>
 {
-    private static readonly string[] EstadosValidos = { "Activo", "Inactivo" };
+    private static readonly string[] EstadosValidos = EstadoEquipo.Todos;
     private static readonly string[] CargosValidos = { "Conductor", "Operario", "Mecanico" };
 
     public ActualizarEmpleadoRequestValidator()

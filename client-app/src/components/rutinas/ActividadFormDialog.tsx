@@ -3,12 +3,12 @@ import {
     TextField, Button, Box, Alert, FormControl, InputLabel, Select, MenuItem
 } from '@mui/material';
 import { Save, Cancel } from '@mui/icons-material';
-import { Actividad } from '../../types';
+import { Actividad, TipoMedidor } from '../../types';
 
 interface ActividadFormDialogProps {
     open: boolean;
     actividad: Actividad | null;
-    medidores: any[];
+    medidores: TipoMedidor[];
     error: string | null;
     onClose: () => void;
     onSave: () => void;
@@ -20,7 +20,7 @@ const ActividadFormDialog = ({
     open, actividad, medidores, error,
     onClose, onSave, onChange, onClearError
 }: ActividadFormDialogProps) => {
-    const update = (field: string, value: any) => {
+    const update = (field: string, value: string | number) => {
         if (!actividad) return;
         onChange({ ...actividad, [field]: value });
     };

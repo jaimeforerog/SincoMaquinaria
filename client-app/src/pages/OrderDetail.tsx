@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Box, Typography, Container, Paper, Tabs, Tab } from '@mui/material';
 import { useAuthFetch } from '../hooks/useAuthFetch';
-import { OrdenDeTrabajo } from '../types';
+import { OrdenDeTrabajo, Equipo, Parte, TipoFalla, CausaFalla, HistorialEvent } from '../types';
+import { useNotification } from '../contexts/NotificationContext';
 import OrderHeader from '../components/ordenes/OrderHeader';
 import OrderInfoCards from '../components/ordenes/OrderInfoCards';
 import ActivityForm from '../components/ordenes/ActivityForm';
@@ -18,16 +19,17 @@ const OrderDetail = () => {
     const { id } = useParams<OrderDetailParams>();
     const navigate = useNavigate();
     const authFetch = useAuthFetch();
-    const [order, setOrder] = useState<OrdenDeTrabajo & { detalles?: any[] } | null>(null);
-    const [history, setHistory] = useState<any[]>([]);
-    const [equipo, setEquipo] = useState<any | null>(null);
+    const { showNotification } = useNotification();
+    const [order, setOrder] = useState<OrdenDeTrabajo | null>(null);
+    const [history, setHistory] = useState<HistorialEvent[]>([]);
+    const [equipo, setEquipo] = useState<Equipo | null>(null);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState(0);
 
     // Corrective flow state
-    const [rutinaParts, setRutinaParts] = useState<any[]>([]);
-    const [tiposFalla, setTiposFalla] = useState<any[]>([]);
-    const [causasFalla, setCausasFalla] = useState<any[]>([]);
+    const [rutinaParts, setRutinaParts] = useState<Parte[]>([]);
+    const [tiposFalla, setTiposFalla] = useState<TipoFalla[]>([]);
+    const [causasFalla, setCausasFalla] = useState<CausaFalla[]>([]);
 
     // Delete confirmation state
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -75,7 +77,7 @@ const OrderDetail = () => {
                                     if (resRutinas.ok) {
                                         const allRutinas = await resRutinas.json();
                                         const rutinasList = allRutinas.data || allRutinas;
-                                        const match = rutinasList.find((r: any) => r.descripcion === foundEq.rutina);
+                                        const match = rutinasList.find((r: { id: string; descripcion: string }) => r.descripcion === foundEq.rutina);
 
                                         if (match) {
                                             const resSingleRutina = await authFetch(`/rutinas/${match.id}`);
@@ -133,7 +135,7 @@ const OrderDetail = () => {
     const handleAddActivity = async (data: { description: string; partId: string; tipoFalla: string; causaFalla: string }) => {
         if (!data.description || !id) return;
         if (rutinaParts.length > 0 && !data.partId) {
-            alert("Debes seleccionar una parte del equipo");
+            showNotification("Debes seleccionar una parte del equipo", "warning");
             return;
         }
 
@@ -159,7 +161,7 @@ const OrderDetail = () => {
             if (res.ok) {
                 fetchOrder();
             } else {
-                alert("Error al guardar actividad");
+                showNotification("Error al guardar actividad", "error");
             }
         } catch (e) {
             console.error(e);
@@ -177,11 +179,11 @@ const OrderDetail = () => {
             if (res.ok) {
                 navigate('/historial');
             } else {
-                alert('Error al eliminar la orden');
+                showNotification('Error al eliminar la orden', 'error');
             }
         } catch (error) {
             console.error(error);
-            alert('Error de conexión');
+            showNotification('Error de conexión', 'error');
         } finally {
             setShowDeleteConfirm(false);
         }
@@ -204,9 +206,16 @@ const OrderDetail = () => {
             <OrderInfoCards order={order} equipo={equipo} />
 
             {/* Content Tabs */}
-            <Paper elevation={3} sx={{ borderRadius: 2 }}>
+            <Paper elevation={0} sx={{ borderRadius: 2, border: 1, borderColor: 'divider' }}>
                 <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                    <Tabs value={activeTab} onChange={(_, newValue) => setActiveTab(newValue)} aria-label="order tabs">
+                    <Tabs
+                        value={activeTab}
+                        onChange={(_, newValue) => setActiveTab(newValue)}
+                        aria-label="order tabs"
+                        sx={{
+                            '& .MuiTab-root': { fontWeight: 600, textTransform: 'none', fontSize: '0.95rem' },
+                        }}
+                    >
                         <Tab label="Actividades" />
                         <Tab label="Auditoría" />
                     </Tabs>
@@ -214,7 +223,7 @@ const OrderDetail = () => {
                 <Box sx={{ p: 3 }}>
                     {activeTab === 0 && (
                         <Box>
-                            <Typography variant="h6" gutterBottom>Línea de Tiempo Operativa</Typography>
+                            <Typography variant="h6" gutterBottom color="text.primary">Línea de Tiempo Operativa</Typography>
                             <ActivityForm
                                 order={order}
                                 rutinaParts={rutinaParts}

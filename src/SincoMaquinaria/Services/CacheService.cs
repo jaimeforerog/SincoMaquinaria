@@ -17,13 +17,16 @@ public class CacheService : ICacheService
     private readonly IDistributedCache? _distributedCache;
     private readonly IMemoryCache? _memoryCache;
     private readonly IConfiguration _configuration;
+    private readonly ILogger<CacheService> _logger;
     private readonly bool _cachingEnabled;
 
     public CacheService(
         IServiceProvider serviceProvider,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        ILogger<CacheService> logger)
     {
         _configuration = configuration;
+        _logger = logger;
         _cachingEnabled = configuration.GetValue<bool>("Caching:Enabled", false);
 
         if (_cachingEnabled)
@@ -49,9 +52,9 @@ public class CacheService : ICacheService
                 if (data == null) return default;
                 return JsonSerializer.Deserialize<T>(data);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // Redis unavailable - fall through to return default
+                _logger.LogWarning(ex, "Redis Get failed for key '{Key}'", key);
                 return default;
             }
         }
@@ -83,9 +86,9 @@ public class CacheService : ICacheService
                 var serialized = JsonSerializer.Serialize(value);
                 await _distributedCache.SetStringAsync(key, serialized, options, cancellationToken);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // Redis unavailable - silently skip cache write
+                _logger.LogWarning(ex, "Redis Set failed for key '{Key}'", key);
             }
         }
         else if (_memoryCache != null)
@@ -108,9 +111,9 @@ public class CacheService : ICacheService
             {
                 await _distributedCache.RemoveAsync(key, cancellationToken);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // Redis unavailable - silently skip cache removal
+                _logger.LogWarning(ex, "Redis Remove failed for key '{Key}'", key);
             }
         }
         else if (_memoryCache != null)

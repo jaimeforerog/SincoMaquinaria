@@ -66,8 +66,8 @@ export default function ImportarRutinas() {
           setMessage(`Error: ${text || response.statusText || 'Error desconocido'}`);
         }
       }
-    } catch (error: any) {
-      setMessage(`Error de red: ${error.message}`);
+    } catch (error) {
+      setMessage(`Error de red: ${error instanceof Error ? error.message : 'Error desconocido'}`);
     } finally {
       setIsUploading(false);
     }
@@ -83,8 +83,8 @@ export default function ImportarRutinas() {
       } else {
         setMessage("Error al borrar la base de datos.");
       }
-    } catch (error: any) {
-      setMessage(`Error de red: ${error.message}`);
+    } catch (error) {
+      setMessage(`Error de red: ${error instanceof Error ? error.message : 'Error desconocido'}`);
     } finally {
       setIsUploading(false);
     }
@@ -148,8 +148,8 @@ export default function ImportarRutinas() {
       } else {
         setMessage('Error al descargar la plantilla');
       }
-    } catch (error: any) {
-      setMessage(`Error al descargar: ${error.message}`);
+    } catch (error) {
+      setMessage(`Error al descargar: ${error instanceof Error ? error.message : 'Error desconocido'}`);
     }
   };
 

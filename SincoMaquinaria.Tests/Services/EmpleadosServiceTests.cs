@@ -6,6 +6,7 @@ using Marten;
 using SincoMaquinaria.Domain;
 using SincoMaquinaria.Domain.Events.Empleado;
 using SincoMaquinaria.DTOs.Requests;
+using Microsoft.Extensions.Logging.Abstractions;
 using SincoMaquinaria.Services;
 using Xunit;
 
@@ -25,7 +26,7 @@ public class EmpleadosServiceTests : IClassFixture<IntegrationFixture>, IAsyncLi
     public async Task InitializeAsync()
     {
         _session = _fixture.Store.LightweightSession();
-        _empleadosService = new EmpleadosService(_session);
+        _empleadosService = new EmpleadosService(_session, NullLogger<EmpleadosService>.Instance);
         await Task.CompletedTask;
     }
 

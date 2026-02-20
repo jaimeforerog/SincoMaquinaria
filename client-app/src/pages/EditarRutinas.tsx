@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Box, Typography, Button, CircularProgress, Alert } from '@mui/material';
 import { Add } from '@mui/icons-material';
+import { useApiQuery } from '../hooks/useApi';
 import { useAuthFetch } from '../hooks/useAuthFetch';
-import { Rutina, Parte, Actividad } from '../types';
+import { useQueryClient } from '@tanstack/react-query';
+import { Rutina, Parte, Actividad, GrupoMantenimiento, TipoMedidor } from '../types';
 import RutinaAccordion from '../components/rutinas/RutinaAccordion';
 import RutinaFormDialog from '../components/rutinas/RutinaFormDialog';
 import ParteFormDialog from '../components/rutinas/ParteFormDialog';
@@ -10,12 +12,30 @@ import ActividadFormDialog from '../components/rutinas/ActividadFormDialog';
 
 const EditarRutinas = () => {
     const authFetch = useAuthFetch();
-    const [rutinas, setRutinas] = useState<Rutina[]>([]);
-    const [loading, setLoading] = useState(true);
+    const queryClient = useQueryClient();
+
+    // --- React Query: data fetching ---
+    const { data: rutinasResponse, isLoading: loadingDetails, error: queryError } = useApiQuery<{ data: Rutina[] }>(
+        ['rutinas', 'withDetails'],
+        '/rutinas/con-detalles?pageSize=1000'
+    );
+    const rutinasWithDetails = rutinasResponse?.data ?? [];
+
+    const { data: gruposRaw } = useApiQuery<GrupoMantenimiento[]>(
+        ['configuracion', 'grupos'],
+        '/configuracion/grupos'
+    );
+    const grupos = (gruposRaw ?? []).filter((g) => g.activo);
+
+    const { data: medidoresRaw } = useApiQuery<TipoMedidor[]>(
+        ['configuracion', 'medidores'],
+        '/configuracion/medidores'
+    );
+    const medidores = (medidoresRaw ?? []).filter((m) => m.activo);
+
+    // --- Local UI state ---
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
-    const [grupos, setGrupos] = useState<any[]>([]);
-    const [medidores, setMedidores] = useState<any[]>([]);
 
     // Dialog states
     const [rutinaDialogOpen, setRutinaDialogOpen] = useState(false);
@@ -30,65 +50,9 @@ const EditarRutinas = () => {
     const [currentRutinaId, setCurrentRutinaId] = useState<string | null>(null);
     const [currentParteId, setCurrentParteId] = useState<string | null>(null);
 
-    useEffect(() => {
-        fetchRutinas();
-        fetchGrupos();
-        fetchMedidores();
-    }, []);
-
-    const fetchGrupos = async () => {
-        try {
-            const res = await authFetch('/configuracion/grupos');
-            if (res.ok) {
-                const data = await res.json();
-                setGrupos(data.filter((g: any) => g.activo));
-            }
-        } catch (err) {
-            console.error('Error loading grupos', err);
-        }
-    };
-
-    const fetchMedidores = async () => {
-        try {
-            const res = await authFetch('/configuracion/medidores');
-            if (res.ok) {
-                const data = await res.json();
-                setMedidores(data.filter((m: any) => m.activo));
-            }
-        } catch (err) {
-            console.error('Error loading medidores', err);
-        }
-    };
-
-    const fetchRutinas = async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const res = await authFetch('/rutinas?pageSize=1000');
-            if (res.ok) {
-                const response = await res.json();
-                const rutinasData = response.data || response;
-
-                const rutinasWithDetails = await Promise.all(
-                    rutinasData.map(async (r: any) => {
-                        const detailRes = await authFetch(`/rutinas/${r.id}`);
-                        if (detailRes.ok) {
-                            return await detailRes.json();
-                        }
-                        return r;
-                    })
-                );
-
-                setRutinas(rutinasWithDetails);
-            } else {
-                setError('Error al cargar las rutinas');
-            }
-        } catch (err) {
-            setError('Error de conexión');
-        } finally {
-            setLoading(false);
-        }
-    };
+    const invalidateRutinas = useCallback(() => {
+        queryClient.invalidateQueries({ queryKey: ['rutinas'] });
+    }, [queryClient]);
 
     // Rutina CRUD
     const handleCreateRutina = async () => {
@@ -108,7 +72,7 @@ const EditarRutinas = () => {
                 setSuccess('Rutina creada exitosamente');
                 setRutinaDialogOpen(false);
                 setNewRutina({ descripcion: '', grupo: '' });
-                fetchRutinas();
+                invalidateRutinas();
             } else {
                 setError('Error al crear la rutina');
             }
@@ -139,7 +103,7 @@ const EditarRutinas = () => {
             if (res.ok) {
                 setSuccess('Rutina actualizada exitosamente');
                 setRutinaDialogOpen(false);
-                fetchRutinas();
+                invalidateRutinas();
             } else {
                 setError('Error al actualizar la rutina');
             }
@@ -183,7 +147,7 @@ const EditarRutinas = () => {
             if (res.ok) {
                 setSuccess('Parte guardada exitosamente');
                 setEditParteDialog(false);
-                fetchRutinas();
+                invalidateRutinas();
             } else {
                 setError('Error al guardar la parte');
             }
@@ -202,7 +166,7 @@ const EditarRutinas = () => {
 
             if (res.ok || res.status === 204) {
                 setSuccess('Parte eliminada exitosamente');
-                fetchRutinas();
+                invalidateRutinas();
             } else {
                 setError('Error al eliminar la parte');
             }
@@ -273,7 +237,7 @@ const EditarRutinas = () => {
             if (res.ok) {
                 setSuccess('Actividad guardada exitosamente');
                 setEditActividadDialog(false);
-                fetchRutinas();
+                invalidateRutinas();
             } else {
                 setError('Error al guardar la actividad');
             }
@@ -293,7 +257,7 @@ const EditarRutinas = () => {
 
             if (res.ok || res.status === 204) {
                 setSuccess('Actividad eliminada exitosamente');
-                fetchRutinas();
+                invalidateRutinas();
             } else {
                 setError('Error al eliminar la actividad');
             }
@@ -302,7 +266,7 @@ const EditarRutinas = () => {
         }
     };
 
-    if (loading) {
+    if (loadingDetails) {
         return (
             <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
                 <CircularProgress />
@@ -336,9 +300,9 @@ const EditarRutinas = () => {
             </Box>
 
             {/* Alerts */}
-            {error && (
+            {(error || queryError) && (
                 <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
-                    {error}
+                    {error || queryError?.message}
                 </Alert>
             )}
             {success && (
@@ -348,10 +312,10 @@ const EditarRutinas = () => {
             )}
 
             {/* Rutinas List */}
-            {rutinas.length === 0 ? (
+            {rutinasWithDetails.length === 0 ? (
                 <Alert severity="info">No hay rutinas para editar. Importe rutinas primero.</Alert>
             ) : (
-                rutinas.map((rutina) => (
+                rutinasWithDetails.map((rutina) => (
                     <RutinaAccordion
                         key={rutina.id}
                         rutina={rutina}

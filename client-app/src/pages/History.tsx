@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowBack, Add } from '@mui/icons-material';
 
-import { OrdenDeTrabajo } from '../types';
+import { OrdenDeTrabajo, Equipo } from '../types';
 import {
     Box, Typography, Container, Paper, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Chip, IconButton, Button, Pagination
 } from '@mui/material';
@@ -14,13 +14,13 @@ const PAGE_SIZE = 20;
 const History = () => {
     const authFetch = useAuthFetch();
     const [ordenes, setOrdenes] = useState<OrdenDeTrabajo[]>([]);
-    const [equiposList, setEquiposList] = useState<any[]>([]);
+    const [equiposList, setEquiposList] = useState<Equipo[]>([]);
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(1);
     const [totalCount, setTotalCount] = useState(0);
 
     const getEquipoDetails = (id: string) => {
-        const eq = equiposList.find((e: any) => e.id === id);
+        const eq = equiposList.find((e) => e.id === id);
         return eq ? (
             <span>
                 <strong>{eq.placa}</strong> - {eq.descripcion}

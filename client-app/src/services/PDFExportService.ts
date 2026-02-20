@@ -1,13 +1,13 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { OrdenDeTrabajo } from '../types';
+import { OrdenDeTrabajo, DetalleOrden, Equipo, HistorialEvent, TipoFalla, CausaFalla } from '../types';
 
 export const exportOrdenToPDF = (
-    order: OrdenDeTrabajo & { detalles?: any[] },
-    equipo: any,
-    _history: any[],
-    tiposFalla?: any[],
-    causasFalla?: any[]
+    order: OrdenDeTrabajo,
+    equipo: Equipo | null,
+    _history: HistorialEvent[],
+    tiposFalla?: TipoFalla[],
+    causasFalla?: CausaFalla[]
 ) => {
     const doc = new jsPDF();
     const isCorrective = order.tipo === 'Correctivo';
@@ -34,7 +34,7 @@ export const exportOrdenToPDF = (
     const infoData = [
         ['Equipo/Placa', equipo ? `${equipo.placa} - ${equipo.descripcion}` : 'N/A'],
         ['Tipo de Mantenimiento', order.tipo],
-        ['Fecha de Creación', new Date(order.fechaCreacion as any).toLocaleString()],
+        ['Fecha de Creación', new Date(order.fechaCreacion).toLocaleString()],
         ['Responsable', "Sin Asignar (Por definir)"]
     ];
 
@@ -48,7 +48,7 @@ export const exportOrdenToPDF = (
     });
 
     // --- Activities Table ---
-    const lastY = (doc as any).lastAutoTable.finalY + 15;
+    const lastY = ((doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY) + 15;
     doc.text('Detalle de Actividades', 14, lastY);
 
     // Define columns based on Order Type
@@ -78,7 +78,7 @@ export const exportOrdenToPDF = (
     };
 
     // Map data
-    const activitiesData = (order.detalles || []).map((detalle: any) => {
+    const activitiesData = (order.detalles || []).map((detalle: DetalleOrden) => {
         const row = [
             detalle.descripcion,
             detalle.estado,
@@ -86,12 +86,12 @@ export const exportOrdenToPDF = (
         ];
 
         if (isPreventive) {
-            row.splice(1, 0, detalle.frecuencia > 0 ? `${detalle.frecuencia}` : '-');
+            row.splice(1, 0, (detalle.frecuencia ?? 0) > 0 ? `${detalle.frecuencia}` : '-');
         }
 
         if (isCorrective) {
-            row.push(getTipoFallaDesc(detalle.tipoFallaId));
-            row.push(getCausaFallaDesc(detalle.causaFallaId));
+            row.push(getTipoFallaDesc(detalle.tipoFallaId ?? ''));
+            row.push(getCausaFallaDesc(detalle.causaFallaId ?? ''));
         }
 
         return row;

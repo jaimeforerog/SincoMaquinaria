@@ -6,7 +6,7 @@ namespace SincoMaquinaria.Validators;
 
 public class CrearOrdenRequestValidator : AbstractValidator<CrearOrdenRequest>
 {
-    private static readonly string[] TiposValidos = { "Preventivo", "Correctivo", "Predictivo" };
+    private static readonly string[] TiposValidos = TipoMantenimientoConstants.Todos;
     private static readonly string[] OrigenesValidos = { "Interno", "Externo", "Manual", "Planificacion" };
 
     public CrearOrdenRequestValidator()

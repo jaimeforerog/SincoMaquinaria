@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { Box, Typography, TextField, Button, MenuItem } from '@mui/material';
 import { Add } from '@mui/icons-material';
-import { OrdenDeTrabajo } from '../../types';
+import { OrdenDeTrabajo, Parte, TipoFalla, CausaFalla } from '../../types';
 
 interface ActivityFormProps {
     order: OrdenDeTrabajo;
-    rutinaParts: any[];
-    tiposFalla: any[];
-    causasFalla: any[];
+    rutinaParts: Parte[];
+    tiposFalla: TipoFalla[];
+    causasFalla: CausaFalla[];
     onSubmit: (data: {
         description: string;
         partId: string;
@@ -36,8 +36,8 @@ const ActivityForm = ({ order, rutinaParts, tiposFalla, causasFalla, onSubmit }:
     };
 
     return (
-        <Box sx={{ mb: 4, p: 2, bgcolor: 'background.paper', borderRadius: 2, border: 1, borderColor: 'divider' }}>
-            <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 'bold' }}>Nueva Actividad</Typography>
+        <Box sx={{ mb: 4, p: 2.5, bgcolor: 'background.paper', borderRadius: 2, border: 1, borderColor: 'divider' }}>
+            <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 'bold', color: 'primary.main' }}>Nueva Actividad</Typography>
             <Box sx={{ display: 'flex', gap: 2, flexDirection: 'column' }}>
                 {rutinaParts.length > 0 && (
                     <TextField
@@ -50,7 +50,7 @@ const ActivityForm = ({ order, rutinaParts, tiposFalla, causasFalla, onSubmit }:
                         helperText="Selecciona la parte afectada (Requerido)"
                         required
                     >
-                        {rutinaParts.map((p: any) => (
+                        {rutinaParts.map((p) => (
                             <MenuItem key={p.id} value={p.id}>{p.descripcion}</MenuItem>
                         ))}
                     </TextField>
@@ -70,7 +70,7 @@ const ActivityForm = ({ order, rutinaParts, tiposFalla, causasFalla, onSubmit }:
                             error={!selectedTipoFalla}
                         >
                             <MenuItem value=""><em>-- Seleccionar --</em></MenuItem>
-                            {tiposFalla.filter(t => t.activo).map((tipo: any) => (
+                            {tiposFalla.filter(t => t.activo).map((tipo) => (
                                 <MenuItem key={tipo.codigo} value={tipo.codigo}>{tipo.descripcion}</MenuItem>
                             ))}
                         </TextField>
@@ -86,7 +86,7 @@ const ActivityForm = ({ order, rutinaParts, tiposFalla, causasFalla, onSubmit }:
                             error={!selectedCausaFalla}
                         >
                             <MenuItem value=""><em>-- Seleccionar --</em></MenuItem>
-                            {causasFalla.filter(c => c.activo).map((causa: any) => (
+                            {causasFalla.filter(c => c.activo).map((causa) => (
                                 <MenuItem key={causa.codigo} value={causa.codigo}>{causa.descripcion}</MenuItem>
                             ))}
                         </TextField>

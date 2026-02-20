@@ -7,6 +7,7 @@ using Marten;
 using SincoMaquinaria.Domain;
 using SincoMaquinaria.Domain.Events;
 using SincoMaquinaria.Domain.Events.ConfiguracionGlobal;
+using Microsoft.Extensions.Logging.Abstractions;
 using SincoMaquinaria.Services;
 using SincoMaquinaria.Tests.Helpers;
 using Xunit;
@@ -22,7 +23,7 @@ public class ExcelImportServiceTests : IntegrationContext
         System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
     }
 
-    private ExcelImportService Service => _service ??= new ExcelImportService(CurrentSession);
+    private ExcelImportService Service => _service ??= new ExcelImportService(CurrentSession, NullLogger<ExcelImportService>.Instance);
 
     private async Task SetupConfig()
     {

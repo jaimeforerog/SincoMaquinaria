@@ -1,24 +1,46 @@
-import { Box, Typography, Grid, Card, CardContent } from '@mui/material';
+import { Box, Typography, Grid, Card, CardContent, alpha, useTheme } from '@mui/material';
 import { CalendarToday, Person, LocalShipping } from '@mui/icons-material';
-import { OrdenDeTrabajo } from '../../types';
+import { OrdenDeTrabajo, Equipo } from '../../types';
 
-const InfoCard = ({ icon, label, value }: { icon: React.ReactElement, label: string, value: string }) => (
-    <Card elevation={2} sx={{ borderRadius: 2 }}>
-        <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Box sx={{ p: 1.5, bgcolor: 'primary.main', borderRadius: 2, color: 'white', display: 'flex' }}>
-                {icon}
-            </Box>
-            <Box>
-                <Typography variant="caption" color="text.secondary">{label}</Typography>
-                <Typography variant="h6" sx={{ fontSize: '1rem', fontWeight: 'bold' }}>{value}</Typography>
-            </Box>
-        </CardContent>
-    </Card>
-);
+const InfoCard = ({ icon, label, value }: { icon: React.ReactElement, label: string, value: string }) => {
+    const theme = useTheme();
+    return (
+        <Card
+            elevation={0}
+            sx={{
+                borderRadius: 2,
+                border: 1,
+                borderColor: 'divider',
+                transition: 'border-color 0.2s',
+                '&:hover': { borderColor: 'primary.main' },
+            }}
+        >
+            <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Box
+                    sx={{
+                        p: 1.5,
+                        bgcolor: alpha(theme.palette.primary.main, 0.15),
+                        borderRadius: 2,
+                        color: 'primary.main',
+                        display: 'flex',
+                    }}
+                >
+                    {icon}
+                </Box>
+                <Box>
+                    <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: 0.5, fontSize: '0.65rem' }}>
+                        {label}
+                    </Typography>
+                    <Typography variant="body1" sx={{ fontWeight: 600, color: 'text.primary' }}>{value}</Typography>
+                </Box>
+            </CardContent>
+        </Card>
+    );
+};
 
 interface OrderInfoCardsProps {
     order: OrdenDeTrabajo;
-    equipo: any | null;
+    equipo: Equipo | null;
 }
 
 const OrderInfoCards = ({ order, equipo }: OrderInfoCardsProps) => (

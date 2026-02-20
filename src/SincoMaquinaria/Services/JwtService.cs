@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using SincoMaquinaria.Domain;
 
@@ -14,9 +15,11 @@ public class JwtService
     private readonly string _audience;
     private readonly int _expirationMinutes;
     private readonly int _refreshTokenExpirationDays;
+    private readonly ILogger<JwtService> _logger;
 
-    public JwtService(IConfiguration configuration)
+    public JwtService(IConfiguration configuration, ILogger<JwtService> logger)
     {
+        _logger = logger;
         var jwtSection = configuration.GetSection("Jwt");
         _key = jwtSection["Key"] ?? throw new InvalidOperationException("JWT Key not configured");
         _issuer = jwtSection["Issuer"] ?? "SincoMaquinaria";

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 // Tree-shaking optimized imports
 import Box from '@mui/material/Box';
@@ -10,46 +10,28 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Engineering from '@mui/icons-material/Engineering';
 import Agriculture from '@mui/icons-material/Agriculture';
 import Assignment from '@mui/icons-material/Assignment';
-import { useAuthFetch } from '../hooks/useAuthFetch';
+import { useApiQuery } from '../hooks/useApi';
 import { useDashboardSocket } from '../hooks/useDashboardSocket';
+import { useQueryClient } from '@tanstack/react-query';
 
-// ... imports ...
+interface DashboardStats {
+    equiposCount: number;
+    rutinasCount: number;
+    ordenesActivasCount: number;
+}
 
 const Dashboard = () => {
-    const authFetch = useAuthFetch();
-    const [activeOrders, setActiveOrders] = useState(0);
-    const [equiposCount, setEquiposCount] = useState(0);
-    const [rutinasCount, setRutinasCount] = useState(0);
-    const [loading, setLoading] = useState(true);
+    const queryClient = useQueryClient();
+    const { data: stats, isLoading: loading } = useApiQuery<DashboardStats>(
+        ['dashboard', 'stats'],
+        '/dashboard/stats'
+    );
 
-    const fetchData = React.useCallback(async () => {
-        try {
-            const res = await authFetch('/dashboard/stats');
-            if (res.ok) {
-                const stats = await res.json();
-                setEquiposCount(stats.equiposCount);
-                setRutinasCount(stats.rutinasCount);
-                setActiveOrders(stats.ordenesActivasCount);
-            }
-        } catch (error) {
-            console.error("Error fetching dashboard data", error);
-        } finally {
-            setLoading(false);
-        }
-    }, [authFetch]);
-
-    useEffect(() => {
-        setLoading(true);
-        fetchData();
-    }, [fetchData]);
-
-    // Listen for real-time updates
+    // Listen for real-time updates — invalidate to trigger refetch
     useDashboardSocket(() => {
         console.log("Recibida actualización en tiempo real. Recargando datos...");
-        fetchData();
+        queryClient.invalidateQueries({ queryKey: ['dashboard', 'stats'] });
     });
-
-
 
     return (
         <Box sx={{ flexGrow: 1 }}>
@@ -72,7 +54,7 @@ const Dashboard = () => {
                     <Box component={Link} to="/gestion-equipos" sx={{ textDecoration: 'none' }}>
                         <KpiCard
                             title="Equipos"
-                            value={equiposCount}
+                            value={stats?.equiposCount ?? 0}
                             icon={<Agriculture fontSize="large" sx={{ color: '#2e7d32' }} />}
                             loading={loading}
                         />
@@ -82,9 +64,9 @@ const Dashboard = () => {
                 <Grid size={{ xs: 12, sm: 6, md: 2 }}>
                     <Box component={Link} to="/editar-rutinas" sx={{ textDecoration: 'none' }}>
                         <KpiCard
-                            icon={<Engineering sx={{ fontSize: 32, color: "#78909c" }} />} // Blue Grey
+                            icon={<Engineering sx={{ fontSize: 32, color: "#78909c" }} />}
                             title="Rutinas"
-                            value={rutinasCount}
+                            value={stats?.rutinasCount ?? 0}
                             change="Definidas"
                             loading={loading}
                         />
@@ -93,9 +75,9 @@ const Dashboard = () => {
                 <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                     <Box component={Link} to="/historial" sx={{ textDecoration: 'none' }}>
                         <KpiCard
-                            icon={<Assignment sx={{ fontSize: 32, color: "#90caf9" }} />} // MUI Blue 200
+                            icon={<Assignment sx={{ fontSize: 32, color: "#90caf9" }} />}
                             title="Órdenes Activas"
-                            value={activeOrders}
+                            value={stats?.ordenesActivasCount ?? 0}
                             change="Total Registrado"
                             loading={loading}
                         />

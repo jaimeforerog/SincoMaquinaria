@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import { equipos } from '../equipos';
-import { Equipo } from '../../types';
 
 describe('Equipos Mock Data', () => {
   describe('Data Structure Validation', () => {
@@ -95,7 +94,7 @@ describe('Equipos Mock Data', () => {
 
   describe('Data Quality', () => {
     it('should have valid Equipo interface structure', () => {
-      equipos.forEach((equipo: Equipo) => {
+      equipos.forEach((equipo) => {
         // TypeScript will ensure this at compile time,
         // but we verify at runtime for safety
         expect(equipo).toMatchObject({

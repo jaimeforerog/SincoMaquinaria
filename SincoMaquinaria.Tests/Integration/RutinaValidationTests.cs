@@ -6,6 +6,7 @@ using SincoMaquinaria.Domain;
 using SincoMaquinaria.DTOs.Requests;
 using Marten;
 using Xunit;
+using Microsoft.Extensions.Logging.Abstractions;
 using SincoMaquinaria.Tests.Helpers;
 
 namespace SincoMaquinaria.Tests.Integration;
@@ -139,7 +140,7 @@ public class RutinaValidationTests : IClassFixture<CustomWebApplicationFactory>
             var store = scope.ServiceProvider.GetRequiredService<IDocumentStore>();
             using (var session = store.LightweightSession())
             {
-                var service = new SincoMaquinaria.Services.ExcelImportService(session);
+                var service = new SincoMaquinaria.Services.ExcelImportService(session, NullLogger<SincoMaquinaria.Services.ExcelImportService>.Instance);
                 
                 // Assert
                 var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () => 

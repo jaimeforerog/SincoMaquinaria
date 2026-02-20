@@ -101,6 +101,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ExcelEmpleadoImportService>();
         services.AddScoped<RutinasService>();
         services.AddScoped<EmpleadosService>();
+        services.AddScoped<OrdenesService>();
+        services.AddScoped<EquiposService>();
+        services.AddScoped<ConfiguracionService>();
         services.AddScoped<AuthService>();
 
         // Background Jobs

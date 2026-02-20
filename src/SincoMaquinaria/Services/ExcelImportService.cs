@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Marten;
+using Microsoft.Extensions.Logging;
 using OfficeOpenXml;
 using SincoMaquinaria.Domain;
 
@@ -12,10 +13,12 @@ namespace SincoMaquinaria.Services;
 public class ExcelImportService
 {
     private readonly IDocumentSession _session;
+    private readonly ILogger<ExcelImportService> _logger;
 
-    public ExcelImportService(IDocumentSession session)
+    public ExcelImportService(IDocumentSession session, ILogger<ExcelImportService> logger)
     {
         _session = session;
+        _logger = logger;
     }
 
     public async Task<int> ImportarRutinas(Stream fileStream, Guid? userId = null, string? userName = null)
@@ -184,6 +187,7 @@ public class ExcelImportService
         }
 
         await _session.SaveChangesAsync();
+        _logger.LogInformation("Importación de rutinas completada: {Count} rutinas creadas", rutinasMap.Count);
 
         return rutinasMap.Count;
     }

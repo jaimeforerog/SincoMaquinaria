@@ -3,13 +3,19 @@ import {
     TextField, Button, Grid, FormControl, InputLabel, Select, MenuItem, CircularProgress
 } from '@mui/material';
 import { Equipo } from './EquipmentTable';
+import { GrupoMantenimiento, TipoMedidor } from '../../types';
+
+interface RutinaOption {
+    id: string;
+    descripcion: string;
+}
 
 interface EditEquipmentDialogProps {
     open: boolean;
     equipo: Equipo | null;
-    grupos: any[];
-    rutinas: any[];
-    medidores: any[];
+    grupos: GrupoMantenimiento[];
+    rutinas: RutinaOption[];
+    medidores: TipoMedidor[];
     saving: boolean;
     onClose: () => void;
     onChange: (field: keyof Equipo, value: string) => void;
@@ -48,7 +54,7 @@ const EditEquipmentDialog = ({
                             <InputLabel id="edit-grupo-label">Grupo de Mantenimiento</InputLabel>
                             <Select labelId="edit-grupo-label" value={equipo.grupo || ''} label="Grupo de Mantenimiento" onChange={(e) => onChange('grupo', e.target.value as string)}>
                                 <MenuItem value=""><em>Ninguno</em></MenuItem>
-                                {grupos.map((g: any) => (<MenuItem key={g.codigo} value={g.nombre}>{g.nombre}</MenuItem>))}
+                                {grupos.map((g) => (<MenuItem key={g.codigo} value={g.nombre}>{g.nombre}</MenuItem>))}
                             </Select>
                         </FormControl>
                     </Grid>
@@ -57,7 +63,7 @@ const EditEquipmentDialog = ({
                             <InputLabel id="edit-rutina-label">Rutina Asignada</InputLabel>
                             <Select labelId="edit-rutina-label" value={equipo.rutina || ''} label="Rutina Asignada" onChange={(e) => onChange('rutina', e.target.value as string)}>
                                 <MenuItem value=""><em>Ninguna</em></MenuItem>
-                                {rutinas.map((r: any) => (<MenuItem key={r.id} value={r.id}>{r.descripcion}</MenuItem>))}
+                                {rutinas.map((r) => (<MenuItem key={r.id} value={r.id}>{r.descripcion}</MenuItem>))}
                             </Select>
                         </FormControl>
                     </Grid>
@@ -66,7 +72,7 @@ const EditEquipmentDialog = ({
                             <InputLabel id="edit-medidor1-label">Medidor Principal</InputLabel>
                             <Select labelId="edit-medidor1-label" value={equipo.tipoMedidorId || ''} label="Medidor Principal" onChange={(e) => onChange('tipoMedidorId', e.target.value as string)}>
                                 <MenuItem value=""><em>Ninguno</em></MenuItem>
-                                {medidores.map((m: any) => (<MenuItem key={m.codigo} value={m.codigo}>{m.nombre} ({m.unidad})</MenuItem>))}
+                                {medidores.map((m) => (<MenuItem key={m.codigo} value={m.codigo}>{m.nombre} ({m.unidad})</MenuItem>))}
                             </Select>
                         </FormControl>
                     </Grid>
@@ -75,7 +81,7 @@ const EditEquipmentDialog = ({
                             <InputLabel id="edit-medidor2-label">Medidor Secundario</InputLabel>
                             <Select labelId="edit-medidor2-label" value={equipo.tipoMedidorId2 || ''} label="Medidor Secundario" onChange={(e) => onChange('tipoMedidorId2', e.target.value as string)}>
                                 <MenuItem value=""><em>Ninguno</em></MenuItem>
-                                {medidores.map((m: any) => (<MenuItem key={m.codigo} value={m.codigo}>{m.nombre} ({m.unidad})</MenuItem>))}
+                                {medidores.map((m) => (<MenuItem key={m.codigo} value={m.codigo}>{m.nombre} ({m.unidad})</MenuItem>))}
                             </Select>
                         </FormControl>
                     </Grid>

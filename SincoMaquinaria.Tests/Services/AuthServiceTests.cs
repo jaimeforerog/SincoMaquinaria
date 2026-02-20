@@ -6,6 +6,7 @@ using Marten;
 using SincoMaquinaria.Domain;
 using SincoMaquinaria.Domain.Events.Usuario;
 using SincoMaquinaria.DTOs.Requests;
+using Microsoft.Extensions.Logging.Abstractions;
 using SincoMaquinaria.Services;
 using Xunit;
 using Microsoft.Extensions.Configuration;
@@ -36,13 +37,13 @@ public class AuthServiceTests : IClassFixture<IntegrationFixture>, IAsyncLifetim
             .AddInMemoryCollection(configData)
             .Build();
 
-        _jwtService = new JwtService(configuration);
+        _jwtService = new JwtService(configuration, NullLogger<JwtService>.Instance);
     }
 
     public async Task InitializeAsync()
     {
         _session = _fixture.Store.LightweightSession();
-        _authService = new AuthService(_session, _jwtService);
+        _authService = new AuthService(_session, _jwtService, NullLogger<AuthService>.Instance);
         await Task.CompletedTask;
     }
 

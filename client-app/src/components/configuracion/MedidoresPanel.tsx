@@ -22,7 +22,7 @@ const MedidoresPanel = () => {
         try {
             const res = await authFetch('/configuracion/medidores');
             if (res.ok) setTipos(await res.json());
-        } catch (err: any) { setError(err.message); }
+        } catch (err) { setError(err instanceof Error ? err.message : 'Error al cargar medidores'); }
     };
 
     const handleCrear = async (e: React.FormEvent) => {

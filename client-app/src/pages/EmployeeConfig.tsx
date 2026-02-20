@@ -8,6 +8,7 @@ import {
 } from '@mui/material';
 import { Add, Edit } from '@mui/icons-material';
 import { useAuthFetch } from '../hooks/useAuthFetch';
+import { useNotification } from '../contexts/NotificationContext';
 
 export interface Empleado {
     id: string;
@@ -21,6 +22,7 @@ export interface Empleado {
 
 const EmployeeConfig = () => {
     const authFetch = useAuthFetch();
+    const { showNotification } = useNotification();
     const [empleados, setEmpleados] = useState<Empleado[]>([]);
     const [loading, setLoading] = useState(true);
     const [openDialog, setOpenDialog] = useState(false);
@@ -105,11 +107,11 @@ const EmployeeConfig = () => {
                 fetchEmpleados();
                 handleCloseDialog();
             } else {
-                alert("Error al guardar empleado");
+                showNotification("Error al guardar empleado", "error");
             }
         } catch (error) {
             console.error("Error saving employee", error);
-            alert("Error de conexión");
+            showNotification("Error de conexión", "error");
         }
     };
 

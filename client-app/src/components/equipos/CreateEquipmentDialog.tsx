@@ -2,16 +2,39 @@ import {
     Dialog, DialogTitle, DialogContent, DialogActions,
     TextField, Button, Grid, FormControl, InputLabel, Select, MenuItem, CircularProgress
 } from '@mui/material';
+import { GrupoMantenimiento, TipoMedidor } from '../../types';
+
+interface RutinaOption {
+    id: string;
+    descripcion: string;
+}
+
+interface NewEquipoForm {
+    placa: string;
+    descripcion: string;
+    marca: string;
+    modelo: string;
+    serie: string;
+    codigo: string;
+    grupo: string;
+    rutina: string;
+    tipoMedidorId: string;
+    tipoMedidorId2: string;
+    lecturaInicial1: string;
+    fechaInicial1: string;
+    lecturaInicial2: string;
+    fechaInicial2: string;
+}
 
 interface CreateEquipmentDialogProps {
     open: boolean;
-    equipo: any;
-    grupos: any[];
-    rutinas: any[];
-    medidores: any[];
+    equipo: NewEquipoForm;
+    grupos: GrupoMantenimiento[];
+    rutinas: RutinaOption[];
+    medidores: TipoMedidor[];
     saving: boolean;
     onClose: () => void;
-    onChange: (field: string, value: any) => void;
+    onChange: (field: string, value: string) => void;
     onCreate: () => void;
 }
 
@@ -46,7 +69,7 @@ const CreateEquipmentDialog = ({
                         <InputLabel id="create-grupo-label">Grupo de Mantenimiento</InputLabel>
                         <Select labelId="create-grupo-label" value={equipo.grupo || ''} label="Grupo de Mantenimiento" onChange={(e) => onChange('grupo', e.target.value as string)}>
                             <MenuItem value=""><em>Ninguno</em></MenuItem>
-                            {grupos.map((g: any) => (<MenuItem key={g.codigo} value={g.nombre}>{g.nombre}</MenuItem>))}
+                            {grupos.map((g) => (<MenuItem key={g.codigo} value={g.nombre}>{g.nombre}</MenuItem>))}
                         </Select>
                     </FormControl>
                 </Grid>
@@ -55,7 +78,7 @@ const CreateEquipmentDialog = ({
                         <InputLabel id="create-rutina-label">Rutina Asignada</InputLabel>
                         <Select labelId="create-rutina-label" value={equipo.rutina || ''} label="Rutina Asignada" onChange={(e) => onChange('rutina', e.target.value as string)}>
                             <MenuItem value=""><em>Ninguna</em></MenuItem>
-                            {rutinas.map((r: any) => (<MenuItem key={r.id} value={r.id}>{r.descripcion}</MenuItem>))}
+                            {rutinas.map((r) => (<MenuItem key={r.id} value={r.id}>{r.descripcion}</MenuItem>))}
                         </Select>
                     </FormControl>
                 </Grid>
@@ -64,7 +87,7 @@ const CreateEquipmentDialog = ({
                         <InputLabel id="create-medidor1-label">Medidor Principal</InputLabel>
                         <Select labelId="create-medidor1-label" value={equipo.tipoMedidorId || ''} label="Medidor Principal" onChange={(e) => onChange('tipoMedidorId', e.target.value as string)}>
                             <MenuItem value=""><em>Ninguno</em></MenuItem>
-                            {medidores.map((m: any) => (<MenuItem key={m.codigo} value={m.codigo}>{m.nombre} ({m.unidad})</MenuItem>))}
+                            {medidores.map((m) => (<MenuItem key={m.codigo} value={m.codigo}>{m.nombre} ({m.unidad})</MenuItem>))}
                         </Select>
                     </FormControl>
                 </Grid>
@@ -83,7 +106,7 @@ const CreateEquipmentDialog = ({
                         <InputLabel id="create-medidor2-label">Medidor Secundario</InputLabel>
                         <Select labelId="create-medidor2-label" value={equipo.tipoMedidorId2 || ''} label="Medidor Secundario" onChange={(e) => onChange('tipoMedidorId2', e.target.value as string)}>
                             <MenuItem value=""><em>Ninguno</em></MenuItem>
-                            {medidores.map((m: any) => (<MenuItem key={m.codigo} value={m.codigo}>{m.nombre} ({m.unidad})</MenuItem>))}
+                            {medidores.map((m) => (<MenuItem key={m.codigo} value={m.codigo}>{m.nombre} ({m.unidad})</MenuItem>))}
                         </Select>
                     </FormControl>
                 </Grid>

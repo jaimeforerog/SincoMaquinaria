@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { exportOrdenToPDF } from './PDFExportService';
+import { Equipo } from '../types';
 
 // Mock dependencies
 const mockRect = vi.fn();
@@ -48,7 +49,7 @@ describe('PDFExportService', () => {
     const mockEquipo = {
         placa: 'EQ-001',
         descripcion: 'Excavadora'
-    };
+    } as unknown as Equipo;
 
     it('generates PDF for Preventive order correctly', () => {
         exportOrdenToPDF(mockOrder as any, mockEquipo, [], [], []);
@@ -84,8 +85,8 @@ describe('PDFExportService', () => {
             ]
         };
 
-        const tiposFalla = [{ codigo: 'TF1', descripcion: 'Overheating' }];
-        const causasFalla = [{ codigo: 'CF1', descripcion: 'Lack of Oil' }];
+        const tiposFalla = [{ codigo: 'TF1', descripcion: 'Overheating', prioridad: 'Alta' as const, activo: true }];
+        const causasFalla = [{ codigo: 'CF1', descripcion: 'Lack of Oil', activo: true }];
 
         exportOrdenToPDF(correctiveOrder as any, mockEquipo, [], tiposFalla, causasFalla);
 
