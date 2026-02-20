@@ -133,8 +133,10 @@ public static class EquiposEndpoints
         var (userId, userName) = httpContext.GetUserContext();
         var result = await service.CrearEquipo(req, userId, userName);
 
-        if (!result.IsSuccess)
+        if (result.IsConflict)
             return Results.Conflict(result.Error);
+        if (!result.IsSuccess)
+            return Results.BadRequest(result.Error);
 
         return Results.Created($"/equipos/{result.Value}", new { Id = result.Value });
     }

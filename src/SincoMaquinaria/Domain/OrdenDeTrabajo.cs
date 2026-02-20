@@ -76,7 +76,8 @@ public class OrdenDeTrabajo
 
     public void Apply(AvanceDeActividadRegistrado @event)
     {
-        if (Estado != EstadoOrdenDeTrabajo.Programada &&
+        if (Estado != EstadoOrdenDeTrabajo.Borrador &&
+            Estado != EstadoOrdenDeTrabajo.Programada &&
             Estado != EstadoOrdenDeTrabajo.EnEjecucion)
             throw new DomainException($"No se puede registrar avance en estado '{Estado}'.");
 

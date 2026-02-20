@@ -8,12 +8,38 @@ namespace SincoMaquinaria.Tests.Domain;
 
 public class OrdenDeTrabajoTests
 {
+    // Helper to create an order in Borrador state
+    private static OrdenDeTrabajo CrearOrdenEnBorrador()
+    {
+        var orden = new OrdenDeTrabajo();
+        orden.Apply(new OrdenDeTrabajoCreada(Guid.NewGuid(), "OT-001", "EQ-123", "Interno", "Preventivo", DateTime.Now, DateTimeOffset.UtcNow));
+        return orden;
+    }
+
+    // Helper to create an order in Programada state
+    private static OrdenDeTrabajo CrearOrdenProgramada()
+    {
+        var orden = CrearOrdenEnBorrador();
+        orden.Apply(new OrdenProgramada(DateTime.UtcNow.AddDays(1), TimeSpan.FromHours(2)));
+        return orden;
+    }
+
+    // Helper to create an order in EnEjecucion state
+    private static (OrdenDeTrabajo orden, Guid detalleId) CrearOrdenEnEjecucion()
+    {
+        var orden = CrearOrdenEnBorrador();
+        var detalleId = Guid.NewGuid();
+        orden.Apply(new ActividadAgregada(detalleId, "Tarea setup", DateTime.UtcNow));
+        orden.Apply(new OrdenProgramada(DateTime.UtcNow.AddDays(1), TimeSpan.FromHours(2)));
+        orden.Apply(new AvanceDeActividadRegistrado(detalleId, 50, "En progreso", "EnProceso"));
+        return (orden, detalleId);
+    }
+
     [Fact]
     public void OrdenDeTrabajo_Creada_DebeTenerEstadoBorrador()
     {
         // Arrange
         var orden = new OrdenDeTrabajo();
-        // Ctor: Guid OrdenId, string NumeroOrden, string EquipoId, string Origen, string TipoMantenimiento, DateTime FechaOrden, DateTimeOffset FechaCreacion
         var evento = new OrdenDeTrabajoCreada(Guid.NewGuid(), "OT-001", "EQ-123", "Interno", "Preventivo", DateTime.Now, DateTimeOffset.UtcNow);
 
         // Act
@@ -30,10 +56,9 @@ public class OrdenDeTrabajoTests
     [Fact]
     public void OrdenDeTrabajo_ActividadAgregada_DebeAgregarDetalle()
     {
-        // Arrange
-        var orden = new OrdenDeTrabajo();
+        // Arrange - Order must be in Borrador to add activities
+        var orden = CrearOrdenEnBorrador();
         var detalleId = Guid.NewGuid();
-        // Ctor: Guid ItemDetalleId, string Descripcion, DateTime FechaEstimadaEjecucion
         var evento = new ActividadAgregada(detalleId, "Cambio de aceite", DateTime.UtcNow.AddDays(1));
 
         // Act
@@ -51,15 +76,13 @@ public class OrdenDeTrabajoTests
     [Fact]
     public void OrdenDeTrabajo_AvanceRegistrado_DebeActualizarDetalleYEstado()
     {
-        // Arrange
-        var orden = new OrdenDeTrabajo();
+        // Arrange - Need Programada state to register progress
+        var orden = CrearOrdenEnBorrador();
         var detalleId = Guid.NewGuid();
-        
-        // Setup initial state
         orden.Apply(new ActividadAgregada(detalleId, "Tarea 1", DateTime.UtcNow));
-        
+        orden.Apply(new OrdenProgramada(DateTime.UtcNow.AddDays(1), TimeSpan.FromHours(2)));
+
         // Act
-        // Ctor: Guid ItemDetalleId, decimal PorcentajeAvance, string Observacion, string NuevoEstado
         var eventoAvance = new AvanceDeActividadRegistrado(detalleId, 100, "Todo ok", "Finalizado");
         orden.Apply(eventoAvance);
 
@@ -73,10 +96,9 @@ public class OrdenDeTrabajoTests
     [Fact]
     public void OrdenDeTrabajo_Programada_DebeCambiarEstado()
     {
-        // Arrange
-        var orden = new OrdenDeTrabajo();
+        // Arrange - Order must be in Borrador to be programmed
+        var orden = CrearOrdenEnBorrador();
         var fecha = DateTime.UtcNow.AddDays(1);
-        // Ctor: DateTime FechaProgramada, TimeSpan DuracionEstimada
         var evento = new OrdenProgramada(fecha, TimeSpan.FromHours(2));
 
         // Act
@@ -90,16 +112,16 @@ public class OrdenDeTrabajoTests
     [Fact]
     public void OrdenDeTrabajo_ActividadAgregadaConFallaInfo_DebeGuardarTipoYCausa()
     {
-        // Arrange
-        var orden = new OrdenDeTrabajo();
+        // Arrange - Order must be in Borrador to add activities
+        var orden = CrearOrdenEnBorrador();
         var detalleId = Guid.NewGuid();
         var tipoFallaId = "TIPO001";
         var causaFallaId = "CAUSA001";
-        
+
         // Act
         var evento = new ActividadAgregada(
-            detalleId, 
-            "Reparación de motor", 
+            detalleId,
+            "Reparación de motor",
             DateTime.UtcNow.AddDays(1),
             0,
             tipoFallaId,
@@ -117,8 +139,8 @@ public class OrdenDeTrabajoTests
     [Fact]
     public void OrdenDeTrabajo_ActividadSinFallaInfo_DebePermitirNulos()
     {
-        // Arrange
-        var orden = new OrdenDeTrabajo();
+        // Arrange - Order must be in Borrador to add activities
+        var orden = CrearOrdenEnBorrador();
         var detalleId = Guid.NewGuid();
 
         // Act
@@ -139,9 +161,8 @@ public class OrdenDeTrabajoTests
     [Fact]
     public void OrdenDeTrabajo_OrdenFinalizada_DebeCambiarEstadoAEjecucionCompleta()
     {
-        // Arrange
-        var orden = new OrdenDeTrabajo();
-        orden.Apply(new OrdenDeTrabajoCreada(Guid.NewGuid(), "OT-001", "EQ-123", "Interno", "Preventivo", DateTime.Now, DateTimeOffset.UtcNow));
+        // Arrange - Order must be in EnEjecucion or EjecucionCompleta to be finalized
+        var (orden, _) = CrearOrdenEnEjecucion();
 
         // Act
         var evento = new OrdenFinalizada("EjecucionCompleta", "Admin User", DateTime.Now, Guid.NewGuid(), "Admin");
@@ -154,9 +175,8 @@ public class OrdenDeTrabajoTests
     [Fact]
     public void OrdenDeTrabajo_OrdenFinalizada_ConEstadoEliminada_DebeCambiarEstado()
     {
-        // Arrange
-        var orden = new OrdenDeTrabajo();
-        orden.Apply(new OrdenDeTrabajoCreada(Guid.NewGuid(), "OT-001", "EQ-123", "Interno", "Preventivo", DateTime.Now, DateTimeOffset.UtcNow));
+        // Arrange - Order must be in EnEjecucion or EjecucionCompleta to be finalized
+        var (orden, _) = CrearOrdenEnEjecucion();
 
         // Act
         var evento = new OrdenFinalizada("Eliminada", "Admin User", DateTime.Now, Guid.NewGuid(), "Admin");
@@ -170,9 +190,8 @@ public class OrdenDeTrabajoTests
     public void OrdenDeTrabajo_OrdenDeTrabajoEliminada_DebeCambiarEstadoAEliminada()
     {
         // Arrange
-        var orden = new OrdenDeTrabajo();
-        var ordenId = Guid.NewGuid();
-        orden.Apply(new OrdenDeTrabajoCreada(ordenId, "OT-001", "EQ-123", "Interno", "Preventivo", DateTime.Now, DateTimeOffset.UtcNow));
+        var orden = CrearOrdenEnBorrador();
+        var ordenId = orden.Id;
 
         // Act
         var evento = new OrdenDeTrabajoEliminada(ordenId);
@@ -185,13 +204,13 @@ public class OrdenDeTrabajoTests
     [Fact]
     public void OrdenDeTrabajo_AvanceRegistrado_DetalleNoExiste_DebeLanzarDomainException()
     {
-        // Arrange
-        var orden = new OrdenDeTrabajo();
+        // Arrange - Need Programada state to register progress
+        var orden = CrearOrdenEnBorrador();
         var detalleIdExistente = Guid.NewGuid();
         var detalleIdNoExistente = Guid.NewGuid();
 
-        orden.Apply(new OrdenDeTrabajoCreada(Guid.NewGuid(), "OT-001", "EQ-123", "Interno", "Preventivo", DateTime.Now, DateTimeOffset.UtcNow));
         orden.Apply(new ActividadAgregada(detalleIdExistente, "Tarea existente", DateTime.UtcNow));
+        orden.Apply(new OrdenProgramada(DateTime.UtcNow.AddDays(1), TimeSpan.FromHours(2)));
 
         // Act & Assert
         var eventoAvance = new AvanceDeActividadRegistrado(detalleIdNoExistente, 50, "Test", "EnProgreso");
@@ -202,16 +221,16 @@ public class OrdenDeTrabajoTests
     [Fact]
     public void OrdenDeTrabajo_MultipleDetalles_AvanceParcial_DebeEstarEnEjecucion()
     {
-        // Arrange
-        var orden = new OrdenDeTrabajo();
+        // Arrange - Need Programada state to register progress
+        var orden = CrearOrdenEnBorrador();
         var detalle1Id = Guid.NewGuid();
         var detalle2Id = Guid.NewGuid();
         var detalle3Id = Guid.NewGuid();
 
-        orden.Apply(new OrdenDeTrabajoCreada(Guid.NewGuid(), "OT-001", "EQ-123", "Interno", "Preventivo", DateTime.Now, DateTimeOffset.UtcNow));
         orden.Apply(new ActividadAgregada(detalle1Id, "Tarea 1", DateTime.UtcNow));
         orden.Apply(new ActividadAgregada(detalle2Id, "Tarea 2", DateTime.UtcNow));
         orden.Apply(new ActividadAgregada(detalle3Id, "Tarea 3", DateTime.UtcNow));
+        orden.Apply(new OrdenProgramada(DateTime.UtcNow.AddDays(1), TimeSpan.FromHours(2)));
 
         // Act - Finalizar solo la primera tarea
         orden.Apply(new AvanceDeActividadRegistrado(detalle1Id, 100, "Completado", "Finalizado"));
@@ -226,14 +245,14 @@ public class OrdenDeTrabajoTests
     [Fact]
     public void OrdenDeTrabajo_MultipleDetalles_TodosFinalizados_DebeEstarCompleta()
     {
-        // Arrange
-        var orden = new OrdenDeTrabajo();
+        // Arrange - Need Programada state to register progress
+        var orden = CrearOrdenEnBorrador();
         var detalle1Id = Guid.NewGuid();
         var detalle2Id = Guid.NewGuid();
 
-        orden.Apply(new OrdenDeTrabajoCreada(Guid.NewGuid(), "OT-001", "EQ-123", "Interno", "Preventivo", DateTime.Now, DateTimeOffset.UtcNow));
         orden.Apply(new ActividadAgregada(detalle1Id, "Tarea 1", DateTime.UtcNow));
         orden.Apply(new ActividadAgregada(detalle2Id, "Tarea 2", DateTime.UtcNow));
+        orden.Apply(new OrdenProgramada(DateTime.UtcNow.AddDays(1), TimeSpan.FromHours(2)));
 
         // Act - Finalizar ambas tareas
         orden.Apply(new AvanceDeActividadRegistrado(detalle1Id, 100, "Completado", "Finalizado"));
@@ -248,8 +267,7 @@ public class OrdenDeTrabajoTests
     public void OrdenDeTrabajo_PorcentajeAvanceGeneral_SinDetalles_DebeSer0()
     {
         // Arrange
-        var orden = new OrdenDeTrabajo();
-        orden.Apply(new OrdenDeTrabajoCreada(Guid.NewGuid(), "OT-001", "EQ-123", "Interno", "Preventivo", DateTime.Now, DateTimeOffset.UtcNow));
+        var orden = CrearOrdenEnBorrador();
 
         // Assert
         Assert.Equal(0, orden.PorcentajeAvanceGeneral);
@@ -258,16 +276,16 @@ public class OrdenDeTrabajoTests
     [Fact]
     public void OrdenDeTrabajo_PorcentajeAvanceGeneral_ConDetalles_DebeCalcularPromedio()
     {
-        // Arrange
-        var orden = new OrdenDeTrabajo();
+        // Arrange - Need Programada state to register progress
+        var orden = CrearOrdenEnBorrador();
         var detalle1Id = Guid.NewGuid();
         var detalle2Id = Guid.NewGuid();
         var detalle3Id = Guid.NewGuid();
 
-        orden.Apply(new OrdenDeTrabajoCreada(Guid.NewGuid(), "OT-001", "EQ-123", "Interno", "Preventivo", DateTime.Now, DateTimeOffset.UtcNow));
         orden.Apply(new ActividadAgregada(detalle1Id, "Tarea 1", DateTime.UtcNow));
         orden.Apply(new ActividadAgregada(detalle2Id, "Tarea 2", DateTime.UtcNow));
         orden.Apply(new ActividadAgregada(detalle3Id, "Tarea 3", DateTime.UtcNow));
+        orden.Apply(new OrdenProgramada(DateTime.UtcNow.AddDays(1), TimeSpan.FromHours(2)));
 
         // Act
         orden.Apply(new AvanceDeActividadRegistrado(detalle1Id, 100, "Completado", "Finalizado"));

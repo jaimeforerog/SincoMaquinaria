@@ -25,7 +25,7 @@ public class EquiposService
         // Verificar si ya existe un equipo con la misma placa
         var existe = await _session.Query<Equipo>().AnyAsync(e => e.Placa == req.Placa);
         if (existe)
-            return Result<Guid>.Failure($"Ya existe un equipo con la placa {req.Placa}");
+            return Result<Guid>.Conflict($"Ya existe un equipo con la placa {req.Placa}");
 
         var id = Guid.NewGuid();
 
@@ -56,7 +56,7 @@ public class EquiposService
         catch (Npgsql.PostgresException ex) when (ex.SqlState == "23505")
         {
             _logger.LogWarning("Intento de crear equipo con placa duplicada: {Placa}", req.Placa);
-            return Result<Guid>.Failure($"Ya existe un equipo con la placa {req.Placa}");
+            return Result<Guid>.Conflict($"Ya existe un equipo con la placa {req.Placa}");
         }
     }
 
