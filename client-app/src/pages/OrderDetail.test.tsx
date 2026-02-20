@@ -1,6 +1,7 @@
 import { render, screen, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
+import { NotificationProvider } from '../contexts/NotificationContext';
 import OrderDetail from './OrderDetail';
 
 // Mock useAuthFetch
@@ -38,9 +39,11 @@ const mockEquipo = {
 const renderWithRouter = (orderId: string = 'order-1') => {
     return render(
         <MemoryRouter initialEntries={[`/ordenes/${orderId}`]}>
-            <Routes>
-                <Route path="/ordenes/:id" element={<OrderDetail />} />
-            </Routes>
+            <NotificationProvider>
+                <Routes>
+                    <Route path="/ordenes/:id" element={<OrderDetail />} />
+                </Routes>
+            </NotificationProvider>
         </MemoryRouter>
     );
 };

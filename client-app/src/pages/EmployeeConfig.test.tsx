@@ -1,5 +1,6 @@
 import { render, screen, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { NotificationProvider } from '../contexts/NotificationContext';
 import EmployeeConfig from './EmployeeConfig';
 
 // Mock useAuthFetch
@@ -29,7 +30,7 @@ describe('EmployeeConfig Component', () => {
 
     it('renders the component title', async () => {
         await act(async () => {
-            render(<EmployeeConfig />);
+            render(<NotificationProvider><EmployeeConfig /></NotificationProvider>);
         });
 
         expect(screen.getByText('Gestión de Empleados')).toBeInTheDocument();
@@ -37,7 +38,7 @@ describe('EmployeeConfig Component', () => {
 
     it('fetches employees on mount', async () => {
         await act(async () => {
-            render(<EmployeeConfig />);
+            render(<NotificationProvider><EmployeeConfig /></NotificationProvider>);
         });
 
         expect(mockAuthFetch).toHaveBeenCalledWith('/empleados');
@@ -45,7 +46,7 @@ describe('EmployeeConfig Component', () => {
 
     it('renders Nuevo Empleado button', async () => {
         await act(async () => {
-            render(<EmployeeConfig />);
+            render(<NotificationProvider><EmployeeConfig /></NotificationProvider>);
         });
 
         expect(screen.getByText('Nuevo Empleado')).toBeInTheDocument();
@@ -53,7 +54,7 @@ describe('EmployeeConfig Component', () => {
 
     it('renders table headers', async () => {
         await act(async () => {
-            render(<EmployeeConfig />);
+            render(<NotificationProvider><EmployeeConfig /></NotificationProvider>);
         });
 
         expect(screen.getByText('Nombre')).toBeInTheDocument();

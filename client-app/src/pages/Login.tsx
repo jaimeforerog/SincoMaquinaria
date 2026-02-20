@@ -35,7 +35,7 @@ const Login: React.FC = () => {
       await login(email, password);
       navigate('/');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al iniciar sesión. Verifica tus credenciales.');
+      setError(err instanceof Error && err.message ? err.message : 'Error al iniciar sesión. Verifica tus credenciales.');
     } finally {
       setLoading(false);
     }

@@ -1,6 +1,7 @@
 import { render, screen, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { BrowserRouter } from 'react-router-dom';
+import { NotificationProvider } from '../contexts/NotificationContext';
 import CreateOrder from './CreateOrder';
 
 // Mock useAuthFetch
@@ -33,7 +34,9 @@ const mockRutinas = [
 const renderComponent = () => {
     return render(
         <BrowserRouter>
-            <CreateOrder />
+            <NotificationProvider>
+                <CreateOrder />
+            </NotificationProvider>
         </BrowserRouter>
     );
 };

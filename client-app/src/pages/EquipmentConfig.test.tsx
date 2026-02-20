@@ -1,6 +1,12 @@
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { NotificationProvider } from '../contexts/NotificationContext';
 import EquipmentConfig from './EquipmentConfig';
+
+const createTestQueryClient = () => new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+});
 
 // Mock authFetch
 const mockAuthFetch = vi.fn();
@@ -38,15 +44,18 @@ const mockEquipos = [
 describe('EquipmentConfig Component', () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        mockAuthFetch.mockResolvedValue({
-            ok: true,
-            json: async () => mockEquipos
+        mockAuthFetch.mockImplementation((url: string) => {
+            if (url === '/equipos') return Promise.resolve({ ok: true, json: async () => ({ data: mockEquipos }) });
+            if (url === '/configuracion/medidores') return Promise.resolve({ ok: true, json: async () => [] });
+            if (url.includes('/rutinas')) return Promise.resolve({ ok: true, json: async () => ({ data: [] }) });
+            if (url === '/configuracion/grupos') return Promise.resolve({ ok: true, json: async () => [] });
+            return Promise.resolve({ ok: true, json: async () => ({}) });
         });
     });
 
     it('renders the component title', async () => {
         await act(async () => {
-            render(<EquipmentConfig />);
+            render(<QueryClientProvider client={createTestQueryClient()}><NotificationProvider><EquipmentConfig /></NotificationProvider></QueryClientProvider>);
         });
 
         expect(screen.getByText('Configuración de Equipos')).toBeInTheDocument();
@@ -54,7 +63,7 @@ describe('EquipmentConfig Component', () => {
 
     it('fetches equipment list on mount', async () => {
         await act(async () => {
-            render(<EquipmentConfig />);
+            render(<QueryClientProvider client={createTestQueryClient()}><NotificationProvider><EquipmentConfig /></NotificationProvider></QueryClientProvider>);
         });
 
         expect(mockAuthFetch).toHaveBeenCalledWith('/equipos');
@@ -62,18 +71,20 @@ describe('EquipmentConfig Component', () => {
 
     it('renders table headers', async () => {
         await act(async () => {
-            render(<EquipmentConfig />);
+            render(<QueryClientProvider client={createTestQueryClient()}><NotificationProvider><EquipmentConfig /></NotificationProvider></QueryClientProvider>);
         });
 
-        expect(screen.getByText('Placa')).toBeInTheDocument();
-        expect(screen.getByText('Descripción')).toBeInTheDocument();
-        expect(screen.getByText('Grupo')).toBeInTheDocument();
-        expect(screen.getByText('Acción')).toBeInTheDocument();
+        await waitFor(() => {
+            expect(screen.getByText('Placa')).toBeInTheDocument();
+            expect(screen.getByText('Descripción')).toBeInTheDocument();
+            expect(screen.getByText('Grupo')).toBeInTheDocument();
+            expect(screen.getByText('Acción')).toBeInTheDocument();
+        });
     });
 
     it('displays equipment placas', async () => {
         await act(async () => {
-            render(<EquipmentConfig />);
+            render(<QueryClientProvider client={createTestQueryClient()}><NotificationProvider><EquipmentConfig /></NotificationProvider></QueryClientProvider>);
         });
 
         await waitFor(() => {
@@ -84,7 +95,7 @@ describe('EquipmentConfig Component', () => {
 
     it('displays equipment descriptions', async () => {
         await act(async () => {
-            render(<EquipmentConfig />);
+            render(<QueryClientProvider client={createTestQueryClient()}><NotificationProvider><EquipmentConfig /></NotificationProvider></QueryClientProvider>);
         });
 
         await waitFor(() => {
@@ -95,7 +106,7 @@ describe('EquipmentConfig Component', () => {
 
     it('displays group chips', async () => {
         await act(async () => {
-            render(<EquipmentConfig />);
+            render(<QueryClientProvider client={createTestQueryClient()}><NotificationProvider><EquipmentConfig /></NotificationProvider></QueryClientProvider>);
         });
 
         await waitFor(() => {
@@ -106,7 +117,7 @@ describe('EquipmentConfig Component', () => {
 
     it('opens edit dialog when edit button is clicked', async () => {
         await act(async () => {
-            render(<EquipmentConfig />);
+            render(<QueryClientProvider client={createTestQueryClient()}><NotificationProvider><EquipmentConfig /></NotificationProvider></QueryClientProvider>);
         });
 
         await waitFor(() => {
@@ -125,7 +136,7 @@ describe('EquipmentConfig Component', () => {
 
     it('populates form with equipment data in edit mode', async () => {
         await act(async () => {
-            render(<EquipmentConfig />);
+            render(<QueryClientProvider client={createTestQueryClient()}><NotificationProvider><EquipmentConfig /></NotificationProvider></QueryClientProvider>);
         });
 
         await waitFor(() => {
@@ -144,7 +155,7 @@ describe('EquipmentConfig Component', () => {
 
     it('closes edit dialog on cancel', async () => {
         await act(async () => {
-            render(<EquipmentConfig />);
+            render(<QueryClientProvider client={createTestQueryClient()}><NotificationProvider><EquipmentConfig /></NotificationProvider></QueryClientProvider>);
         });
 
         await waitFor(() => {
@@ -169,7 +180,7 @@ describe('EquipmentConfig Component', () => {
 
     it('shows Guardar button in edit dialog', async () => {
         await act(async () => {
-            render(<EquipmentConfig />);
+            render(<QueryClientProvider client={createTestQueryClient()}><NotificationProvider><EquipmentConfig /></NotificationProvider></QueryClientProvider>);
         });
 
         await waitFor(() => {

@@ -1,6 +1,7 @@
 import { render, screen, waitFor, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { BrowserRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Dashboard from './Dashboard';
 
 // Mock useAuthFetch
@@ -16,11 +17,18 @@ vi.mock('../hooks/useDashboardSocket', () => ({
 
 
 
+const createTestQueryClient = () => new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+});
+
 const renderWithRouter = (component: React.ReactNode) => {
+    const queryClient = createTestQueryClient();
     return render(
-        <BrowserRouter>
-            {component}
-        </BrowserRouter>
+        <QueryClientProvider client={queryClient}>
+            <BrowserRouter>
+                {component}
+            </BrowserRouter>
+        </QueryClientProvider>
     );
 };
 
